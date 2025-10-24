@@ -1,0 +1,899 @@
+{
+  "program": "VIQRC",
+  "season": "2025-2026",
+  "title": "Mix & Match",
+  "pdfUrl": "https://content.vexrobotics.com/docs/25-26/viqrc-mix-and-match/MixAndMatch2.1.pdf",
+  "qnaUrl": "https://www.robotevents.com/VIQRC/2025-2026/QA",
+  "version": "20251023",
+  "ruleGroups": [
+    {
+      "name": "Scoring Rules",
+      "programs": [
+        "VIQRC"
+      ],
+      "rules": [
+        {
+          "id": "viqrc_sc1",
+          "rule": "<SC1>",
+          "title": "All scoring statuses are evaluated after the Match ends, once all Scoring Objects, Field Elements, and Robots on the Field come to rest",
+          "description": "All scoring statuses are evaluated after the Match ends, once all Scoring Objects, Field Elements, and Robots on the Field come to rest",
+          "fullText": "",
+          "completeText": "",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/SC1.html"
+        },
+        {
+          "id": "viqrc_sc2",
+          "rule": "<SC2>",
+          "title": "All scoring statuses are evaluated visually by a Head Referee, to the best of their ability within the context of a given Match/event",
+          "description": "All scoring statuses are evaluated visually by a Head Referee, to the best of their ability within the context of a given Match/event",
+          "fullText": "",
+          "completeText": "",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/SC2.html"
+        },
+        {
+          "id": "viqrc_sc3",
+          "rule": "<SC3>",
+          "title": "A Scoring Object can be Connected to another Scoring Object to form a Stack",
+          "description": "A Scoring Object can be Connected to another Scoring Object to form a Stack",
+          "fullText": "",
+          "completeText": "",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/SC3.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/images/Nested-Anno.png"
+          ]
+        },
+        {
+          "id": "viqrc_sc4",
+          "rule": "<SC4>",
+          "title": "A Stack that includes more than one color (blue, red, orange, or gray) of Scoring Object receives additional points based on the number of colors in that Stack, up to three colors",
+          "description": "A Stack that includes more than one color (blue, red, orange, or gray) of Scoring Object receives additional points based on the number of colors in that Stack, up to three colors",
+          "fullText": "",
+          "completeText": "",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/SC4.html"
+        },
+        {
+          "id": "viqrc_sc5",
+          "rule": "<SC5>",
+          "title": "A Stack is considered Placed in a Goal at the end of the Match if it meets all of the following criteria",
+          "description": "A Stack is considered Placed in a Goal at the end of the Match if it meets all of the following criteria",
+          "fullText": "",
+          "completeText": "",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/SC5.html"
+        },
+        {
+          "id": "viqrc_sc6",
+          "rule": "<SC6>",
+          "title": "A Stack earns a Matching Goal bonus when one or more of the following criteria is met:",
+          "description": "A Stack earns a Matching Goal bonus when one or more of the following criteria is met:",
+          "fullText": "",
+          "completeText": "",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/SC6.html"
+        },
+        {
+          "id": "viqrc_sc7",
+          "rule": "<SC7>",
+          "title": "A Starting Pin is Cleared if no part of its Starting Pin Support is within the volume of a Pin at the end of the Match",
+          "description": "A Starting Pin is Cleared if no part of its Starting Pin Support is within the volume of a Pin at the end of the Match",
+          "fullText": "",
+          "completeText": "",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/SC7.html"
+        },
+        {
+          "id": "viqrc_sc8",
+          "rule": "<SC8>",
+          "title": "A Robot will receive 2 points for ending the Match in contact with Scoring Objects in the following scenarios:",
+          "description": "A Robot will receive 2 points for ending the Match in contact with Scoring Objects in the following scenarios:",
+          "fullText": "",
+          "completeText": "",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/SC8.html"
+        }
+      ]
+    },
+    {
+      "name": "Safety Rules",
+      "programs": [
+        "VIQRC"
+      ],
+      "rules": [
+        {
+          "id": "viqrc_s1",
+          "rule": "<S1>",
+          "title": "Stay safe, don’t damage the Field",
+          "description": "Stay safe, don’t damage the Field",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: {{ITALIC}}Major Violations{{/ITALIC}} should be reported to and/or discussed with the {{ITALIC}}Event Partner{{/ITALIC}} during the event, and should be reported to the REC Foundation Rules and Conduct Committee following the event.",
+          "category": "Safety",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/S1.html"
+        },
+        {
+          "id": "viqrc_s2",
+          "rule": "<S2>",
+          "title": "Students must be accompanied by an Adult",
+          "description": "Students must be accompanied by an Adult",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: <S2> {{ITALIC}}Violations{{/ITALIC}} should be reported to the {{ITALIC}}Event Partner{{/ITALIC}} during the event, and should be reported to the REC Foundation Rules and Conduct Committee following the event.",
+          "category": "Safety",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/S2.html"
+        },
+        {
+          "id": "viqrc_s3",
+          "rule": "<S3>",
+          "title": "Each Student Team member must have a completed participant release form on file for the event and season",
+          "description": "Each Student Team member must have a completed participant release form on file for the event and season",
+          "fullText": "",
+          "completeText": "",
+          "category": "Safety",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/S3.html"
+        }
+      ]
+    },
+    {
+      "name": "General Rules",
+      "programs": [
+        "VIQRC"
+      ],
+      "rules": [
+        {
+          "id": "viqrc_g1",
+          "rule": "<G1>",
+          "title": "Treat everyone with respect",
+          "description": "Treat everyone with respect",
+          "fullText": "{{ITALIC}}We all can contribute to creating a fun and inclusive event experience for all event attendees. Some examples include: When dealing with difficult and stressful situations, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for {{ITALIC}}Teams{{/ITALIC}} to be gracious and supportive when your {{ITALIC}}Alliance{{/ITALIC}} partner makes a mistake. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for {{ITALIC}}Teams{{/ITALIC}} to harass, tease, or be disrespectful to your {{ITALIC}}Alliance{{/ITALIC}} partner when a {{ITALIC}}Match{{/ITALIC}} does not go your way. When a {{ITALIC}}Team{{/ITALIC}} does not understand a {{ITALIC}}Match{{/ITALIC}} ruling or score, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for {{ITALIC}}Drive Team Members{{/ITALIC}} to consult with a {{ITALIC}}Head Referee{{/ITALIC}} to discuss a ruling per the process outlined in <T3> in a calm and respectful manner. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for {{ITALIC}}Drive Team Members{{/ITALIC}} to continue arguing with the {{ITALIC}}Head Referee{{/ITALIC}} after a decision has been finalized, or for {{ITALIC}}Adults{{/ITALIC}} to approach a {{ITALIC}}Head Referee{{/ITALIC}} with ruling/scoring concerns. When {{ITALIC}}Teams{{/ITALIC}} are getting ready for an upcoming {{ITALIC}}Match{{/ITALIC}}, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for {{ITALIC}}Teams{{/ITALIC}} in an {{ITALIC}}Alliance{{/ITALIC}} to develop a game strategy that utilizes the strengths of both {{ITALIC}}Robots{{/ITALIC}} to cooperatively solve the game. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for one {{ITALIC}}Team{{/ITALIC}} in an {{ITALIC}}Alliance{{/ITALIC}} to ask another {{ITALIC}}Team{{/ITALIC}} to sit in a corner during the {{ITALIC}}Match{{/ITALIC}} or to intentionally play beneath their abilities.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}We all can contribute to creating a fun and inclusive event experience for all event attendees. Some examples include: When dealing with difficult and stressful situations, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for {{ITALIC}}Teams{{/ITALIC}} to be gracious and supportive when your {{ITALIC}}Alliance{{/ITALIC}} partner makes a mistake. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for {{ITALIC}}Teams{{/ITALIC}} to harass, tease, or be disrespectful to your {{ITALIC}}Alliance{{/ITALIC}} partner when a {{ITALIC}}Match{{/ITALIC}} does not go your way. When a {{ITALIC}}Team{{/ITALIC}} does not understand a {{ITALIC}}Match{{/ITALIC}} ruling or score, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for {{ITALIC}}Drive Team Members{{/ITALIC}} to consult with a {{ITALIC}}Head Referee{{/ITALIC}} to discuss a ruling per the process outlined in <T3> in a calm and respectful manner. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for {{ITALIC}}Drive Team Members{{/ITALIC}} to continue arguing with the {{ITALIC}}Head Referee{{/ITALIC}} after a decision has been finalized, or for {{ITALIC}}Adults{{/ITALIC}} to approach a {{ITALIC}}Head Referee{{/ITALIC}} with ruling/scoring concerns. When {{ITALIC}}Teams{{/ITALIC}} are getting ready for an upcoming {{ITALIC}}Match{{/ITALIC}}, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for {{ITALIC}}Teams{{/ITALIC}} in an {{ITALIC}}Alliance{{/ITALIC}} to develop a game strategy that utilizes the strengths of both {{ITALIC}}Robots{{/ITALIC}} to cooperatively solve the game. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for one {{ITALIC}}Team{{/ITALIC}} in an {{ITALIC}}Alliance{{/ITALIC}} to ask another {{ITALIC}}Team{{/ITALIC}} to sit in a corner during the {{ITALIC}}Match{{/ITALIC}} or to intentionally play beneath their abilities.{{/ITALIC}}\nViolation Notes: Any {{ITALIC}}Violation{{/ITALIC}} of <G1> may be considered a {{ITALIC}}Major Violation{{/ITALIC}} and should be addressed on a case-by-case basis. {{ITALIC}}Teams{{/ITALIC}} at risk of a <G1> {{ITALIC}}Major Violation{{/ITALIC}} due to multiple disrespectful or uncivil behaviors will usually receive a “final warning”, although the {{ITALIC}}Head Referee{{/ITALIC}} is not required to provide one. All <G1> {{ITALIC}}Major Violations{{/ITALIC}}/{{ITALIC}}Disqualifications{{/ITALIC}} should be reported to and/or discussed with the {{ITALIC}}Event Partner{{/ITALIC}} during the event, and should be reported to the REC Foundation Rules and Conduct Committee following the event.",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/G1.html"
+        },
+        {
+          "id": "viqrc_g2",
+          "rule": "<G2>",
+          "title": "VIQRC is a student-centered program",
+          "description": "VIQRC is a student-centered program",
+          "fullText": "{{ITALIC}}Some amount of {{ITALIC}}Adult{{/ITALIC}} mentorship, teaching, and/or guidance is an expected and encouraged facet of VEX competitions. No one is born an expert in robotics! However, obstacles should always be viewed as teaching opportunities, not problems for an {{ITALIC}}Adult{{/ITALIC}} to solve for the {{ITALIC}}Team{{/ITALIC}}. When building or designing the {{ITALIC}}Robot{{/ITALIC}}, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for an {{ITALIC}}Adult{{/ITALIC}} to help a {{ITALIC}}Student{{/ITALIC}} consider why something failed, so it can be improved. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for an {{ITALIC}}Adult{{/ITALIC}} to provide step by step instructions or photos for the {{ITALIC}}Student{{/ITALIC}} to copy. When a mechanism falls off, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for an {{ITALIC}}Adult{{/ITALIC}} to help a {{ITALIC}}Student{{/ITALIC}} consider why it failed, so it can be improved. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for an {{ITALIC}}Adult{{/ITALIC}} to investigate or put the {{ITALIC}}Robot{{/ITALIC}} back together. When a {{ITALIC}}Team{{/ITALIC}} encounters a complex programming concept, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for an {{ITALIC}}Adult{{/ITALIC}} to guide a {{ITALIC}}Student{{/ITALIC}} through a flowchart to understand its logic. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for an {{ITALIC}}Adult{{/ITALIC}} to write a premade command for that {{ITALIC}}Student{{/ITALIC}} to copy / paste. During {{ITALIC}}Match{{/ITALIC}} play, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for an {{ITALIC}}Adult{{/ITALIC}} to provide cheerful, positive encouragement as a spectator. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for an {{ITALIC}}Adult{{/ITALIC}} to explicitly shout step-by-step commands from the audience.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}Some amount of {{ITALIC}}Adult{{/ITALIC}} mentorship, teaching, and/or guidance is an expected and encouraged facet of VEX competitions. No one is born an expert in robotics! However, obstacles should always be viewed as teaching opportunities, not problems for an {{ITALIC}}Adult{{/ITALIC}} to solve for the {{ITALIC}}Team{{/ITALIC}}. When building or designing the {{ITALIC}}Robot{{/ITALIC}}, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for an {{ITALIC}}Adult{{/ITALIC}} to help a {{ITALIC}}Student{{/ITALIC}} consider why something failed, so it can be improved. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for an {{ITALIC}}Adult{{/ITALIC}} to provide step by step instructions or photos for the {{ITALIC}}Student{{/ITALIC}} to copy. When a mechanism falls off, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for an {{ITALIC}}Adult{{/ITALIC}} to help a {{ITALIC}}Student{{/ITALIC}} consider why it failed, so it can be improved. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for an {{ITALIC}}Adult{{/ITALIC}} to investigate or put the {{ITALIC}}Robot{{/ITALIC}} back together. When a {{ITALIC}}Team{{/ITALIC}} encounters a complex programming concept, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for an {{ITALIC}}Adult{{/ITALIC}} to guide a {{ITALIC}}Student{{/ITALIC}} through a flowchart to understand its logic. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for an {{ITALIC}}Adult{{/ITALIC}} to write a premade command for that {{ITALIC}}Student{{/ITALIC}} to copy / paste. During {{ITALIC}}Match{{/ITALIC}} play, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for an {{ITALIC}}Adult{{/ITALIC}} to provide cheerful, positive encouragement as a spectator. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for an {{ITALIC}}Adult{{/ITALIC}} to explicitly shout step-by-step commands from the audience.{{/ITALIC}}\nViolation Notes: Potential {{ITALIC}}Violations{{/ITALIC}} of this rule will be reviewed on a case-by-case basis. By definition, all {{ITALIC}}Violations{{/ITALIC}} of this rule become {{ITALIC}}Score Affecting{{/ITALIC}} as soon as a {{ITALIC}}Robot{{/ITALIC}} which was built or programmed by an {{ITALIC}}Adult{{/ITALIC}} scores points in a {{ITALIC}}Match{{/ITALIC}}. All reported and/or suspected <G2> {{ITALIC}}Violations{{/ITALIC}} should be reported to the {{ITALIC}}Event Partner{{/ITALIC}} during the event, and should be reported to the REC Foundation Rules and Conduct Committee following the event.",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/G2.html"
+        },
+        {
+          "id": "viqrc_g3",
+          "rule": "<G3>",
+          "title": "Use common sense",
+          "description": "Use common sense",
+          "fullText": "{{ITALIC}}Some examples may include: {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}If there is an obvious typographical error (such as “per <T5>” instead of “per <GG5>”), this does not mean that the error should be taken literally until corrected in a future update. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Understand the realities of the VEX IQ {{ITALIC}}Robot{{/ITALIC}} construction system. For example, if a {{ITALIC}}Robot{{/ITALIC}} could hover above the {{ITALIC}}Field{{/ITALIC}} for a whole {{ITALIC}}Match{{/ITALIC}}, that would create loopholes in many of the rules. But… they can’t. So… don’t worry about it. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}When in doubt, if there is no rule prohibiting an action, it is generally legal. However, if you have to ask whether a given action would violate <S1>, <G1>, or <T1> then that’s probably a good indication that it is outside the spirit of the competition. On the other hand, if there’s not a rule that makes a {{ITALIC}}Robot{{/ITALIC}} part legal, it’s not allowed. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}In general, {{ITALIC}}Teams{{/ITALIC}} will be given the “benefit of the doubt” in the case of accidental or edge-case rules infractions. However, there is a limit to this allowance, and repeated or strategic infractions will still be penalized.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}Some examples may include: {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}If there is an obvious typographical error (such as “per <T5>” instead of “per <GG5>”), this does not mean that the error should be taken literally until corrected in a future update. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Understand the realities of the VEX IQ {{ITALIC}}Robot{{/ITALIC}} construction system. For example, if a {{ITALIC}}Robot{{/ITALIC}} could hover above the {{ITALIC}}Field{{/ITALIC}} for a whole {{ITALIC}}Match{{/ITALIC}}, that would create loopholes in many of the rules. But… they can’t. So… don’t worry about it. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}When in doubt, if there is no rule prohibiting an action, it is generally legal. However, if you have to ask whether a given action would violate <S1>, <G1>, or <T1> then that’s probably a good indication that it is outside the spirit of the competition. On the other hand, if there’s not a rule that makes a {{ITALIC}}Robot{{/ITALIC}} part legal, it’s not allowed. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}In general, {{ITALIC}}Teams{{/ITALIC}} will be given the “benefit of the doubt” in the case of accidental or edge-case rules infractions. However, there is a limit to this allowance, and repeated or strategic infractions will still be penalized.{{/ITALIC}}",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/G3.html"
+        },
+        {
+          "id": "viqrc_g4",
+          "rule": "<G4>",
+          "title": "All work must represent the skill level of the Students on the Team",
+          "description": "All work must represent the skill level of the Students on the Team",
+          "fullText": "{{ITALIC}}The VEX IQ Robotics Competition and the Robotics Education & Competition Foundation (RECF) recognize that many third-party individuals and organizations produce and distribute robot designs, instructions, and/or other materials that are not under our direct control. We cannot legally regulate or restrict the activities of these external entities. However, when {{ITALIC}}Teams{{/ITALIC}} use these resources in ways that violate the spirit and letter of the VEX Robotics Game Manual—particularly Rules <G2> and <G4>—they undermine the core mission of the program: to provide {{ITALIC}}Students{{/ITALIC}} with hands-on opportunities to learn, design, and innovate. While it is never our intent to punish {{ITALIC}}Students{{/ITALIC}}, we can legally regulate and restrict the activities of the {{ITALIC}}Teams{{/ITALIC}} in our competitions, and we must preserve the fairness, educational value, and integrity of the competition. Therefore, {{ITALIC}}Teams{{/ITALIC}} found to be in {{ITALIC}}Violation{{/ITALIC}} of these rules will be held accountable to the strictest interpretations of <G2> and <G4>. It is the responsibility of each {{ITALIC}}Team{{/ITALIC}} to be able to explain and defend the design, construction, and programming of their {{ITALIC}}Robot{{/ITALIC}} if questioned by referees, inspectors, {{ITALIC}}Event Partners{{/ITALIC}}, or judges. {{ITALIC}}Teams{{/ITALIC}} should be prepared to describe their design process, justify design decisions, and demonstrate a full understanding of how their {{ITALIC}}Robot{{/ITALIC}} and code function. If a {{ITALIC}}Team{{/ITALIC}} is unable, for any reason, to provide reasonable evidence (when requested by event staff) that their {{ITALIC}}Robot{{/ITALIC}} and code are the result of their own work, it is appropriate to assume that the {{ITALIC}}Team{{/ITALIC}} is in violation of <G2> and/or <G4>. Event organizers cannot reasonably know the origins of every design or independently verify whether a {{ITALIC}}Robot{{/ITALIC}} was created from scratch, purchased online, or copied from pictures of another {{ITALIC}}Team’s{{/ITALIC}} design. When questions of authenticity arise, the only direct and fair approach is to require {{ITALIC}}Students{{/ITALIC}} to explain and defend their work. This is not unlike academic honesty concerns in schools, and intellectual property concerns in business. By requiring {{ITALIC}}Students{{/ITALIC}} to defend their designs, we ensure that they are developing not only technical skills, but effective communication skills and accountability, as well. Consequences may include disqualification from matches, removal from events, and/or escalation of the investigation to VEX Robotics and the RECF for further disciplinary action, which may include sanctions up to and including removal from the program.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}The VEX IQ Robotics Competition and the Robotics Education & Competition Foundation (RECF) recognize that many third-party individuals and organizations produce and distribute robot designs, instructions, and/or other materials that are not under our direct control. We cannot legally regulate or restrict the activities of these external entities. However, when {{ITALIC}}Teams{{/ITALIC}} use these resources in ways that violate the spirit and letter of the VEX Robotics Game Manual—particularly Rules <G2> and <G4>—they undermine the core mission of the program: to provide {{ITALIC}}Students{{/ITALIC}} with hands-on opportunities to learn, design, and innovate. While it is never our intent to punish {{ITALIC}}Students{{/ITALIC}}, we can legally regulate and restrict the activities of the {{ITALIC}}Teams{{/ITALIC}} in our competitions, and we must preserve the fairness, educational value, and integrity of the competition. Therefore, {{ITALIC}}Teams{{/ITALIC}} found to be in {{ITALIC}}Violation{{/ITALIC}} of these rules will be held accountable to the strictest interpretations of <G2> and <G4>. It is the responsibility of each {{ITALIC}}Team{{/ITALIC}} to be able to explain and defend the design, construction, and programming of their {{ITALIC}}Robot{{/ITALIC}} if questioned by referees, inspectors, {{ITALIC}}Event Partners{{/ITALIC}}, or judges. {{ITALIC}}Teams{{/ITALIC}} should be prepared to describe their design process, justify design decisions, and demonstrate a full understanding of how their {{ITALIC}}Robot{{/ITALIC}} and code function. If a {{ITALIC}}Team{{/ITALIC}} is unable, for any reason, to provide reasonable evidence (when requested by event staff) that their {{ITALIC}}Robot{{/ITALIC}} and code are the result of their own work, it is appropriate to assume that the {{ITALIC}}Team{{/ITALIC}} is in violation of <G2> and/or <G4>. Event organizers cannot reasonably know the origins of every design or independently verify whether a {{ITALIC}}Robot{{/ITALIC}} was created from scratch, purchased online, or copied from pictures of another {{ITALIC}}Team’s{{/ITALIC}} design. When questions of authenticity arise, the only direct and fair approach is to require {{ITALIC}}Students{{/ITALIC}} to explain and defend their work. This is not unlike academic honesty concerns in schools, and intellectual property concerns in business. By requiring {{ITALIC}}Students{{/ITALIC}} to defend their designs, we ensure that they are developing not only technical skills, but effective communication skills and accountability, as well. Consequences may include disqualification from matches, removal from events, and/or escalation of the investigation to VEX Robotics and the RECF for further disciplinary action, which may include sanctions up to and including removal from the program.{{/ITALIC}}\nViolation Notes: \n• {{ITALIC}}Teams{{/ITALIC}} believed to be in {{ITALIC}}Violation{{/ITALIC}} of this rule should be reported to the Judge Advisor, {{ITALIC}}Head Referee{{/ITALIC}}, or {{ITALIC}}Event Partner{{/ITALIC}} for further investigation in coordination with the RSM. Based on the investigation the {{ITALIC}}Team{{/ITALIC}} may be removed from further {{ITALIC}}Matches{{/ITALIC}}, have their Robot Skills Challenge scores removed, and/or be removed from consideration from judged awards. \n• {{ITALIC}}Violations{{/ITALIC}} of this rule will be evaluated on a case-by-case basis, in tandem with the RECF Student Centered Policy as noted in <G2>, and the REC Foundation Code of Conduct as noted in <G1>. All reported and/or suspected <G4> {{ITALIC}}Violations{{/ITALIC}} should be reported to the {{ITALIC}}Event Partner{{/ITALIC}} during the event, and should be reported to the RECF Rules and Conduct Committee following the event.",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/G4.html"
+        },
+        {
+          "id": "viqrc_g5",
+          "rule": "<G5>",
+          "title": "Each Student can only belong to one Team",
+          "description": "Each Student can only belong to one Team",
+          "fullText": "Violation Note: {{ITALIC}}Teams{{/ITALIC}} believed to be in {{ITALIC}}Violation{{/ITALIC}} of this rule should be reported to the Judge Advisor, {{ITALIC}}Head Referee{{/ITALIC}}, or {{ITALIC}}Event Partner{{/ITALIC}} for further investigation in coordination with the RSM.\n{{ITALIC}}{{ITALIC}}Event Partners{{/ITALIC}} should bear in mind <G3>, and use common sense when enforcing this rule. It is not the intent to punish a {{ITALIC}}Team{{/ITALIC}} who may change {{ITALIC}}Team{{/ITALIC}} members over the course of a season due to illness, changing schools, conflicts within a {{ITALIC}}Team{{/ITALIC}}, etc. {{ITALIC}}Event Partners{{/ITALIC}} and referees are not expected to keep a roster of any {{ITALIC}}Student{{/ITALIC}} who has ever been a {{ITALIC}}Driver{{/ITALIC}} for one day. This rule is intended to block any instance of loaning or sharing {{ITALIC}}Team{{/ITALIC}} members for the sole purpose of gaining a competitive advantage.{{/ITALIC}}",
+          "completeText": "Violation Note: {{ITALIC}}Teams{{/ITALIC}} believed to be in {{ITALIC}}Violation{{/ITALIC}} of this rule should be reported to the Judge Advisor, {{ITALIC}}Head Referee{{/ITALIC}}, or {{ITALIC}}Event Partner{{/ITALIC}} for further investigation in coordination with the RSM.\n{{ITALIC}}{{ITALIC}}Event Partners{{/ITALIC}} should bear in mind <G3>, and use common sense when enforcing this rule. It is not the intent to punish a {{ITALIC}}Team{{/ITALIC}} who may change {{ITALIC}}Team{{/ITALIC}} members over the course of a season due to illness, changing schools, conflicts within a {{ITALIC}}Team{{/ITALIC}}, etc. {{ITALIC}}Event Partners{{/ITALIC}} and referees are not expected to keep a roster of any {{ITALIC}}Student{{/ITALIC}} who has ever been a {{ITALIC}}Driver{{/ITALIC}} for one day. This rule is intended to block any instance of loaning or sharing {{ITALIC}}Team{{/ITALIC}} members for the sole purpose of gaining a competitive advantage.{{/ITALIC}}",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/G5.html"
+        }
+      ]
+    },
+    {
+      "name": "GG Rules",
+      "programs": [
+        "VIQRC"
+      ],
+      "rules": [
+        {
+          "id": "viqrc_gg1",
+          "rule": "<GG1>",
+          "title": "Drivers drive your Robot, and stay in the Driver Station",
+          "description": "Drivers drive your Robot, and stay in the Driver Station",
+          "fullText": "{{ITALIC}}Point iii is intended to refer to non-{{ITALIC}}Robot{{/ITALIC}}-related items that directly influence gameplay, such as using a ramp to assist with the {{ITALIC}}Load Zone{{/ITALIC}}. Provided no other rules are violated, and the items do not pose any safety or {{ITALIC}}Field{{/ITALIC}} damage risks, the following examples are not considered {{ITALIC}}Violations{{/ITALIC}} of <GG1>: {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Materials used before or after a {{ITALIC}}Match{{/ITALIC}}, such as a pre-{{ITALIC}}Match{{/ITALIC}} alignment aid {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Strategic aids, such as a whiteboard or clipboard {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Earplugs, gloves, or other personal accessories{{/ITALIC}}",
+          "completeText": "{{ITALIC}}Point iii is intended to refer to non-{{ITALIC}}Robot{{/ITALIC}}-related items that directly influence gameplay, such as using a ramp to assist with the {{ITALIC}}Load Zone{{/ITALIC}}. Provided no other rules are violated, and the items do not pose any safety or {{ITALIC}}Field{{/ITALIC}} damage risks, the following examples are not considered {{ITALIC}}Violations{{/ITALIC}} of <GG1>: {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Materials used before or after a {{ITALIC}}Match{{/ITALIC}}, such as a pre-{{ITALIC}}Match{{/ITALIC}} alignment aid {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Strategic aids, such as a whiteboard or clipboard {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Earplugs, gloves, or other personal accessories{{/ITALIC}}\nViolation Notes: {{ITALIC}}Major Violations{{/ITALIC}} of this rule are not required to be {{ITALIC}}Score Affecting{{/ITALIC}}, and could invoke {{ITALIC}}Violations{{/ITALIC}} of other rules, such as <G1>, <G2>, <G5> or <GG11>.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/GG1.html"
+        },
+        {
+          "id": "viqrc_gg2",
+          "rule": "<GG2>",
+          "title": "A Team’s Robot should attend every Match",
+          "description": "A Team’s Robot should attend every Match",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/GG2.html"
+        },
+        {
+          "id": "viqrc_gg3",
+          "rule": "<GG3>",
+          "title": "Robots on the field must be ready to play",
+          "description": "Robots on the field must be ready to play",
+          "fullText": "{{ITALIC}}The definition of the word “promptly” is at the discretion of the {{ITALIC}}Event Partner{{/ITALIC}} and {{ITALIC}}Head Referee{{/ITALIC}}, who will consider event schedule, previous {{ITALIC}}Violations{{/ITALIC}} or delays, etc. As a general guideline, five seconds to check {{ITALIC}}Robot{{/ITALIC}} alignment would be acceptable, but five minutes to assemble multiple parts together would not.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}The definition of the word “promptly” is at the discretion of the {{ITALIC}}Event Partner{{/ITALIC}} and {{ITALIC}}Head Referee{{/ITALIC}}, who will consider event schedule, previous {{ITALIC}}Violations{{/ITALIC}} or delays, etc. As a general guideline, five seconds to check {{ITALIC}}Robot{{/ITALIC}} alignment would be acceptable, but five minutes to assemble multiple parts together would not.{{/ITALIC}}",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/GG3.html"
+        },
+        {
+          "id": "viqrc_gg4",
+          "rule": "<GG4>",
+          "title": "Hands out of the Field",
+          "description": "Hands out of the Field",
+          "fullText": "{{ITALIC}}If a {{ITALIC}}Drive Team Member’s{{/ITALIC}} hands extend over the {{ITALIC}}Field{{/ITALIC}} and/or {{ITALIC}}Field Perimeter{{/ITALIC}} in a way that is safe and doesn’t contact anything in the {{ITALIC}}Field{{/ITALIC}}, it’s unlikely to be a {{ITALIC}}Violation{{/ITALIC}}. However, {{ITALIC}}Head Referees{{/ITALIC}} may still ask {{ITALIC}}Drive Team Members{{/ITALIC}} to step back and remain completely outside the {{ITALIC}}Field{{/ITALIC}} when necessary (e.g., for safety reasons or to reduce the chances of gameplay interference).{{/ITALIC}}",
+          "completeText": "{{ITALIC}}If a {{ITALIC}}Drive Team Member’s{{/ITALIC}} hands extend over the {{ITALIC}}Field{{/ITALIC}} and/or {{ITALIC}}Field Perimeter{{/ITALIC}} in a way that is safe and doesn’t contact anything in the {{ITALIC}}Field{{/ITALIC}}, it’s unlikely to be a {{ITALIC}}Violation{{/ITALIC}}. However, {{ITALIC}}Head Referees{{/ITALIC}} may still ask {{ITALIC}}Drive Team Members{{/ITALIC}} to step back and remain completely outside the {{ITALIC}}Field{{/ITALIC}} when necessary (e.g., for safety reasons or to reduce the chances of gameplay interference).{{/ITALIC}}",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/GG4.html"
+        },
+        {
+          "id": "viqrc_gg5",
+          "rule": "<GG5>",
+          "title": "Match Replays are allowed, but rare",
+          "description": "Match Replays are allowed, but rare",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/GG5.html"
+        },
+        {
+          "id": "viqrc_gg6",
+          "rule": "<GG6>",
+          "title": "Disqualifications",
+          "description": "Disqualifications",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/GG6.html"
+        },
+        {
+          "id": "viqrc_gg7",
+          "rule": "<GG7>",
+          "title": "Timeouts",
+          "description": "Timeouts",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/GG7.html"
+        },
+        {
+          "id": "viqrc_gg8",
+          "rule": "<GG8>",
+          "title": "Keep your Robot together",
+          "description": "Keep your Robot together",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/GG8.html"
+        },
+        {
+          "id": "viqrc_gg9",
+          "rule": "<GG9>",
+          "title": "Don’t damage the Field",
+          "description": "Don’t damage the Field",
+          "fullText": "{{ITALIC}}{{ITALIC}}Teams{{/ITALIC}} are responsible for the actions of their {{ITALIC}}Robots{{/ITALIC}} at all times, especially when interacting with the {{ITALIC}}Goals{{/ITALIC}}. If a {{ITALIC}}Team{{/ITALIC}} chooses to repeatedly ram full-speed into a {{ITALIC}}Field Element{{/ITALIC}}, it will be hard to convince a {{ITALIC}}Head Referee{{/ITALIC}} that any damage caused was “accidental.”{{/ITALIC}}",
+          "completeText": "{{ITALIC}}{{ITALIC}}Teams{{/ITALIC}} are responsible for the actions of their {{ITALIC}}Robots{{/ITALIC}} at all times, especially when interacting with the {{ITALIC}}Goals{{/ITALIC}}. If a {{ITALIC}}Team{{/ITALIC}} chooses to repeatedly ram full-speed into a {{ITALIC}}Field Element{{/ITALIC}}, it will be hard to convince a {{ITALIC}}Head Referee{{/ITALIC}} that any damage caused was “accidental.”{{/ITALIC}}\nViolation Notes: \n• In most cases, accidental {{ITALIC}}Field{{/ITALIC}} damage should only be considered a {{ITALIC}}Minor Violation{{/ITALIC}} \n• Egregious, intentional, or repeated accidental/{{ITALIC}}Minor Violations{{/ITALIC}} may escalate to a {{ITALIC}}Major Violation{{/ITALIC}} at the {{ITALIC}}Head Referee’s{{/ITALIC}} discretion",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/GG9.html"
+        },
+        {
+          "id": "viqrc_gg10",
+          "rule": "<GG10>",
+          "title": "Handling the Robot mid-match is allowed under certain circumstances",
+          "description": "Handling the Robot mid-match is allowed under certain circumstances",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: This rule is intended to allow {{ITALIC}}Teams{{/ITALIC}} to fix damaged {{ITALIC}}Robots{{/ITALIC}} or help get their {{ITALIC}}Robots{{/ITALIC}} “out of trouble.” Strategically exploiting this rule may be considered a {{ITALIC}}Minor Violation{{/ITALIC}} or {{ITALIC}}Major Violation{{/ITALIC}} at the {{ITALIC}}Head Referee’s{{/ITALIC}} discretion.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/GG10.html"
+        },
+        {
+          "id": "viqrc_gg11",
+          "rule": "<GG11>",
+          "title": "A Team’s two Drivers switch Controllers midway through the Match",
+          "description": "A Team’s two Drivers switch Controllers midway through the Match",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: At a minimum, any {{ITALIC}}Violation{{/ITALIC}} of this rule is considered a {{ITALIC}}Minor Violation{{/ITALIC}}. Whether it escalates to a {{ITALIC}}Major Violation{{/ITALIC}} or not is dependent upon the {{ITALIC}}Head Referee’s{{/ITALIC}} judgment regarding: \n• Prior {{ITALIC}}Violations{{/ITALIC}} \n• Any {{ITALIC}}Score Affecting{{/ITALIC}} actions that were a direct result of the {{ITALIC}}Violation{{/ITALIC}}, such as the first {{ITALIC}}Driver{{/ITALIC}} scoring additional points after 35 seconds of driving or a {{ITALIC}}Driver{{/ITALIC}} also serving as a Loader in the same {{ITALIC}}Match{{/ITALIC}}.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/GG11.html"
+        },
+        {
+          "id": "viqrc_gg12",
+          "rule": "<GG12>",
+          "title": "Don’t Start Before the Timer, and Stop Moving at the end of the Match",
+          "description": "Don’t Start Before the Timer, and Stop Moving at the end of the Match",
+          "fullText": "{{ITALIC}}It is expected that many Mix & Match {{ITALIC}}Matches{{/ITALIC}} will have last-second “buzzer-beater” moments. The key moment occurs when the timer display shows 0:00. At many events, a buzzer sound will also play at T=0:00; however, the {{ITALIC}}Field{{/ITALIC}} timer display takes precedence in the event of any audio discrepancies. If a {{ITALIC}}Stack{{/ITALIC}} is released from a {{ITALIC}}Robot{{/ITALIC}} before this moment, it will be allowed to finish its path and the score will be calculated once it comes to rest. However, if it is released after this moment (i.e., the {{ITALIC}}Robot{{/ITALIC}} was still moving past T=0:00) it will not count and the {{ITALIC}}Team{{/ITALIC}} will receive a {{ITALIC}}Violation{{/ITALIC}} as described below. In cases where a last-second scoring attempt is “too close to call,” {{ITALIC}}Teams{{/ITALIC}} will generally be given the “benefit of the doubt” and the score will be counted. {{ITALIC}}Teams{{/ITALIC}} are advised to {{ITALIC}}Place{{/ITALIC}} and release {{ITALIC}}Stacks{{/ITALIC}} a second or two before the timer reaches zero to avoid the need for referee judgment calls.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}It is expected that many Mix & Match {{ITALIC}}Matches{{/ITALIC}} will have last-second “buzzer-beater” moments. The key moment occurs when the timer display shows 0:00. At many events, a buzzer sound will also play at T=0:00; however, the {{ITALIC}}Field{{/ITALIC}} timer display takes precedence in the event of any audio discrepancies. If a {{ITALIC}}Stack{{/ITALIC}} is released from a {{ITALIC}}Robot{{/ITALIC}} before this moment, it will be allowed to finish its path and the score will be calculated once it comes to rest. However, if it is released after this moment (i.e., the {{ITALIC}}Robot{{/ITALIC}} was still moving past T=0:00) it will not count and the {{ITALIC}}Team{{/ITALIC}} will receive a {{ITALIC}}Violation{{/ITALIC}} as described below. In cases where a last-second scoring attempt is “too close to call,” {{ITALIC}}Teams{{/ITALIC}} will generally be given the “benefit of the doubt” and the score will be counted. {{ITALIC}}Teams{{/ITALIC}} are advised to {{ITALIC}}Place{{/ITALIC}} and release {{ITALIC}}Stacks{{/ITALIC}} a second or two before the timer reaches zero to avoid the need for referee judgment calls.{{/ITALIC}}\nViolation Notes: \n• Because scoring that happens after the {{ITALIC}}Match{{/ITALIC}} is not counted, all {{ITALIC}}Violations{{/ITALIC}} of <GG12> should be recorded as {{ITALIC}}Minor Violations{{/ITALIC}}. \n• If a {{ITALIC}}Team{{/ITALIC}} receives three {{ITALIC}}Minor Violations{{/ITALIC}} within the same event, all future <GG12> {{ITALIC}}Violations{{/ITALIC}} at that event will be considered {{ITALIC}}Major Violations{{/ITALIC}} and {{ITALIC}}Disqualifications{{/ITALIC}}. \n• This count does not reset for any reason within an event (e.g., Qualification vs Finals Matches{{ITALIC}}, one of the {{ITALIC}}Team’s{{/ITALIC}} “dropped score” {{ITALIC}}Matches{{/ITALIC}}, etc.), but does not include {{ITALIC}}Violations{{/ITALIC}} that occur in {{ITALIC}}Robot Skills Matches{{/ITALIC}} {{/ITALIC}}",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/GG12.html"
+        },
+        {
+          "id": "viqrc_gg13",
+          "rule": "<GG13>",
+          "title": "Ending a Match early",
+          "description": "Ending a Match early",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/GG13.html"
+        }
+      ]
+    },
+    {
+      "name": "Specific Game Rules",
+      "programs": [
+        "VIQRC"
+      ],
+      "rules": [
+        {
+          "id": "viqrc_sg1",
+          "rule": "<SG1>",
+          "title": "Starting a Match",
+          "description": "Starting a Match",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: The {{ITALIC}}Match{{/ITALIC}} will not begin with any conditions in this rule unmet. If a {{ITALIC}}Robot{{/ITALIC}} cannot meet these conditions in a timely manner, the {{ITALIC}}Robot{{/ITALIC}} will be removed from the {{ITALIC}}Field{{/ITALIC}} and rules <R3d> and <GG2> will apply until the situation is corrected. In most cases, they will not receive a {{ITALIC}}Disqualification{{/ITALIC}}, but they will not be permitted to play in the {{ITALIC}}Match{{/ITALIC}}.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/SG1.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/images/SG1.png"
+          ]
+        },
+        {
+          "id": "viqrc_sg2",
+          "rule": "<SG2>",
+          "title": "Horizontal expansion is limited",
+          "description": "Horizontal expansion is limited",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/SG2.html"
+        },
+        {
+          "id": "viqrc_sg3",
+          "rule": "<SG3>",
+          "title": "Vertical expansion is unlimited",
+          "description": "Vertical expansion is unlimited",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/SG3.html"
+        },
+        {
+          "id": "viqrc_sg4",
+          "rule": "<SG4>",
+          "title": "Keep Scoring Objects in the Field",
+          "description": "Keep Scoring Objects in the Field",
+          "fullText": "Violation Note: {{ITALIC}}Violations{{/ITALIC}} that are deemed by the {{ITALIC}}Head Referee{{/ITALIC}} to be intentional or strategic should immediately escalate to a {{ITALIC}}Major Violation{{/ITALIC}}.",
+          "completeText": "Violation Note: {{ITALIC}}Violations{{/ITALIC}} that are deemed by the {{ITALIC}}Head Referee{{/ITALIC}} to be intentional or strategic should immediately escalate to a {{ITALIC}}Major Violation{{/ITALIC}}.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/SG4.html"
+        },
+        {
+          "id": "viqrc_sg5",
+          "rule": "<SG5>",
+          "title": "Each Robot gets one Pin as a Preload",
+          "description": "Each Robot gets one Pin as a Preload",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/SG5.html"
+        },
+        {
+          "id": "viqrc_sg6",
+          "rule": "<SG6>",
+          "title": "Using the Load Zone",
+          "description": "Using the Load Zone",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: \n• {{ITALIC}}Teams{{/ITALIC}} are responsible for their own actions. {{ITALIC}}Violations{{/ITALIC}} that involve a Loader and {{ITALIC}}Robot{{/ITALIC}} from opposite {{ITALIC}}Teams{{/ITALIC}} will be given to both {{ITALIC}}Teams{{/ITALIC}}. \n• It is expected that most {{ITALIC}}Violations{{/ITALIC}} of this rule will be accidental. In accidental cases that end up being {{ITALIC}}Score Affecting{{/ITALIC}} (i.e., an illegally-{{ITALIC}}Loaded{{/ITALIC}} {{ITALIC}}Scoring Object{{/ITALIC}} is {{ITALIC}}Connected{{/ITALIC}} to another {{ITALIC}}Scoring Object{{/ITALIC}}), the first occurrence during a {{ITALIC}}Qualification Match{{/ITALIC}} may be treated as a {{ITALIC}}Minor Violation{{/ITALIC}} and a “final notice” that any future {{ITALIC}}Violation{{/ITALIC}} will result in {{ITALIC}}Disqualification{{/ITALIC}} for the {{ITALIC}}Match{{/ITALIC}}. \n• Any {{ITALIC}}Score Affecting{{/ITALIC}} {{ITALIC}}Violation{{/ITALIC}} during a {{ITALIC}}Finals Match{{/ITALIC}} (accidental and intentional) must be treated as a {{ITALIC}}Major Violation{{/ITALIC}}. \n• Repeated, intentional, or egregious {{ITALIC}}Violations{{/ITALIC}} may escalate to a {{ITALIC}}Major Violation{{/ITALIC}} at the {{ITALIC}}Head Referee’s{{/ITALIC}} discretion. One example of an egregious {{ITALIC}}Violation{{/ITALIC}} would be placing a {{ITALIC}}Scoring Object{{/ITALIC}} directly onto a {{ITALIC}}Robot{{/ITALIC}} without ever contacting the {{ITALIC}}Load Zone{{/ITALIC}}.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/SG6.html"
+        }
+      ]
+    },
+    {
+      "name": "Robot Rules",
+      "programs": [
+        "VIQRC"
+      ],
+      "rules": [
+        {
+          "id": "viqrc_r1",
+          "rule": "<R1>",
+          "title": "One Robot per Team",
+          "description": "One Robot per Team",
+          "fullText": "{{ITALIC}}The intent of <R1a>, <R1b>, and <R1c> is to ensure an unambiguous level playing field for all {{ITALIC}}Teams{{/ITALIC}}. {{ITALIC}}Teams{{/ITALIC}} are welcome (and encouraged) to improve or modify their {{ITALIC}}Robots{{/ITALIC}} between events, or to collaborate with other {{ITALIC}}Teams{{/ITALIC}} to develop the best possible game solution. However, a {{ITALIC}}Team{{/ITALIC}} who brings and/or competes with two separate {{ITALIC}}Robots{{/ITALIC}} at the same tournament has diminished the efforts of a {{ITALIC}}Team{{/ITALIC}} who spent extra design time making sure that their one {{ITALIC}}Robot{{/ITALIC}} can accomplish all of the game’s tasks. A multi-{{ITALIC}}Team{{/ITALIC}} organization that shares a single {{ITALIC}}Robot{{/ITALIC}} has diminished the efforts of a multi-{{ITALIC}}Team{{/ITALIC}} organization that puts in the time, effort, and resources to undergo separate individual design processes and develop their own {{ITALIC}}Robots{{/ITALIC}}. To help determine whether a {{ITALIC}}Robot{{/ITALIC}} is a “separate {{ITALIC}}Robot{{/ITALIC}}” or not, use the Subsystem definitions found in <R1>. Above that, use common sense as referenced in <G3>. If you can place two complete and legal {{ITALIC}}Robots{{/ITALIC}} on a table next to each other, then they are two separate {{ITALIC}}Robots{{/ITALIC}}. Trying to decide if changing a pin, a wheel, or a motor constitutes a separate {{ITALIC}}Robot{{/ITALIC}} is missing the intent and spirit of this rule.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}The intent of <R1a>, <R1b>, and <R1c> is to ensure an unambiguous level playing field for all {{ITALIC}}Teams{{/ITALIC}}. {{ITALIC}}Teams{{/ITALIC}} are welcome (and encouraged) to improve or modify their {{ITALIC}}Robots{{/ITALIC}} between events, or to collaborate with other {{ITALIC}}Teams{{/ITALIC}} to develop the best possible game solution. However, a {{ITALIC}}Team{{/ITALIC}} who brings and/or competes with two separate {{ITALIC}}Robots{{/ITALIC}} at the same tournament has diminished the efforts of a {{ITALIC}}Team{{/ITALIC}} who spent extra design time making sure that their one {{ITALIC}}Robot{{/ITALIC}} can accomplish all of the game’s tasks. A multi-{{ITALIC}}Team{{/ITALIC}} organization that shares a single {{ITALIC}}Robot{{/ITALIC}} has diminished the efforts of a multi-{{ITALIC}}Team{{/ITALIC}} organization that puts in the time, effort, and resources to undergo separate individual design processes and develop their own {{ITALIC}}Robots{{/ITALIC}}. To help determine whether a {{ITALIC}}Robot{{/ITALIC}} is a “separate {{ITALIC}}Robot{{/ITALIC}}” or not, use the Subsystem definitions found in <R1>. Above that, use common sense as referenced in <G3>. If you can place two complete and legal {{ITALIC}}Robots{{/ITALIC}} on a table next to each other, then they are two separate {{ITALIC}}Robots{{/ITALIC}}. Trying to decide if changing a pin, a wheel, or a motor constitutes a separate {{ITALIC}}Robot{{/ITALIC}} is missing the intent and spirit of this rule.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R1.html"
+        },
+        {
+          "id": "viqrc_r2",
+          "rule": "<R2>",
+          "title": "Robots must represent the Team’s skill level",
+          "description": "Robots must represent the Team’s skill level",
+          "fullText": "{{ITALIC}}In VIQRC, we expect {{ITALIC}}Adults{{/ITALIC}} to teach fundamental {{ITALIC}}Robot{{/ITALIC}} principles like linkages, drivetrains, and manipulators, then allow the {{ITALIC}}Students{{/ITALIC}} to determine which designs to implement and build on their {{ITALIC}}Robot{{/ITALIC}}. Similarly, {{ITALIC}}Adults{{/ITALIC}} are encouraged to teach the {{ITALIC}}Students{{/ITALIC}} how to code various functions involving applicable sensors and mechanisms, then have the {{ITALIC}}Students{{/ITALIC}} program the {{ITALIC}}Robot{{/ITALIC}} from what they have learned.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}In VIQRC, we expect {{ITALIC}}Adults{{/ITALIC}} to teach fundamental {{ITALIC}}Robot{{/ITALIC}} principles like linkages, drivetrains, and manipulators, then allow the {{ITALIC}}Students{{/ITALIC}} to determine which designs to implement and build on their {{ITALIC}}Robot{{/ITALIC}}. Similarly, {{ITALIC}}Adults{{/ITALIC}} are encouraged to teach the {{ITALIC}}Students{{/ITALIC}} how to code various functions involving applicable sensors and mechanisms, then have the {{ITALIC}}Students{{/ITALIC}} program the {{ITALIC}}Robot{{/ITALIC}} from what they have learned.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R2.html"
+        },
+        {
+          "id": "viqrc_r3",
+          "rule": "<R3>",
+          "title": "Robots must pass inspection",
+          "description": "Robots must pass inspection",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R3.html"
+        },
+        {
+          "id": "viqrc_r4",
+          "rule": "<R4>",
+          "title": "There is a difference between accidentally and willfully violating a Robot rule",
+          "description": "There is a difference between accidentally and willfully violating a Robot rule",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R4.html"
+        },
+        {
+          "id": "viqrc_r5",
+          "rule": "<R5>",
+          "title": "Robots must fit within an 11” x 20” x 15” (279",
+          "description": "Robots must fit within an 11” x 20” x 15” (279",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R5.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/images/R5-1.png"
+          ]
+        },
+        {
+          "id": "viqrc_r6",
+          "rule": "<R6>",
+          "title": "Officially registered Team numbers must be displayed on Robot License Plates",
+          "description": "Officially registered Team numbers must be displayed on Robot License Plates",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R6.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/images/LicensePlate.png"
+          ]
+        },
+        {
+          "id": "viqrc_r7",
+          "rule": "<R7>",
+          "title": "Let it go after the Match is over",
+          "description": "Let it go after the Match is over",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R7.html"
+        },
+        {
+          "id": "viqrc_r8",
+          "rule": "<R8>",
+          "title": "Robots have one Brain",
+          "description": "Robots have one Brain",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R8.html"
+        },
+        {
+          "id": "viqrc_r9",
+          "rule": "<R9>",
+          "title": "Keep the power button accessible",
+          "description": "Keep the power button accessible",
+          "fullText": "{{ITALIC}}This rule is in place to ensure the safety of both competitors and field staff. In the event that a {{ITALIC}}Robot{{/ITALIC}} needs to be quickly powered off—whether due to a malfunction, entanglement, or other safety concern—it is crucial that the power button remains easily accessible. This allows competitors and/or field personnel to safely {{ITALIC}}Disable{{/ITALIC}} the {{ITALIC}}Robot{{/ITALIC}} without putting their hands near moving parts or other hazards inside the {{ITALIC}}Robot{{/ITALIC}}. Additionally, keeping screens and indicator lights visible helps officials diagnose issues efficiently, minimizing downtime and ensuring a smooth competition experience.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}This rule is in place to ensure the safety of both competitors and field staff. In the event that a {{ITALIC}}Robot{{/ITALIC}} needs to be quickly powered off—whether due to a malfunction, entanglement, or other safety concern—it is crucial that the power button remains easily accessible. This allows competitors and/or field personnel to safely {{ITALIC}}Disable{{/ITALIC}} the {{ITALIC}}Robot{{/ITALIC}} without putting their hands near moving parts or other hazards inside the {{ITALIC}}Robot{{/ITALIC}}. Additionally, keeping screens and indicator lights visible helps officials diagnose issues efficiently, minimizing downtime and ensuring a smooth competition experience.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R9.html"
+        },
+        {
+          "id": "viqrc_r10",
+          "rule": "<R10>",
+          "title": "Firmware",
+          "description": "Firmware",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R10.html"
+        },
+        {
+          "id": "viqrc_r11",
+          "rule": "<R11>",
+          "title": "Motors",
+          "description": "Motors",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R11.html"
+        },
+        {
+          "id": "viqrc_r12",
+          "rule": "<R12>",
+          "title": "Batteries",
+          "description": "Batteries",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R12.html"
+        },
+        {
+          "id": "viqrc_r13",
+          "rule": "<R13>",
+          "title": "One Controller per Robot",
+          "description": "One Controller per Robot",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R13.html"
+        },
+        {
+          "id": "viqrc_r14",
+          "rule": "<R14>",
+          "title": "Robots are built from the VEX IQ product line",
+          "description": "Robots are built from the VEX IQ product line",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R14.html"
+        },
+        {
+          "id": "viqrc_r15",
+          "rule": "<R15>",
+          "title": "Prohibited items",
+          "description": "Prohibited items",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R15.html"
+        },
+        {
+          "id": "viqrc_r16",
+          "rule": "<R16>",
+          "title": "Legal Non-VEX IQ components",
+          "description": "Legal Non-VEX IQ components",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R16.html"
+        },
+        {
+          "id": "viqrc_r17",
+          "rule": "<R17>",
+          "title": "Decorations are allowed",
+          "description": "Decorations are allowed",
+          "fullText": "{{ITALIC}}{{ITALIC}}Teams{{/ITALIC}} should be mindful of any non-functional decorations which could risk “distracting” an {{ITALIC}}Alliance{{/ITALIC}} partner {{ITALIC}}Robot’s{{/ITALIC}} Vision Sensor or other sensors.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}{{ITALIC}}Teams{{/ITALIC}} should be mindful of any non-functional decorations which could risk “distracting” an {{ITALIC}}Alliance{{/ITALIC}} partner {{ITALIC}}Robot’s{{/ITALIC}} Vision Sensor or other sensors.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R17.html"
+        },
+        {
+          "id": "viqrc_r18",
+          "rule": "<R18>",
+          "title": "Pneumatics",
+          "description": "Pneumatics",
+          "fullText": "{{ITALIC}}The intent of <R18a> is to limit {{ITALIC}}Robots{{/ITALIC}} to the air pressure stored in two Air Tanks, as well as the normal working air pressure contained in any Pneumatic Cylinders and tubing on the {{ITALIC}}Robot{{/ITALIC}}. {{ITALIC}}Teams{{/ITALIC}} may not use other elements for the purposes of storing or generating air pressure. Using Pneumatic Cylinders or additional tubing solely for additional air storage is in {{ITALIC}}Violation{{/ITALIC}} of the spirit of this rule. Similarly, using Pneumatic Cylinders and/or tubing without an actual pneumatic system (e.g., Air Tanks and/or a Air Pump) is also in {{ITALIC}}Violation{{/ITALIC}} of the spirit of this rule.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}The intent of <R18a> is to limit {{ITALIC}}Robots{{/ITALIC}} to the air pressure stored in two Air Tanks, as well as the normal working air pressure contained in any Pneumatic Cylinders and tubing on the {{ITALIC}}Robot{{/ITALIC}}. {{ITALIC}}Teams{{/ITALIC}} may not use other elements for the purposes of storing or generating air pressure. Using Pneumatic Cylinders or additional tubing solely for additional air storage is in {{ITALIC}}Violation{{/ITALIC}} of the spirit of this rule. Similarly, using Pneumatic Cylinders and/or tubing without an actual pneumatic system (e.g., Air Tanks and/or a Air Pump) is also in {{ITALIC}}Violation{{/ITALIC}} of the spirit of this rule.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R18.html"
+        },
+        {
+          "id": "viqrc_r19",
+          "rule": "<R19>",
+          "title": "Modifications of parts",
+          "description": "Modifications of parts",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/R19.html"
+        }
+      ]
+    },
+    {
+      "name": "Robot Skills Challenge Rules",
+      "programs": [
+        "VIQRC"
+      ],
+      "rules": [
+        {
+          "id": "viqrc_rsc1",
+          "rule": "<RSC1>",
+          "title": "Standard rules apply in most cases",
+          "description": "Standard rules apply in most cases",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: \n• {{ITALIC}}Violations{{/ITALIC}} of <GG>, <SG>, and <RSC> rules that occur during a {{ITALIC}}Robot Skills Match{{/ITALIC}} should only affect the outcome of that {{ITALIC}}Match{{/ITALIC}} and should not be considered when determining whether a {{ITALIC}}Violation{{/ITALIC}} has been repeated during the event.",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/RSC1.html"
+        },
+        {
+          "id": "viqrc_rsc2",
+          "rule": "<RSC2>",
+          "title": "Scoring Robot Skills Matches",
+          "description": "Scoring Robot Skills Matches",
+          "fullText": "",
+          "completeText": "",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/RSC2.html"
+        },
+        {
+          "id": "viqrc_rsc3",
+          "rule": "<RSC3>",
+          "title": "Robot and Field setup for Skills Matches",
+          "description": "Robot and Field setup for Skills Matches",
+          "fullText": "",
+          "completeText": "",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/RSC3.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/images/Top_View_(Skills-PreLoadOutsideField).png"
+          ]
+        },
+        {
+          "id": "viqrc_rsc4",
+          "rule": "<RSC4>",
+          "title": "Loader and Driver differences",
+          "description": "Loader and Driver differences",
+          "fullText": "",
+          "completeText": "",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/RSC4.html"
+        },
+        {
+          "id": "viqrc_rsc5",
+          "rule": "<RSC5>",
+          "title": "Handling Robots during an Autonomous Coding Skills Match",
+          "description": "Handling Robots during an Autonomous Coding Skills Match",
+          "fullText": "{{ITALIC}}This rule is an explicit exception to rules <GG4> and the Violation Note for <GG10>, and may be used as part of a {{ITALIC}}Team’s{{/ITALIC}} strategy for {{ITALIC}}Autonomous Coding Skills Matches{{/ITALIC}}. {{ITALIC}}Driving Skills Matches{{/ITALIC}} are still governed by <GG4> & the Violation Note for <GG10>, especially for strategic {{ITALIC}}Violations{{/ITALIC}}.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}This rule is an explicit exception to rules <GG4> and the Violation Note for <GG10>, and may be used as part of a {{ITALIC}}Team’s{{/ITALIC}} strategy for {{ITALIC}}Autonomous Coding Skills Matches{{/ITALIC}}. {{ITALIC}}Driving Skills Matches{{/ITALIC}} are still governed by <GG4> & the Violation Note for <GG10>, especially for strategic {{ITALIC}}Violations{{/ITALIC}}.{{/ITALIC}}",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/RSC5.html"
+        },
+        {
+          "id": "viqrc_rsc6",
+          "rule": "<RSC6>",
+          "title": "Starting an Autonomous Coding Skills Match",
+          "description": "Starting an Autonomous Coding Skills Match",
+          "fullText": "{{ITALIC}}In accordance with <GG3>, {{ITALIC}}Teams{{/ITALIC}} should be mindful of event schedules and set their {{ITALIC}}Robot{{/ITALIC}} up as promptly as possible. The definition of “prompt” is at the discretion of the {{ITALIC}}Event Partner{{/ITALIC}} and {{ITALIC}}Head Referee{{/ITALIC}}, and could depend on things like how much time is left for the Skills Challenge {{ITALIC}}Field{{/ITALIC}}(s) to be open, how many {{ITALIC}}Teams{{/ITALIC}} are waiting in line, etc. As a general guideline, three seconds to calibrate a Gyro Sensor would be acceptable, but three minutes to debug a program would not.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}In accordance with <GG3>, {{ITALIC}}Teams{{/ITALIC}} should be mindful of event schedules and set their {{ITALIC}}Robot{{/ITALIC}} up as promptly as possible. The definition of “prompt” is at the discretion of the {{ITALIC}}Event Partner{{/ITALIC}} and {{ITALIC}}Head Referee{{/ITALIC}}, and could depend on things like how much time is left for the Skills Challenge {{ITALIC}}Field{{/ITALIC}}(s) to be open, how many {{ITALIC}}Teams{{/ITALIC}} are waiting in line, etc. As a general guideline, three seconds to calibrate a Gyro Sensor would be acceptable, but three minutes to debug a program would not.{{/ITALIC}}",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/RSC6.html"
+        },
+        {
+          "id": "viqrc_rsc7",
+          "rule": "<RSC7>",
+          "title": "Autonomous means “no humans",
+          "description": "Autonomous means “no humans",
+          "fullText": "",
+          "completeText": "",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/RSC7.html"
+        },
+        {
+          "id": "viqrc_rsc8",
+          "rule": "<RSC8>",
+          "title": "Skills Stop Time",
+          "description": "Skills Stop Time",
+          "fullText": "",
+          "completeText": "",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/RSC8.html"
+        }
+      ]
+    },
+    {
+      "name": "Tournament Rules",
+      "programs": [
+        "VIQRC"
+      ],
+      "rules": [
+        {
+          "id": "viqrc_t1",
+          "rule": "<T1>",
+          "title": "Head Referees have ultimate and final authority on all gameplay and robot ruling decisions during the competition",
+          "description": "Head Referees have ultimate and final authority on all gameplay and robot ruling decisions during the competition",
+          "fullText": "{{ITALIC}}Note from the VEX GDC: The rules contained in this Game Manual are written to be enforced by human {{ITALIC}}Head Referees{{/ITALIC}}. Many rules have “black-and-white” criteria that can be easily checked. However, some rulings will rely on a judgment call from this human {{ITALIC}}Head Referee{{/ITALIC}}. In these cases, {{ITALIC}}Head Referees{{/ITALIC}} will make their calls based on what they and the {{ITALIC}}Scorekeeper Referees{{/ITALIC}} saw, what guidance is provided by their official support materials (the Game Manual and the Q&A), and most crucially, the context of the {{ITALIC}}Match{{/ITALIC}} in question. The VEX IQ Robotics Competition does not have video replay, our {{ITALIC}}Fields{{/ITALIC}} do not have absolute sensors to count scores, and most events do not have the resources for an extensive review conference between each {{ITALIC}}Match{{/ITALIC}}. When an ambiguous rule results in a controversial call, there is a natural instinct to wonder what the “right” ruling “should have been,” or what the GDC “would have ruled.” This is ultimately an irrelevant question; our answer is that when a rule specifies “{{ITALIC}}Head Referee’s {{/ITALIC}}discretion” (or similar), then the “right” call is the one made by the {{ITALIC}}Head Referee{{/ITALIC}} in the moment. The VEX GDC designs games, and writes rules, with this expectation (constraint) in mind.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}Note from the VEX GDC: The rules contained in this Game Manual are written to be enforced by human {{ITALIC}}Head Referees{{/ITALIC}}. Many rules have “black-and-white” criteria that can be easily checked. However, some rulings will rely on a judgment call from this human {{ITALIC}}Head Referee{{/ITALIC}}. In these cases, {{ITALIC}}Head Referees{{/ITALIC}} will make their calls based on what they and the {{ITALIC}}Scorekeeper Referees{{/ITALIC}} saw, what guidance is provided by their official support materials (the Game Manual and the Q&A), and most crucially, the context of the {{ITALIC}}Match{{/ITALIC}} in question. The VEX IQ Robotics Competition does not have video replay, our {{ITALIC}}Fields{{/ITALIC}} do not have absolute sensors to count scores, and most events do not have the resources for an extensive review conference between each {{ITALIC}}Match{{/ITALIC}}. When an ambiguous rule results in a controversial call, there is a natural instinct to wonder what the “right” ruling “should have been,” or what the GDC “would have ruled.” This is ultimately an irrelevant question; our answer is that when a rule specifies “{{ITALIC}}Head Referee’s {{/ITALIC}}discretion” (or similar), then the “right” call is the one made by the {{ITALIC}}Head Referee{{/ITALIC}} in the moment. The VEX GDC designs games, and writes rules, with this expectation (constraint) in mind.{{/ITALIC}}",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T1.html"
+        },
+        {
+          "id": "viqrc_t2",
+          "rule": "<T2>",
+          "title": "Head Referees must be qualified",
+          "description": "Head Referees must be qualified",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T2.html"
+        },
+        {
+          "id": "viqrc_t3",
+          "rule": "<T3>",
+          "title": "The Drive Team Members are permitted to immediately appeal the Head Referee’s ruling",
+          "description": "The Drive Team Members are permitted to immediately appeal the Head Referee’s ruling",
+          "fullText": "{{ITALIC}}Some events may choose to utilize a “question box” or other designated location for discussions with {{ITALIC}}Head Referees{{/ITALIC}}. Offering a “question box” is within the discretion of the {{ITALIC}}Event Partner{{/ITALIC}} and/or {{ITALIC}}Head Referee{{/ITALIC}}, and may act as an alternate option for asking {{ITALIC}}Drive Team Members{{/ITALIC}} to remain in the {{ITALIC}}Driver Station{{/ITALIC}} (although all other aspects of this rule apply). However, by using this alternate location, {{ITALIC}}Drive Team Members{{/ITALIC}} acknowledge that they are forfeiting the opportunity to use any contextual information involving the specific state of the {{ITALIC}}Field{{/ITALIC}} at the end of the {{ITALIC}}Match{{/ITALIC}}. For example, it is impossible to appeal whether a game element was scored or not if the {{ITALIC}}Field{{/ITALIC}} has already been reset. If this information is pertinent to the appeal, {{ITALIC}}Drive Team Members{{/ITALIC}} should still remain in the {{ITALIC}}Driver Station{{/ITALIC}}, and relocate to the “question box” once the {{ITALIC}}Head Referee{{/ITALIC}} has been made aware of the concern and/or any relevant context.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}Some events may choose to utilize a “question box” or other designated location for discussions with {{ITALIC}}Head Referees{{/ITALIC}}. Offering a “question box” is within the discretion of the {{ITALIC}}Event Partner{{/ITALIC}} and/or {{ITALIC}}Head Referee{{/ITALIC}}, and may act as an alternate option for asking {{ITALIC}}Drive Team Members{{/ITALIC}} to remain in the {{ITALIC}}Driver Station{{/ITALIC}} (although all other aspects of this rule apply). However, by using this alternate location, {{ITALIC}}Drive Team Members{{/ITALIC}} acknowledge that they are forfeiting the opportunity to use any contextual information involving the specific state of the {{ITALIC}}Field{{/ITALIC}} at the end of the {{ITALIC}}Match{{/ITALIC}}. For example, it is impossible to appeal whether a game element was scored or not if the {{ITALIC}}Field{{/ITALIC}} has already been reset. If this information is pertinent to the appeal, {{ITALIC}}Drive Team Members{{/ITALIC}} should still remain in the {{ITALIC}}Driver Station{{/ITALIC}}, and relocate to the “question box” once the {{ITALIC}}Head Referee{{/ITALIC}} has been made aware of the concern and/or any relevant context.{{/ITALIC}}",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T3.html"
+        },
+        {
+          "id": "viqrc_t4",
+          "rule": "<T4>",
+          "title": "The Event Partner has ultimate authority regarding all non-gameplay decisions during an event",
+          "description": "The Event Partner has ultimate authority regarding all non-gameplay decisions during an event",
+          "fullText": "{{ITALIC}}This rule exists alongside <G1>, <S1>, and <G3>. Even though there isn’t a rule that says “do not steal from the concession stand,” it would still be within an {{ITALIC}}Event Partner’s{{/ITALIC}} authority to remove a thief from the competition.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}This rule exists alongside <G1>, <S1>, and <G3>. Even though there isn’t a rule that says “do not steal from the concession stand,” it would still be within an {{ITALIC}}Event Partner’s{{/ITALIC}} authority to remove a thief from the competition.{{/ITALIC}}",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T4.html"
+        },
+        {
+          "id": "viqrc_t5",
+          "rule": "<T5>",
+          "title": "Be prepared for minor field variance",
+          "description": "Be prepared for minor field variance",
+          "fullText": "{{ITALIC}}The {{ITALIC}}Field{{/ITALIC}} and {{ITALIC}}Field Elements{{/ITALIC}} are designed to be assembled and disassembled multiple times each year. {{ITALIC}}Event Partners{{/ITALIC}} store and transport {{ITALIC}}Fields{{/ITALIC}} between events, and the individuals setting up the {{ITALIC}}Field{{/ITALIC}} at one event may differ from those at the next. While every effort will be made to ensure minimal variance, {{ITALIC}}Teams{{/ITALIC}} should expect that any {{ITALIC}}Field{{/ITALIC}} may be slightly different than another, and prepare accordingly. Just because something works on one {{ITALIC}}Field{{/ITALIC}} does not fully guarantee it will work on the next, and is not enough evidence alone to determine if a {{ITALIC}}Field{{/ITALIC}} is out of tolerance.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}The {{ITALIC}}Field{{/ITALIC}} and {{ITALIC}}Field Elements{{/ITALIC}} are designed to be assembled and disassembled multiple times each year. {{ITALIC}}Event Partners{{/ITALIC}} store and transport {{ITALIC}}Fields{{/ITALIC}} between events, and the individuals setting up the {{ITALIC}}Field{{/ITALIC}} at one event may differ from those at the next. While every effort will be made to ensure minimal variance, {{ITALIC}}Teams{{/ITALIC}} should expect that any {{ITALIC}}Field{{/ITALIC}} may be slightly different than another, and prepare accordingly. Just because something works on one {{ITALIC}}Field{{/ITALIC}} does not fully guarantee it will work on the next, and is not enough evidence alone to determine if a {{ITALIC}}Field{{/ITALIC}} is out of tolerance.{{/ITALIC}}",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T5.html"
+        },
+        {
+          "id": "viqrc_t6",
+          "rule": "<T6>",
+          "title": "Fields and Field Elements may be repaired at the Event Partner’s discretion",
+          "description": "Fields and Field Elements may be repaired at the Event Partner’s discretion",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T6.html"
+        },
+        {
+          "id": "viqrc_t7",
+          "rule": "<T7>",
+          "title": "Fields at an event must be consistent with each other",
+          "description": "Fields at an event must be consistent with each other",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T7.html"
+        },
+        {
+          "id": "viqrc_t8",
+          "rule": "<T8>",
+          "title": "Qualification Matches will occur according to the official match schedule",
+          "description": "Qualification Matches will occur according to the official match schedule",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T8.html"
+        },
+        {
+          "id": "viqrc_t9",
+          "rule": "<T9>",
+          "title": "Each Team will be scheduled Qualification Matches as follows",
+          "description": "Each Team will be scheduled Qualification Matches as follows",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T9.html"
+        },
+        {
+          "id": "viqrc_t10",
+          "rule": "<T10>",
+          "title": "Teams are ranked by their average Qualification Match scores",
+          "description": "Teams are ranked by their average Qualification Match scores",
+          "fullText": "Number of {{ITALIC}}Qualification Matches{{/ITALIC}} per {{ITALIC}}Team{{/ITALIC}}\n\nNumber of excluded {{ITALIC}}Match{{/ITALIC}} scores\n\n4-7\n\n1\n\n8-11\n\n2\n\n12-15\n\n3\n\n16+\n\n4\nNumber of {{ITALIC}}Qualification Matches{{/ITALIC}} per {{ITALIC}}Team{{/ITALIC}}\nNumber of excluded {{ITALIC}}Match{{/ITALIC}} scores\n4-7\n1\n8-11\n2\n12-15\n3\n16+\n4",
+          "completeText": "Number of {{ITALIC}}Qualification Matches{{/ITALIC}} per {{ITALIC}}Team{{/ITALIC}}\n\nNumber of excluded {{ITALIC}}Match{{/ITALIC}} scores\n\n4-7\n\n1\n\n8-11\n\n2\n\n12-15\n\n3\n\n16+\n\n4\nNumber of {{ITALIC}}Qualification Matches{{/ITALIC}} per {{ITALIC}}Team{{/ITALIC}}\nNumber of excluded {{ITALIC}}Match{{/ITALIC}} scores\n4-7\n1\n8-11\n2\n12-15\n3\n16+\n4",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T10.html"
+        },
+        {
+          "id": "viqrc_t11",
+          "rule": "<T11>",
+          "title": "Qualification Match tiebreakers",
+          "description": "Qualification Match tiebreakers",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T11.html"
+        },
+        {
+          "id": "viqrc_t12",
+          "rule": "<T12>",
+          "title": "How Alliances are formed for Teamwork Matches",
+          "description": "How Alliances are formed for Teamwork Matches",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T12.html"
+        },
+        {
+          "id": "viqrc_t13",
+          "rule": "<T13>",
+          "title": "Teams playing in Finals Matches",
+          "description": "Teams playing in Finals Matches",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T13.html"
+        },
+        {
+          "id": "viqrc_t14",
+          "rule": "<T14>",
+          "title": "Finals Match Schedule",
+          "description": "Finals Match Schedule",
+          "fullText": "{{ITALIC}}Example 1: {{ITALIC}}Alliance{{/ITALIC}} 6 and {{ITALIC}}Alliance{{/ITALIC}} 3 are tied for first place. During the tiebreaker {{ITALIC}}Finals Match{{/ITALIC}}, {{ITALIC}}Alliance{{/ITALIC}} 6 scores 13 points and has a {{ITALIC}}Match Stop Time{{/ITALIC}} of 12 seconds. {{ITALIC}}Alliance{{/ITALIC}} 3 scores 13 points and has a {{ITALIC}}Match Stop Time{{/ITALIC}} of 10 seconds. {{ITALIC}}Alliance{{/ITALIC}} 6 is the {{ITALIC}}Teamwork Challenge{{/ITALIC}} winner. Example 2: {{ITALIC}}Alliance{{/ITALIC}} 4 and {{ITALIC}}Alliance{{/ITALIC}} 5 are tied for third place. {{ITALIC}}Alliance{{/ITALIC}} 4 is the third place winner and {{ITALIC}}Alliance{{/ITALIC}} 5 is the fourth place winner. In this way, the lower ranked {{ITALIC}}Alliance{{/ITALIC}} must “overcome” the higher ranked {{ITALIC}}Alliance{{/ITALIC}} in order to become the {{ITALIC}}Teamwork Challenge{{/ITALIC}} champion.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}Example 1: {{ITALIC}}Alliance{{/ITALIC}} 6 and {{ITALIC}}Alliance{{/ITALIC}} 3 are tied for first place. During the tiebreaker {{ITALIC}}Finals Match{{/ITALIC}}, {{ITALIC}}Alliance{{/ITALIC}} 6 scores 13 points and has a {{ITALIC}}Match Stop Time{{/ITALIC}} of 12 seconds. {{ITALIC}}Alliance{{/ITALIC}} 3 scores 13 points and has a {{ITALIC}}Match Stop Time{{/ITALIC}} of 10 seconds. {{ITALIC}}Alliance{{/ITALIC}} 6 is the {{ITALIC}}Teamwork Challenge{{/ITALIC}} winner. Example 2: {{ITALIC}}Alliance{{/ITALIC}} 4 and {{ITALIC}}Alliance{{/ITALIC}} 5 are tied for third place. {{ITALIC}}Alliance{{/ITALIC}} 4 is the third place winner and {{ITALIC}}Alliance{{/ITALIC}} 5 is the fourth place winner. In this way, the lower ranked {{ITALIC}}Alliance{{/ITALIC}} must “overcome” the higher ranked {{ITALIC}}Alliance{{/ITALIC}} in order to become the {{ITALIC}}Teamwork Challenge{{/ITALIC}} champion.{{/ITALIC}}",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T14.html"
+        },
+        {
+          "id": "viqrc_t15",
+          "rule": "<T15>",
+          "title": "Skills Match Schedule",
+          "description": "Skills Match Schedule",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T15.html"
+        },
+        {
+          "id": "viqrc_t16",
+          "rule": "<T16>",
+          "title": "There is no requirement that Skills Challenge fields have the same consistent modifications as the Teamwork fields",
+          "description": "There is no requirement that Skills Challenge fields have the same consistent modifications as the Teamwork fields",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T16.html"
+        },
+        {
+          "id": "viqrc_t17",
+          "rule": "<T17>",
+          "title": "Skills Rankings at events",
+          "description": "Skills Rankings at events",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T17.html"
+        },
+        {
+          "id": "viqrc_t18",
+          "rule": "<T18>",
+          "title": "Skills Rankings globally",
+          "description": "Skills Rankings globally",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T18.html"
+        },
+        {
+          "id": "viqrc_t19",
+          "rule": "<T19>",
+          "title": "Robot Skills at League Events",
+          "description": "Robot Skills at League Events",
+          "fullText": "{{ITALIC}}Autonomous Coding Skills Match{{/ITALIC}}\n\n{{ITALIC}}Driving Skills Match{{/ITALIC}}\n\nRobot Skills Score\n\nSession 1\n\n25\n\n45\n\n70\n\nSession 2\n\n30\n\n42\n\n72\n{{ITALIC}}Autonomous Coding Skills Match{{/ITALIC}}\n{{ITALIC}}Driving Skills Match{{/ITALIC}}\nRobot Skills Score\nSession 1\n25\n45\n70\nSession 2\n30\n42\n72",
+          "completeText": "{{ITALIC}}Autonomous Coding Skills Match{{/ITALIC}}\n\n{{ITALIC}}Driving Skills Match{{/ITALIC}}\n\nRobot Skills Score\n\nSession 1\n\n25\n\n45\n\n70\n\nSession 2\n\n30\n\n42\n\n72\n{{ITALIC}}Autonomous Coding Skills Match{{/ITALIC}}\n{{ITALIC}}Driving Skills Match{{/ITALIC}}\nRobot Skills Score\nSession 1\n25\n45\n70\nSession 2\n30\n42\n72",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_IQ_Robotics_Competition_2025-2026_Mix_Match/rules/T19.html"
+        }
+      ]
+    }
+  ]
+}

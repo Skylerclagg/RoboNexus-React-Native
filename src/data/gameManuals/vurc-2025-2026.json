@@ -1,0 +1,1774 @@
+{
+  "program": "V5RC",
+  "season": "2025-2026",
+  "title": "Push Back",
+  "pdfUrl": "https://link.vex.com/docs/25-26/v5rc-pushback-manual",
+  "qnaUrl": "https://www.robotevents.com/V5RC/2025-2026/QA",
+  "version": "20251023",
+  "ruleGroups": [
+    {
+      "name": "Scoring Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_sc1",
+          "rule": "<SC1>",
+          "title": "All Scoring statuses are evaluated after the Match ends",
+          "description": "All Scoring statuses are evaluated after the Match ends",
+          "fullText": "",
+          "completeText": "",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SC1.html"
+        },
+        {
+          "id": "v5rc_sc2",
+          "rule": "<SC2>",
+          "title": "A Block is considered Scored if it meets all of the following criteria:",
+          "description": "A Block is considered Scored if it meets all of the following criteria:",
+          "fullText": "",
+          "completeText": "",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SC2.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/SC2-1.png",
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/SC2-3.png"
+          ]
+        },
+        {
+          "id": "v5rc_sc3",
+          "rule": "<SC3>",
+          "title": "A Control Zone is considered Controlled by an Alliance if a majority of the Blocks Scored in that Control Zone are the same color as the Alliance",
+          "description": "A Control Zone is considered Controlled by an Alliance if a majority of the Blocks Scored in that Control Zone are the same color as the Alliance",
+          "fullText": "{{ITALIC}}In most cases, if you can’t see a little bit of the next {{ITALIC}}Block{{/ITALIC}} on the “inside” of the tape line (see figure SC3-2), the {{ITALIC}}Block{{/ITALIC}} on that side of the {{ITALIC}}Control Zone{{/ITALIC}} probably isn’t entirely contained within the {{ITALIC}}Control Zone{{/ITALIC}}. It’s not practical to examine every {{ITALIC}}Block{{/ITALIC}} at a detailed level to decide whether it’s “entirely within” or not. If a {{ITALIC}}Head Referee{{/ITALIC}} can’t definitively tell whether a {{ITALIC}}Block{{/ITALIC}} is entirely contained within a {{ITALIC}}Control Zone{{/ITALIC}} or not, that {{ITALIC}}Block{{/ITALIC}} should be considered {{ITALIC}}Scored{{/ITALIC}} in the {{ITALIC}}Control Zone{{/ITALIC}}. {{ITALIC}}Teams{{/ITALIC}} should not be invited into the {{ITALIC}}Field{{/ITALIC}} to contribute opinions; this decision is up to the {{ITALIC}}Head Referee{{/ITALIC}}. Basically, we’re not exactly sure yet what’s going to make this easiest for {{ITALIC}}Head Referees{{/ITALIC}}, and we’ll fine-tune this guidance in the August game manual update. The most important thing in the early season is that {{ITALIC}}Head Referees{{/ITALIC}} make all judgment calls within an event using the same guidelines to ensure that all calls during that event are consistent with each other.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}In most cases, if you can’t see a little bit of the next {{ITALIC}}Block{{/ITALIC}} on the “inside” of the tape line (see figure SC3-2), the {{ITALIC}}Block{{/ITALIC}} on that side of the {{ITALIC}}Control Zone{{/ITALIC}} probably isn’t entirely contained within the {{ITALIC}}Control Zone{{/ITALIC}}. It’s not practical to examine every {{ITALIC}}Block{{/ITALIC}} at a detailed level to decide whether it’s “entirely within” or not. If a {{ITALIC}}Head Referee{{/ITALIC}} can’t definitively tell whether a {{ITALIC}}Block{{/ITALIC}} is entirely contained within a {{ITALIC}}Control Zone{{/ITALIC}} or not, that {{ITALIC}}Block{{/ITALIC}} should be considered {{ITALIC}}Scored{{/ITALIC}} in the {{ITALIC}}Control Zone{{/ITALIC}}. {{ITALIC}}Teams{{/ITALIC}} should not be invited into the {{ITALIC}}Field{{/ITALIC}} to contribute opinions; this decision is up to the {{ITALIC}}Head Referee{{/ITALIC}}. Basically, we’re not exactly sure yet what’s going to make this easiest for {{ITALIC}}Head Referees{{/ITALIC}}, and we’ll fine-tune this guidance in the August game manual update. The most important thing in the early season is that {{ITALIC}}Head Referees{{/ITALIC}} make all judgment calls within an event using the same guidelines to ensure that all calls during that event are consistent with each other.{{/ITALIC}}",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SC3.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/SC3.png",
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/SC3-2.png"
+          ]
+        },
+        {
+          "id": "v5rc_sc4",
+          "rule": "<SC4>",
+          "title": "A Robot is considered Parked if it meets all of the following criteria:",
+          "description": "A Robot is considered Parked if it meets all of the following criteria:",
+          "fullText": "Figure SC4-1: This {{ITALIC}}Robot{{/ITALIC}} is at least partially within the vertical projection of their {{ITALIC}}Alliance{{/ITALIC}}-colored {{ITALIC}}Park Zone{{/ITALIC}}, and would be considered as {{ITALIC}}Parked{{/ITALIC}}.\n\n\nFigure SC4-2: Both of these {{ITALIC}}Robots{{/ITALIC}} would be considered as {{ITALIC}}Parked{{/ITALIC}}, as they satisfy all the criteria listed above.",
+          "completeText": "Figure SC4-1: This {{ITALIC}}Robot{{/ITALIC}} is at least partially within the vertical projection of their {{ITALIC}}Alliance{{/ITALIC}}-colored {{ITALIC}}Park Zone{{/ITALIC}}, and would be considered as {{ITALIC}}Parked{{/ITALIC}}.\n\n\nFigure SC4-2: Both of these {{ITALIC}}Robots{{/ITALIC}} would be considered as {{ITALIC}}Parked{{/ITALIC}}, as they satisfy all the criteria listed above.",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SC4.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/SC4-1.png",
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/SC4-2-Rev2.png"
+          ]
+        },
+        {
+          "id": "v5rc_sc5",
+          "rule": "<SC5>",
+          "title": "Scoring of the Autonomous Bonus is evaluated immediately after the Autonomous Period ends (i",
+          "description": "Scoring of the Autonomous Bonus is evaluated immediately after the Autonomous Period ends (i",
+          "fullText": "",
+          "completeText": "",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SC5.html"
+        },
+        {
+          "id": "v5rc_sc6",
+          "rule": "<SC6>",
+          "title": "An Autonomous Win Point is awarded to any Alliance that ends the Autonomous Period with all of the following tasks completed, and that has committed no Violations during the Autonomous Period: At least seven (7) Blocks of the Alliance’s color are Scored",
+          "description": "An Autonomous Win Point is awarded to any Alliance that ends the Autonomous Period with all of the following tasks completed, and that has committed no Violations during the Autonomous Period: At least seven (7) Blocks of the Alliance’s color are Scored",
+          "fullText": "{{ITALIC}}{{ITALIC}}Autonomous Win Point{{/ITALIC}} criteria may be further modified for the World Championship if needed, with details to be released in a future Game Manual update. {{ITALIC}}Autonomous Win Point{{/ITALIC}} criteria for World Championship-qualifying events will be used as a baseline to determine criteria for the World Championship. Any potential modifications will be minor, and will provide an increased challenge over the criteria listed above. For example, one possibility could be ”At least twelve (12) {{ITALIC}}Blocks{{/ITALIC}} Scored,” instead of ten (10).{{/ITALIC}}",
+          "completeText": "{{ITALIC}}{{ITALIC}}Autonomous Win Point{{/ITALIC}} criteria may be further modified for the World Championship if needed, with details to be released in a future Game Manual update. {{ITALIC}}Autonomous Win Point{{/ITALIC}} criteria for World Championship-qualifying events will be used as a baseline to determine criteria for the World Championship. Any potential modifications will be minor, and will provide an increased challenge over the criteria listed above. For example, one possibility could be ”At least twelve (12) {{ITALIC}}Blocks{{/ITALIC}} Scored,” instead of ten (10).{{/ITALIC}}",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SC6.html"
+        }
+      ]
+    },
+    {
+      "name": "Safety Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_s1",
+          "rule": "<S1>",
+          "title": "Be safe out there",
+          "description": "Be safe out there",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: {{ITALIC}}Major Violations{{/ITALIC}} should be reported to and/or discussed with the {{ITALIC}}Event Partner{{/ITALIC}} during the event, and should be reported to the REC Foundation Rules and Conduct Committee following the event.",
+          "category": "Safety",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/S1.html"
+        },
+        {
+          "id": "v5rc_s2",
+          "rule": "<S2>",
+          "title": "Students must be accompanied by an Adult",
+          "description": "Students must be accompanied by an Adult",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: {{ITALIC}}Violations{{/ITALIC}} should be reported to the {{ITALIC}}Event Partner{{/ITALIC}} during the event, and should be reported to the REC Foundation Rules and Conduct Committee following the event.",
+          "category": "Safety",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/S2.html"
+        },
+        {
+          "id": "v5rc_s3",
+          "rule": "<S3>",
+          "title": "Stay inside the Field",
+          "description": "Stay inside the Field",
+          "fullText": "",
+          "completeText": "",
+          "category": "Safety",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/S3.html"
+        },
+        {
+          "id": "v5rc_s4",
+          "rule": "<S4>",
+          "title": "Wear safety glasses",
+          "description": "Wear safety glasses",
+          "fullText": "",
+          "completeText": "",
+          "category": "Safety",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/S4.html"
+        },
+        {
+          "id": "v5rc_s5",
+          "rule": "<S5>",
+          "title": "Each Student Team member must have a completed participant release form on file for the event and season",
+          "description": "Each Student Team member must have a completed participant release form on file for the event and season",
+          "fullText": "",
+          "completeText": "",
+          "category": "Safety",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/S5.html"
+        }
+      ]
+    },
+    {
+      "name": "General Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_g1",
+          "rule": "<G1>",
+          "title": "Treat everyone with respect",
+          "description": "Treat everyone with respect",
+          "fullText": "{{ITALIC}}We all can contribute to creating a fun and inclusive event experience for all event attendees. Some examples include: When dealing with difficult and stressful situations, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for {{ITALIC}}Teams{{/ITALIC}} to be gracious and supportive when your {{ITALIC}}Alliance{{/ITALIC}} partner makes a mistake. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for {{ITALIC}}Teams{{/ITALIC}} to harass, tease, or be disrespectful to your {{ITALIC}}Alliance{{/ITALIC}} partner when a {{ITALIC}}Match{{/ITALIC}} does not go your way. When a {{ITALIC}}Team{{/ITALIC}} does not understand a {{ITALIC}}Match{{/ITALIC}} ruling or score, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for {{ITALIC}}Drive Team Members{{/ITALIC}} to consult with a {{ITALIC}}Head Referee{{/ITALIC}} to discuss a ruling per the process outlined in <T3> in a calm and respectful manner. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for {{ITALIC}}Drive Team Members{{/ITALIC}} to continue arguing with the {{ITALIC}}Head Referees{{/ITALIC}} after a decision has been finalized, or for {{ITALIC}}Adults{{/ITALIC}} to approach a {{ITALIC}}Head Referee{{/ITALIC}} with ruling/scoring concerns. When {{ITALIC}}Teams{{/ITALIC}} are getting ready for an upcoming {{ITALIC}}Match{{/ITALIC}}, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for {{ITALIC}}Teams{{/ITALIC}} in an {{ITALIC}}Alliance{{/ITALIC}} to develop a game strategy that utilizes the strengths of both {{ITALIC}}Robots{{/ITALIC}} to cooperatively play the game. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for {{ITALIC}}Teams{{/ITALIC}} in an {{ITALIC}}Alliance{{/ITALIC}} to intentionally play beneath their abilities to manipulate the {{ITALIC}}Match{{/ITALIC}} results.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}We all can contribute to creating a fun and inclusive event experience for all event attendees. Some examples include: When dealing with difficult and stressful situations, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for {{ITALIC}}Teams{{/ITALIC}} to be gracious and supportive when your {{ITALIC}}Alliance{{/ITALIC}} partner makes a mistake. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for {{ITALIC}}Teams{{/ITALIC}} to harass, tease, or be disrespectful to your {{ITALIC}}Alliance{{/ITALIC}} partner when a {{ITALIC}}Match{{/ITALIC}} does not go your way. When a {{ITALIC}}Team{{/ITALIC}} does not understand a {{ITALIC}}Match{{/ITALIC}} ruling or score, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for {{ITALIC}}Drive Team Members{{/ITALIC}} to consult with a {{ITALIC}}Head Referee{{/ITALIC}} to discuss a ruling per the process outlined in <T3> in a calm and respectful manner. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for {{ITALIC}}Drive Team Members{{/ITALIC}} to continue arguing with the {{ITALIC}}Head Referees{{/ITALIC}} after a decision has been finalized, or for {{ITALIC}}Adults{{/ITALIC}} to approach a {{ITALIC}}Head Referee{{/ITALIC}} with ruling/scoring concerns. When {{ITALIC}}Teams{{/ITALIC}} are getting ready for an upcoming {{ITALIC}}Match{{/ITALIC}}, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for {{ITALIC}}Teams{{/ITALIC}} in an {{ITALIC}}Alliance{{/ITALIC}} to develop a game strategy that utilizes the strengths of both {{ITALIC}}Robots{{/ITALIC}} to cooperatively play the game. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for {{ITALIC}}Teams{{/ITALIC}} in an {{ITALIC}}Alliance{{/ITALIC}} to intentionally play beneath their abilities to manipulate the {{ITALIC}}Match{{/ITALIC}} results.{{/ITALIC}}\nViolation Notes: Any {{ITALIC}}Violations{{/ITALIC}} of <G1> may be considered {{ITALIC}}Major Violations{{/ITALIC}} and should be addressed on a case-by-case basis. {{ITALIC}}Teams{{/ITALIC}} at risk of a {{ITALIC}}Major Violation{{/ITALIC}} of <G1> due to multiple disrespectful or uncivil behaviors will usually receive a “final warning,” although the {{ITALIC}}Head Referee{{/ITALIC}} is not required to provide one. All Major <G1> {{ITALIC}}Violations{{/ITALIC}}/{{ITALIC}}Disqualifications{{/ITALIC}} should be reported to and/or discussed with the {{ITALIC}}Event Partner{{/ITALIC}} during the event, and should be reported to the REC Foundation Rules and Conduct Committee following the event.",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/G1.html"
+        },
+        {
+          "id": "v5rc_g2",
+          "rule": "<G2>",
+          "title": "V5RC is a student-centered program",
+          "description": "V5RC is a student-centered program",
+          "fullText": "{{ITALIC}}Some amount of {{ITALIC}}Adult{{/ITALIC}} mentorship, teaching, and/or guidance is an expected and encouraged facet of VEX competitions. No one is born an expert in robotics! However, obstacles should always be viewed as teaching opportunities, not problems for an {{ITALIC}}Adult{{/ITALIC}} to solve for the {{ITALIC}}Team{{/ITALIC}}. When building or designing the {{ITALIC}}Robot{{/ITALIC}}, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for an {{ITALIC}}Adult{{/ITALIC}} to help a {{ITALIC}}Student{{/ITALIC}} consider why something failed, so it can be improved. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for an {{ITALIC}}Adult{{/ITALIC}} to provide step-by-step instructions or photos for the {{ITALIC}}Student{{/ITALIC}} to copy. When a mechanism falls off, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for an {{ITALIC}}Adult{{/ITALIC}} to help a {{ITALIC}}Student{{/ITALIC}} consider why it failed, so it can be improved. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for an {{ITALIC}}Adult{{/ITALIC}} to investigate or put the {{ITALIC}}Robot{{/ITALIC}} back together. When a {{ITALIC}}Team{{/ITALIC}} encounters a complex programming concept, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for an {{ITALIC}}Adult{{/ITALIC}} to guide a {{ITALIC}}Student{{/ITALIC}} through a flowchart to understand its logic. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for an {{ITALIC}}Adult{{/ITALIC}} to write a premade command for that {{ITALIC}}Student{{/ITALIC}} to copy/paste. During {{ITALIC}}Match{{/ITALIC}} play, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for an {{ITALIC}}Adult{{/ITALIC}} to provide cheerful, positive encouragement as a spectator. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for an {{ITALIC}}Adult{{/ITALIC}} to explicitly shout step-by-step commands from the audience.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}Some amount of {{ITALIC}}Adult{{/ITALIC}} mentorship, teaching, and/or guidance is an expected and encouraged facet of VEX competitions. No one is born an expert in robotics! However, obstacles should always be viewed as teaching opportunities, not problems for an {{ITALIC}}Adult{{/ITALIC}} to solve for the {{ITALIC}}Team{{/ITALIC}}. When building or designing the {{ITALIC}}Robot{{/ITALIC}}, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for an {{ITALIC}}Adult{{/ITALIC}} to help a {{ITALIC}}Student{{/ITALIC}} consider why something failed, so it can be improved. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for an {{ITALIC}}Adult{{/ITALIC}} to provide step-by-step instructions or photos for the {{ITALIC}}Student{{/ITALIC}} to copy. When a mechanism falls off, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for an {{ITALIC}}Adult{{/ITALIC}} to help a {{ITALIC}}Student{{/ITALIC}} consider why it failed, so it can be improved. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for an {{ITALIC}}Adult{{/ITALIC}} to investigate or put the {{ITALIC}}Robot{{/ITALIC}} back together. When a {{ITALIC}}Team{{/ITALIC}} encounters a complex programming concept, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for an {{ITALIC}}Adult{{/ITALIC}} to guide a {{ITALIC}}Student{{/ITALIC}} through a flowchart to understand its logic. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for an {{ITALIC}}Adult{{/ITALIC}} to write a premade command for that {{ITALIC}}Student{{/ITALIC}} to copy/paste. During {{ITALIC}}Match{{/ITALIC}} play, it is… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Okay for an {{ITALIC}}Adult{{/ITALIC}} to provide cheerful, positive encouragement as a spectator. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Not okay for an {{ITALIC}}Adult{{/ITALIC}} to explicitly shout step-by-step commands from the audience.{{/ITALIC}}\nViolation Notes: Potential {{ITALIC}}Violations{{/ITALIC}} of this rule will be reviewed on a case-by-case basis. By definition, all {{ITALIC}}Violations{{/ITALIC}} of this rule become {{ITALIC}}Match Affecting{{/ITALIC}} as soon as a {{ITALIC}}Robot{{/ITALIC}} which was built or coded by an {{ITALIC}}Adult{{/ITALIC}} wins a {{ITALIC}}Match{{/ITALIC}}. All reported and/or suspected <G2> {{ITALIC}}Violations{{/ITALIC}} should be reported to the {{ITALIC}}Event Partner{{/ITALIC}} during the event, and should be reported to the REC Foundation Rules and Conduct Committee following the event.",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/G2.html"
+        },
+        {
+          "id": "v5rc_g3",
+          "rule": "<G3>",
+          "title": "Use common sense",
+          "description": "Use common sense",
+          "fullText": "{{ITALIC}}For example… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}If there is an obvious typographical error (such as “per <T5>” instead of “per <GG5>”), this does not mean that the error should be taken literally until corrected in a future update. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Understand the realities of the VEX V5 Robot construction system. For example, if a {{ITALIC}}Robot{{/ITALIC}} could hover above the {{ITALIC}}Field{{/ITALIC}} for a whole {{ITALIC}}Match{{/ITALIC}}, that would create loopholes in many of the rules. But... they can’t. So don’t worry about it. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}When in doubt, if there is no rule prohibiting an action, it is generally legal. However, if you have to ask whether a given action would violate <S1>, <G1>, or <T1>, then that’s probably a good indication that it is outside the spirit of the competition. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}In general, {{ITALIC}}Teams{{/ITALIC}} will be given the “benefit of the doubt” in the case of accidental or edge-case rules infractions. However, there is a limit to this allowance, and repeated or strategic infractions will still be penalized. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}This rule also applies to {{ITALIC}}Robot{{/ITALIC}} rules. If a component’s legality cannot be easily/intuitively discerned by the Robot rules as written, then {{ITALIC}}Teams{{/ITALIC}} should expect additional scrutiny during inspection. This especially applies to those rules which govern non-VEX components (e.g. <R19>, <R20>, <R23>, etc). There is a difference between “creativity” and “lawyering.” Basically, if there’s not a rule that makes a {{ITALIC}}Robot{{/ITALIC}} part legal, it’s not allowed.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}For example… {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}If there is an obvious typographical error (such as “per <T5>” instead of “per <GG5>”), this does not mean that the error should be taken literally until corrected in a future update. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Understand the realities of the VEX V5 Robot construction system. For example, if a {{ITALIC}}Robot{{/ITALIC}} could hover above the {{ITALIC}}Field{{/ITALIC}} for a whole {{ITALIC}}Match{{/ITALIC}}, that would create loopholes in many of the rules. But... they can’t. So don’t worry about it. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}When in doubt, if there is no rule prohibiting an action, it is generally legal. However, if you have to ask whether a given action would violate <S1>, <G1>, or <T1>, then that’s probably a good indication that it is outside the spirit of the competition. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}In general, {{ITALIC}}Teams{{/ITALIC}} will be given the “benefit of the doubt” in the case of accidental or edge-case rules infractions. However, there is a limit to this allowance, and repeated or strategic infractions will still be penalized. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}This rule also applies to {{ITALIC}}Robot{{/ITALIC}} rules. If a component’s legality cannot be easily/intuitively discerned by the Robot rules as written, then {{ITALIC}}Teams{{/ITALIC}} should expect additional scrutiny during inspection. This especially applies to those rules which govern non-VEX components (e.g. <R19>, <R20>, <R23>, etc). There is a difference between “creativity” and “lawyering.” Basically, if there’s not a rule that makes a {{ITALIC}}Robot{{/ITALIC}} part legal, it’s not allowed.{{/ITALIC}}",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/G3.html"
+        },
+        {
+          "id": "v5rc_g4",
+          "rule": "<G4>",
+          "title": "All work must represent the skill level of the Students on the Team",
+          "description": "All work must represent the skill level of the Students on the Team",
+          "fullText": "{{ITALIC}}The VEX Robotics Competition and the Robotics Education & Competition Foundation (RECF) recognize that many third-party individuals and organizations produce and distribute robot designs, instructions, and/or other materials that are not under our direct control. We cannot legally regulate or restrict the activities of these external entities. However, when {{ITALIC}}Teams{{/ITALIC}} use these resources in ways that violate the spirit and letter of the VEX Robotics Game Manual—particularly Rules<G2> and <G4>—they undermine the core mission of the program: to provide {{ITALIC}}Students{{/ITALIC}} with hands-on opportunities to learn, design, and innovate. While it is never our intent to punish {{ITALIC}}Students{{/ITALIC}}, we can legally regulate and restrict the activities of the {{ITALIC}}Teams{{/ITALIC}} in our competitions, and we must preserve the fairness, educational value, and integrity of the competition. Therefore, {{ITALIC}}Teams{{/ITALIC}} found to be in {{ITALIC}}Violation{{/ITALIC}} of these rules will be held accountable to the strictest interpretations of <G2> and <G4>. It is the responsibility of each {{ITALIC}}Team{{/ITALIC}} to be able to explain and defend the design, construction, and programming of their {{ITALIC}}Robot{{/ITALIC}} if questioned by referees, inspectors, {{ITALIC}}Event Partners{{/ITALIC}}, or judges. {{ITALIC}}Teams{{/ITALIC}} should be prepared to describe their design process, justify design decisions, and demonstrate a full understanding of how their {{ITALIC}}Robot{{/ITALIC}} and code function. If a {{ITALIC}}Team{{/ITALIC}} is unable, for any reason, to provide reasonable evidence (when requested by event staff) that their {{ITALIC}}Robot{{/ITALIC}} and code are the result of their own work, it is appropriate to assume that the {{ITALIC}}Team{{/ITALIC}} is in violation of <G2> and/or <G4>. Event organizers cannot reasonably know the origins of every design or independently verify whether a {{ITALIC}}Robot{{/ITALIC}} was created from scratch, purchased online, or copied from pictures of another {{ITALIC}}Team’s{{/ITALIC}} design. When questions of authenticity arise, the only direct and fair approach is to require {{ITALIC}}Students{{/ITALIC}} to explain and defend their work. This is not unlike academic honesty concerns in schools, and intellectual property concerns in business. By requiring {{ITALIC}}Students{{/ITALIC}} to defend their designs, we ensure that they are developing not only technical skills, but effective communication skills and accountability, as well. Consequences may include disqualification from {{ITALIC}}Matches{{/ITALIC}}, removal from events, and/or escalation of the investigation to VEX Robotics and the RECF for further disciplinary action, which may include sanctions up to and including removal from the program.{{/ITALIC}}\n{{ITALIC}}",
+          "completeText": "{{ITALIC}}The VEX Robotics Competition and the Robotics Education & Competition Foundation (RECF) recognize that many third-party individuals and organizations produce and distribute robot designs, instructions, and/or other materials that are not under our direct control. We cannot legally regulate or restrict the activities of these external entities. However, when {{ITALIC}}Teams{{/ITALIC}} use these resources in ways that violate the spirit and letter of the VEX Robotics Game Manual—particularly Rules<G2> and <G4>—they undermine the core mission of the program: to provide {{ITALIC}}Students{{/ITALIC}} with hands-on opportunities to learn, design, and innovate. While it is never our intent to punish {{ITALIC}}Students{{/ITALIC}}, we can legally regulate and restrict the activities of the {{ITALIC}}Teams{{/ITALIC}} in our competitions, and we must preserve the fairness, educational value, and integrity of the competition. Therefore, {{ITALIC}}Teams{{/ITALIC}} found to be in {{ITALIC}}Violation{{/ITALIC}} of these rules will be held accountable to the strictest interpretations of <G2> and <G4>. It is the responsibility of each {{ITALIC}}Team{{/ITALIC}} to be able to explain and defend the design, construction, and programming of their {{ITALIC}}Robot{{/ITALIC}} if questioned by referees, inspectors, {{ITALIC}}Event Partners{{/ITALIC}}, or judges. {{ITALIC}}Teams{{/ITALIC}} should be prepared to describe their design process, justify design decisions, and demonstrate a full understanding of how their {{ITALIC}}Robot{{/ITALIC}} and code function. If a {{ITALIC}}Team{{/ITALIC}} is unable, for any reason, to provide reasonable evidence (when requested by event staff) that their {{ITALIC}}Robot{{/ITALIC}} and code are the result of their own work, it is appropriate to assume that the {{ITALIC}}Team{{/ITALIC}} is in violation of <G2> and/or <G4>. Event organizers cannot reasonably know the origins of every design or independently verify whether a {{ITALIC}}Robot{{/ITALIC}} was created from scratch, purchased online, or copied from pictures of another {{ITALIC}}Team’s{{/ITALIC}} design. When questions of authenticity arise, the only direct and fair approach is to require {{ITALIC}}Students{{/ITALIC}} to explain and defend their work. This is not unlike academic honesty concerns in schools, and intellectual property concerns in business. By requiring {{ITALIC}}Students{{/ITALIC}} to defend their designs, we ensure that they are developing not only technical skills, but effective communication skills and accountability, as well. Consequences may include disqualification from {{ITALIC}}Matches{{/ITALIC}}, removal from events, and/or escalation of the investigation to VEX Robotics and the RECF for further disciplinary action, which may include sanctions up to and including removal from the program.{{/ITALIC}}\n{{ITALIC}}Violation Notes: {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}{{ITALIC}}Teams{{/ITALIC}} believed to be in {{ITALIC}}Violation{{/ITALIC}} of this rule should be reported to the Judge Advisor, {{ITALIC}}Head Referee{{/ITALIC}}, or {{ITALIC}}Event Partner{{/ITALIC}} for further investigation in coordination with the RSM. Based on the investigation the {{ITALIC}}Team{{/ITALIC}} may be removed from further {{ITALIC}}Matches{{/ITALIC}}, have their Robot Skills Challenge scores removed, and/or be removed from consideration from judged awards. {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}{{ITALIC}}Violations{{/ITALIC}} of this rule will be evaluated on a case-by-case basis, in tandem with the RECF Student Centered Policy as noted in <G2>, and the REC Foundation Code of Conduct as noted in <G1>. All reported and/or suspected <G4> {{ITALIC}}Violations{{/ITALIC}} should be reported to the {{ITALIC}}Event Partners{{/ITALIC}} during the event, and should be reported to the RECF Rules and Conduct Committee following the event.{{/ITALIC}}",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/G4.html"
+        },
+        {
+          "id": "v5rc_g5",
+          "rule": "<G5>",
+          "title": "Each Student can only belong to one Team",
+          "description": "Each Student can only belong to one Team",
+          "fullText": "Violation Note: {{ITALIC}}Teams{{/ITALIC}} believed to be in {{ITALIC}}Violation{{/ITALIC}} of this rule should be reported to the Judge Advisor, {{ITALIC}}Head Referee{{/ITALIC}}, or {{ITALIC}}Event Partner{{/ITALIC}} for further investigation in coordination with the RSM.\n{{ITALIC}}{{ITALIC}}Event Partners{{/ITALIC}} should bear in mind <G3>, and use common sense when enforcing this rule. It is not the intent to punish a {{ITALIC}}Team{{/ITALIC}} who may change {{ITALIC}}Team{{/ITALIC}} members over the course of a season due to illness, changing schools, conflicts within a {{ITALIC}}Team{{/ITALIC}}, etc. {{ITALIC}}Event Partners{{/ITALIC}} and referees are not expected to keep a roster of any {{ITALIC}}Student{{/ITALIC}} who has ever been a {{ITALIC}}Drive Team Member{{/ITALIC}} for one day. This rule is intended to block any instance of loaning or sharing {{ITALIC}}Team{{/ITALIC}} members for the sole purpose of gaining a competitive advantage.{{/ITALIC}}",
+          "completeText": "Violation Note: {{ITALIC}}Teams{{/ITALIC}} believed to be in {{ITALIC}}Violation{{/ITALIC}} of this rule should be reported to the Judge Advisor, {{ITALIC}}Head Referee{{/ITALIC}}, or {{ITALIC}}Event Partner{{/ITALIC}} for further investigation in coordination with the RSM.\n{{ITALIC}}{{ITALIC}}Event Partners{{/ITALIC}} should bear in mind <G3>, and use common sense when enforcing this rule. It is not the intent to punish a {{ITALIC}}Team{{/ITALIC}} who may change {{ITALIC}}Team{{/ITALIC}} members over the course of a season due to illness, changing schools, conflicts within a {{ITALIC}}Team{{/ITALIC}}, etc. {{ITALIC}}Event Partners{{/ITALIC}} and referees are not expected to keep a roster of any {{ITALIC}}Student{{/ITALIC}} who has ever been a {{ITALIC}}Drive Team Member{{/ITALIC}} for one day. This rule is intended to block any instance of loaning or sharing {{ITALIC}}Team{{/ITALIC}} members for the sole purpose of gaining a competitive advantage.{{/ITALIC}}",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/G5.html"
+        }
+      ]
+    },
+    {
+      "name": "GG Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_gg1",
+          "rule": "<GG1>",
+          "title": "Only Drive Team Members, and only in the Alliance Station",
+          "description": "Only Drive Team Members, and only in the Alliance Station",
+          "fullText": "{{ITALIC}}<GG1c> is intended to refer to non-{{ITALIC}}Robot{{/ITALIC}}-related items that directly influence gameplay, such as a speaker that plays a buzzer sound to distract your opponent. Provided no other rules are violated, and the items do not pose any safety or {{ITALIC}}Field{{/ITALIC}} damage risks, the following examples are not considered {{ITALIC}}Violations{{/ITALIC}} of <GG1>: {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Materials used before or after a {{ITALIC}}Match{{/ITALIC}}, such as a pre-{{ITALIC}}Match{{/ITALIC}} alignment aid {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Strategic aids, such as a whiteboard or clipboard {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Earplugs, gloves, or other personal accessories{{/ITALIC}}",
+          "completeText": "{{ITALIC}}<GG1c> is intended to refer to non-{{ITALIC}}Robot{{/ITALIC}}-related items that directly influence gameplay, such as a speaker that plays a buzzer sound to distract your opponent. Provided no other rules are violated, and the items do not pose any safety or {{ITALIC}}Field{{/ITALIC}} damage risks, the following examples are not considered {{ITALIC}}Violations{{/ITALIC}} of <GG1>: {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Materials used before or after a {{ITALIC}}Match{{/ITALIC}}, such as a pre-{{ITALIC}}Match{{/ITALIC}} alignment aid {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Strategic aids, such as a whiteboard or clipboard {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Earplugs, gloves, or other personal accessories{{/ITALIC}}\nViolation Notes: {{ITALIC}}Major Violations{{/ITALIC}} of this rule are not required to be {{ITALIC}}Match Affecting{{/ITALIC}}, and could invoke {{ITALIC}}Violations{{/ITALIC}} of other rules, such as <G1>, <G2>, or <G4>.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG1.html"
+        },
+        {
+          "id": "v5rc_gg2",
+          "rule": "<GG2>",
+          "title": "A Team’s Robot should attend every Match",
+          "description": "A Team’s Robot should attend every Match",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG2.html"
+        },
+        {
+          "id": "v5rc_gg3",
+          "rule": "<GG3>",
+          "title": "Robots on the Field must be ready to play",
+          "description": "Robots on the Field must be ready to play",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG3.html"
+        },
+        {
+          "id": "v5rc_gg4",
+          "rule": "<GG4>",
+          "title": "Hands out of the Field",
+          "description": "Hands out of the Field",
+          "fullText": "{{ITALIC}}If a {{ITALIC}}Drive Team Member’s{{/ITALIC}} hands extend over the {{ITALIC}}Field{{/ITALIC}} and/or {{ITALIC}}Field Perimeter{{/ITALIC}} in a way that is safe and doesn’t contact anything in the {{ITALIC}}Field{{/ITALIC}}, it’s unlikely to be a {{ITALIC}}Violation{{/ITALIC}}. However, {{ITALIC}}Head Referees{{/ITALIC}} may still ask {{ITALIC}}Drive Team Members{{/ITALIC}} to step back and remain completely outside the {{ITALIC}}Field{{/ITALIC}} when necessary (e.g., for safety reasons or to reduce the chances of gameplay interference).{{/ITALIC}}",
+          "completeText": "{{ITALIC}}If a {{ITALIC}}Drive Team Member’s{{/ITALIC}} hands extend over the {{ITALIC}}Field{{/ITALIC}} and/or {{ITALIC}}Field Perimeter{{/ITALIC}} in a way that is safe and doesn’t contact anything in the {{ITALIC}}Field{{/ITALIC}}, it’s unlikely to be a {{ITALIC}}Violation{{/ITALIC}}. However, {{ITALIC}}Head Referees{{/ITALIC}} may still ask {{ITALIC}}Drive Team Members{{/ITALIC}} to step back and remain completely outside the {{ITALIC}}Field{{/ITALIC}} when necessary (e.g., for safety reasons or to reduce the chances of gameplay interference).{{/ITALIC}}",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG4.html"
+        },
+        {
+          "id": "v5rc_gg5",
+          "rule": "<GG5>",
+          "title": "Match replays are allowed, but rare",
+          "description": "Match replays are allowed, but rare",
+          "fullText": "{{ITALIC}}Note: As of the 2024-2025 season, the V5 white screen error is no longer a permitted cause for a guaranteed replay. {{ITALIC}}More information about this error can be found here.{{/ITALIC}}{{/ITALIC}}",
+          "completeText": "{{ITALIC}}Note: As of the 2024-2025 season, the V5 white screen error is no longer a permitted cause for a guaranteed replay. {{ITALIC}}More information about this error can be found here.{{/ITALIC}}{{/ITALIC}}",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG5.html"
+        },
+        {
+          "id": "v5rc_gg6",
+          "rule": "<GG6>",
+          "title": "Disqualifications",
+          "description": "Disqualifications",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG6.html"
+        },
+        {
+          "id": "v5rc_gg7",
+          "rule": "<GG7>",
+          "title": "Time Outs",
+          "description": "Time Outs",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG7.html"
+        },
+        {
+          "id": "v5rc_gg8",
+          "rule": "<GG8>",
+          "title": "Keep your Robots together",
+          "description": "Keep your Robots together",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: {{ITALIC}}Major Violations{{/ITALIC}} of this rule should be rare, as {{ITALIC}}Robots{{/ITALIC}} should never be designed to intentionally violate it. {{ITALIC}}Minor Violations{{/ITALIC}} are usually due to {{ITALIC}}Robots{{/ITALIC}} being damaged during gameplay, such as a wheel falling off.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG8.html"
+        },
+        {
+          "id": "v5rc_gg9",
+          "rule": "<GG9>",
+          "title": "Don’t clamp your Robot to the Field",
+          "description": "Don’t clamp your Robot to the Field",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: \n• {{ITALIC}}Major Violations{{/ITALIC}} of this rule should be rare, as {{ITALIC}}Robots{{/ITALIC}} should never be designed to intentionally violate it. \n• Reaching into any open portion of a {{ITALIC}}Goal{{/ITALIC}} to move {{ITALIC}}Blocks{{/ITALIC}} isn’t considered anchoring or a {{ITALIC}}Violation{{/ITALIC}} of this rule. During the {{ITALIC}}Driver Controlled Period{{/ITALIC}} of any Head-to-Head {{ITALIC}}Match{{/ITALIC}}, keeping your mechanism there while the {{ITALIC}}Robot{{/ITALIC}} isn’t actively moving {{ITALIC}}Blocks{{/ITALIC}} inside the {{ITALIC}}Goal{{/ITALIC}} is considered anchoring, and is a {{ITALIC}}Violation{{/ITALIC}} of this rule. This guidance does not apply during {{ITALIC}}Autonomous Periods{{/ITALIC}} or {{ITALIC}}Robot Skills Matches{{/ITALIC}}. \n• Reaching inside the open top portion of a {{ITALIC}}Goal{{/ITALIC}} to affect {{ITALIC}}Blocks{{/ITALIC}} within that {{ITALIC}}Goal{{/ITALIC}} is an inherently defensive position, and will not get the benefit of the doubt (<GG15>) if judgment calls are required. \n• If a {{ITALIC}}Robot{{/ITALIC}} is reaching inside the open top portion of a {{ITALIC}}Goal{{/ITALIC}}, it is that {{ITALIC}}Team’s{{/ITALIC}} responsibility to ensure that the {{ITALIC}}Robot{{/ITALIC}} doesn’t become anchored to the {{ITALIC}}Goal{{/ITALIC}} when approached by other {{ITALIC}}Robots{{/ITALIC}}. <GG16> will not apply during related interactions, and a {{ITALIC}}Robot{{/ITALIC}} that becomes anchored while reaching into the open top of a {{ITALIC}}Goal{{/ITALIC}} will receive a <GG9> {{ITALIC}}Violation{{/ITALIC}} no matter how they became anchored.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG9.html"
+        },
+        {
+          "id": "v5rc_gg10",
+          "rule": "<GG10>",
+          "title": "The red Alliance places last",
+          "description": "The red Alliance places last",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG10.html"
+        },
+        {
+          "id": "v5rc_gg11",
+          "rule": "<GG11>",
+          "title": "Controllers must stay connected to the Field",
+          "description": "Controllers must stay connected to the Field",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: The intent of this rule is to ensure that {{ITALIC}}Robots{{/ITALIC}} abide by commands sent by the tournament software. Temporarily removing the cable to assist with mid-{{ITALIC}}Match{{/ITALIC}} troubleshooting, with an {{ITALIC}}Event Partner{{/ITALIC}} or other event technical staff present and assisting, would not be considered a {{ITALIC}}Violation{{/ITALIC}}.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG11.html"
+        },
+        {
+          "id": "v5rc_gg12",
+          "rule": "<GG12>",
+          "title": "Autonomous means “no humans",
+          "description": "Autonomous means “no humans",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: See <GG13>.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG12.html"
+        },
+        {
+          "id": "v5rc_gg13",
+          "rule": "<GG13>",
+          "title": "All rules still apply in the Autonomous Period",
+          "description": "All rules still apply in the Autonomous Period",
+          "fullText": "Violation Note: In general, {{ITALIC}}Minor Violations{{/ITALIC}} of SG rules that occur during the {{ITALIC}}Autonomous Period{{/ITALIC}} should only affect the outcome of the {{ITALIC}}Autonomous Period{{/ITALIC}} (i.e., the {{ITALIC}}Alliance{{/ITALIC}} can’t win the {{ITALIC}}Autonomous Bonus{{/ITALIC}} or earn an {{ITALIC}}Autonomous Win Point{{/ITALIC}}) and should not be considered when determining whether a {{ITALIC}}Violation{{/ITALIC}} has been repeated during the event. If a {{ITALIC}}Head Referee{{/ITALIC}} determines that a {{ITALIC}}Violation{{/ITALIC}} of an SG or GG rule during the {{ITALIC}}Autonomous Period{{/ITALIC}} was intentional/strategic rather than accidental/situational, it should be recorded as a Minor or {{ITALIC}}Major Violation{{/ITALIC}} and considered when determining whether a {{ITALIC}}Violation{{/ITALIC}} has been repeated during the event.",
+          "completeText": "Violation Note: In general, {{ITALIC}}Minor Violations{{/ITALIC}} of SG rules that occur during the {{ITALIC}}Autonomous Period{{/ITALIC}} should only affect the outcome of the {{ITALIC}}Autonomous Period{{/ITALIC}} (i.e., the {{ITALIC}}Alliance{{/ITALIC}} can’t win the {{ITALIC}}Autonomous Bonus{{/ITALIC}} or earn an {{ITALIC}}Autonomous Win Point{{/ITALIC}}) and should not be considered when determining whether a {{ITALIC}}Violation{{/ITALIC}} has been repeated during the event. If a {{ITALIC}}Head Referee{{/ITALIC}} determines that a {{ITALIC}}Violation{{/ITALIC}} of an SG or GG rule during the {{ITALIC}}Autonomous Period{{/ITALIC}} was intentional/strategic rather than accidental/situational, it should be recorded as a Minor or {{ITALIC}}Major Violation{{/ITALIC}} and considered when determining whether a {{ITALIC}}Violation{{/ITALIC}} has been repeated during the event.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG13.html"
+        },
+        {
+          "id": "v5rc_gg14",
+          "rule": "<GG14>",
+          "title": "Don’t destroy other Robots",
+          "description": "Don’t destroy other Robots",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: \n• {{ITALIC}}Major Violations{{/ITALIC}} of this rule are not required to be {{ITALIC}}Match Affecting{{/ITALIC}}. Intentional and/or egregious tipping, {{ITALIC}}Entanglement{{/ITALIC}}, or damage may be considered a {{ITALIC}}Major Violation{{/ITALIC}} at the {{ITALIC}}Head Referee’s{{/ITALIC}} discretion. \n• Repeated {{ITALIC}}Violations{{/ITALIC}} within a {{ITALIC}}Match{{/ITALIC}} or tournament could be considered a {{ITALIC}}Violation{{/ITALIC}} of <G1> and/or <S1> at the {{ITALIC}}Head Referee’s{{/ITALIC}} discretion.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG14.html"
+        },
+        {
+          "id": "v5rc_gg15",
+          "rule": "<GG15>",
+          "title": "Offensive Robots get the “benefit of the doubt",
+          "description": "Offensive Robots get the “benefit of the doubt",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG15.html"
+        },
+        {
+          "id": "v5rc_gg16",
+          "rule": "<GG16>",
+          "title": "You can’t force an opponent into a penalty",
+          "description": "You can’t force an opponent into a penalty",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: In most cases, if a {{ITALIC}}Team{{/ITALIC}} causes their opponent to break a rule, the {{ITALIC}}Head Referee{{/ITALIC}} will simply not enforce the penalty on that opponent, and it will be considered a {{ITALIC}}Minor Violation{{/ITALIC}} for the {{ITALIC}}Team{{/ITALIC}} that forced a {{ITALIC}}Violation{{/ITALIC}}. However, if the forced situation becomes {{ITALIC}}Match Affecting{{/ITALIC}} in favor of the {{ITALIC}}Team{{/ITALIC}} that forced the {{ITALIC}}Violation{{/ITALIC}}, it will be considered a {{ITALIC}}Major Violation{{/ITALIC}} for the {{ITALIC}}Team{{/ITALIC}} that forced the {{ITALIC}}Violation{{/ITALIC}}.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG16.html"
+        },
+        {
+          "id": "v5rc_gg17",
+          "rule": "<GG17>",
+          "title": "No Holding for more than a 3-count",
+          "description": "No Holding for more than a 3-count",
+          "fullText": "{{ITALIC}}If the {{ITALIC}}Head Referee{{/ITALIC}} determines that a {{ITALIC}}Robot{{/ITALIC}} is not attempting to escape, then it is not considered {{ITALIC}}Pinned{{/ITALIC}} or {{ITALIC}}Trapped{{/ITALIC}}. This commonly occurs when the {{ITALIC}}Robot{{/ITALIC}} has malfunctioned and lost the ability to move, or when the {{ITALIC}}Robot{{/ITALIC}} is defending a {{ITALIC}}Field Element{{/ITALIC}}. This criteria is not required for {{ITALIC}}Lifting{{/ITALIC}}; the {{ITALIC}}Holding{{/ITALIC}} status begins as soon as the opponent becomes {{ITALIC}}Lifted{{/ITALIC}}. {{ITALIC}}Holding{{/ITALIC}} is a standard and legal part of Head-to-Head game play, and only becomes a {{ITALIC}}Violation{{/ITALIC}} if it exceeds the guidelines in this rule. By beginning a {{ITALIC}}Holding{{/ITALIC}} count immediately after noticing a {{ITALIC}}Holding{{/ITALIC}} interaction, and providing a visual signal when a {{ITALIC}}Holding{{/ITALIC}} interaction has been cleared, {{ITALIC}}Head Referees{{/ITALIC}} can help {{ITALIC}}Teams{{/ITALIC}} avoid penalties.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}If the {{ITALIC}}Head Referee{{/ITALIC}} determines that a {{ITALIC}}Robot{{/ITALIC}} is not attempting to escape, then it is not considered {{ITALIC}}Pinned{{/ITALIC}} or {{ITALIC}}Trapped{{/ITALIC}}. This commonly occurs when the {{ITALIC}}Robot{{/ITALIC}} has malfunctioned and lost the ability to move, or when the {{ITALIC}}Robot{{/ITALIC}} is defending a {{ITALIC}}Field Element{{/ITALIC}}. This criteria is not required for {{ITALIC}}Lifting{{/ITALIC}}; the {{ITALIC}}Holding{{/ITALIC}} status begins as soon as the opponent becomes {{ITALIC}}Lifted{{/ITALIC}}. {{ITALIC}}Holding{{/ITALIC}} is a standard and legal part of Head-to-Head game play, and only becomes a {{ITALIC}}Violation{{/ITALIC}} if it exceeds the guidelines in this rule. By beginning a {{ITALIC}}Holding{{/ITALIC}} count immediately after noticing a {{ITALIC}}Holding{{/ITALIC}} interaction, and providing a visual signal when a {{ITALIC}}Holding{{/ITALIC}} interaction has been cleared, {{ITALIC}}Head Referees{{/ITALIC}} can help {{ITALIC}}Teams{{/ITALIC}} avoid penalties.{{/ITALIC}}",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG17.html"
+        },
+        {
+          "id": "v5rc_gg18",
+          "rule": "<GG18>",
+          "title": "Use Blocks to play the game",
+          "description": "Use Blocks to play the game",
+          "fullText": "{{ITALIC}}The intent of this rule is to prohibit {{ITALIC}}Teams{{/ITALIC}} from using {{ITALIC}}Blocks{{/ITALIC}} as “gloves” to loophole any rule that states “a {{ITALIC}}Robot{{/ITALIC}} may not [do some action].” This rule is not intended to be taken in its most extreme literal interpretation, where any interaction between an {{ITALIC}}Block{{/ITALIC}} and a {{ITALIC}}Robot{{/ITALIC}} needs to be scrutinized with the same intensity as if it were a {{ITALIC}}Robot{{/ITALIC}}.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}The intent of this rule is to prohibit {{ITALIC}}Teams{{/ITALIC}} from using {{ITALIC}}Blocks{{/ITALIC}} as “gloves” to loophole any rule that states “a {{ITALIC}}Robot{{/ITALIC}} may not [do some action].” This rule is not intended to be taken in its most extreme literal interpretation, where any interaction between an {{ITALIC}}Block{{/ITALIC}} and a {{ITALIC}}Robot{{/ITALIC}} needs to be scrutinized with the same intensity as if it were a {{ITALIC}}Robot{{/ITALIC}}.{{/ITALIC}}",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/GG18.html"
+        }
+      ]
+    },
+    {
+      "name": "Specific Game Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_sg1",
+          "rule": "<SG1>",
+          "title": "Starting a Match",
+          "description": "Starting a Match",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: The {{ITALIC}}Match{{/ITALIC}} will not begin with any conditions in this rule unmet. If a {{ITALIC}}Robot{{/ITALIC}} cannot meet these conditions in a timely manner, the {{ITALIC}}Robot{{/ITALIC}} will be removed from the {{ITALIC}}Field{{/ITALIC}} and rules <R3d> and <GG2> will apply until the situation is corrected. They will not receive a {{ITALIC}}Disqualification{{/ITALIC}}, but they will not be permitted to play in the {{ITALIC}}Match{{/ITALIC}}.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SG1.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/SG1.png"
+          ]
+        },
+        {
+          "id": "v5rc_sg2",
+          "rule": "<SG2>",
+          "title": "Horizontal expansion is limited",
+          "description": "Horizontal expansion is limited",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SG2.html"
+        },
+        {
+          "id": "v5rc_sg3",
+          "rule": "<SG3>",
+          "title": "Vertical expansion is limited",
+          "description": "Vertical expansion is limited",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SG3.html"
+        },
+        {
+          "id": "v5rc_sg4",
+          "rule": "<SG4>",
+          "title": "Keep Blocks in the Field",
+          "description": "Keep Blocks in the Field",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: \n• After a {{ITALIC}}Team’s{{/ITALIC}} third {{ITALIC}}Match{{/ITALIC}} with any {{ITALIC}}Violation{{/ITALIC}} of this rule (either Major or Minor), all subsequent {{ITALIC}}Violations{{/ITALIC}} of this rule will immediately escalate to a {{ITALIC}}Major Violation{{/ITALIC}}. \n• Any {{ITALIC}}Team{{/ITALIC}} that removes three (3) or more {{ITALIC}}Blocks{{/ITALIC}} from the {{ITALIC}}Field{{/ITALIC}} in a single {{ITALIC}}Match{{/ITALIC}} will receive a {{ITALIC}}Major Violation{{/ITALIC}}. \n• If it is not clear which {{ITALIC}}Robot{{/ITALIC}} was the last to contact the {{ITALIC}}Block{{/ITALIC}}, all involved {{ITALIC}}Teams{{/ITALIC}} with a color that is opposite to the {{ITALIC}}Block{{/ITALIC}} will receive a {{ITALIC}}Violation{{/ITALIC}}. \n• Due to the difficulty of determining {{ITALIC}}Match Affecting{{/ITALIC}} implications of this rule, most {{ITALIC}}Violations{{/ITALIC}} should be considered Minor. However, blatantly intentional and/or {{ITALIC}}Match Affecting{{/ITALIC}} {{ITALIC}}Violations{{/ITALIC}} (especially during {{ITALIC}}Elimination Matches{{/ITALIC}}) may still immediately escalate to a {{ITALIC}}Major Violation{{/ITALIC}} at the {{ITALIC}}Head Referee’s{{/ITALIC}} discretion.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SG4.html"
+        },
+        {
+          "id": "v5rc_sg5",
+          "rule": "<SG5>",
+          "title": "Each Robot gets one Block as a Preload",
+          "description": "Each Robot gets one Block as a Preload",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: See <SG1>.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SG5.html"
+        },
+        {
+          "id": "v5rc_sg6",
+          "rule": "<SG6>",
+          "title": "A Robot may carry, push, or plow an unlimited number of Blocks",
+          "description": "A Robot may carry, push, or plow an unlimited number of Blocks",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SG6.html"
+        },
+        {
+          "id": "v5rc_sg7",
+          "rule": "<SG7>",
+          "title": "Don’t cross the Autonomous Line, and don’t interfere with your opponents’ actions",
+          "description": "Don’t cross the Autonomous Line, and don’t interfere with your opponents’ actions",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: \n• All {{ITALIC}}Violations{{/ITALIC}} of this rule (Major or Minor) will result in the {{ITALIC}}Autonomous Bonus{{/ITALIC}} being awarded to the opposing {{ITALIC}}Alliance{{/ITALIC}}. See <SG8b> for a potential exception caused by {{ITALIC}}Autonomous Line{{/ITALIC}} interactions. \n• Intentional, strategic, or egregious {{ITALIC}}Violations{{/ITALIC}}, such as intentional contact with an opposing {{ITALIC}}Robot{{/ITALIC}} while contacting the foam tiles on the opposing side of the {{ITALIC}}Autonomous Line{{/ITALIC}}, or the interactions described in clause E will be considered {{ITALIC}}Major Violations{{/ITALIC}} and should result in a {{ITALIC}}Disqualification{{/ITALIC}} for the {{ITALIC}}Match{{/ITALIC}}. \n• Deliberate defensive Autonomous strategies, as described in clause A, may also be recorded as <G1> {{ITALIC}}Violations{{/ITALIC}} at the {{ITALIC}}Head Referee’s{{/ITALIC}} discretion.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SG7.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/SG7.png"
+          ]
+        },
+        {
+          "id": "v5rc_sg8",
+          "rule": "<SG8>",
+          "title": "Engage with the Autonomous Line at your own risk",
+          "description": "Engage with the Autonomous Line at your own risk",
+          "fullText": "{{ITALIC}}These gameplay elements are intended to be utilized by either {{ITALIC}}Alliance{{/ITALIC}} during the {{ITALIC}}Autonomous Period{{/ITALIC}}. This will inevitably result in {{ITALIC}}Robot{{/ITALIC}}-on-{{ITALIC}}Robot{{/ITALIC}} interactions, both incidental and intentional. The overarching intent of <SG8> is for the vast majority of these interactions to result in no rule {{ITALIC}}Violations{{/ITALIC}} and/or penalties for either {{ITALIC}}Alliance{{/ITALIC}}, just as no rules {{ITALIC}}Violations{{/ITALIC}} occur in 99% of Driver-controlled interactions.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}These gameplay elements are intended to be utilized by either {{ITALIC}}Alliance{{/ITALIC}} during the {{ITALIC}}Autonomous Period{{/ITALIC}}. This will inevitably result in {{ITALIC}}Robot{{/ITALIC}}-on-{{ITALIC}}Robot{{/ITALIC}} interactions, both incidental and intentional. The overarching intent of <SG8> is for the vast majority of these interactions to result in no rule {{ITALIC}}Violations{{/ITALIC}} and/or penalties for either {{ITALIC}}Alliance{{/ITALIC}}, just as no rules {{ITALIC}}Violations{{/ITALIC}} occur in 99% of Driver-controlled interactions.{{/ITALIC}}",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SG8.html"
+        },
+        {
+          "id": "v5rc_sg9",
+          "rule": "<SG9>",
+          "title": "Match Loads may be introduced during the Match under certain conditions",
+          "description": "Match Loads may be introduced during the Match under certain conditions",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: \n• For the purposes of {{ITALIC}}Match Affecting{{/ITALIC}} calculations, each illegal {{ITALIC}}Match Load{{/ITALIC}} should be considered worth a value of 3 points. These values are not added to the actual score. If subtracting 3 points per illegal {{ITALIC}}Match Load{{/ITALIC}} from the the offending {{ITALIC}}Alliance’s{{/ITALIC}} final score would change the outcome of the {{ITALIC}}Match{{/ITALIC}}, then the <SG9> {{ITALIC}}Violation{{/ITALIC}} should be considered {{ITALIC}}Match Affecting{{/ITALIC}}. \n• For the purposes of this rule, the following guidelines should be used for escalating repeated {{ITALIC}}Minor Violations{{/ITALIC}} to a {{ITALIC}}Major Violation{{/ITALIC}} during {{ITALIC}}Qualification Matches{{/ITALIC}}: Six or more illegal {{ITALIC}}Match Loads{{/ITALIC}} in a single {{ITALIC}}Qualification Match{{/ITALIC}}. Three or more {{ITALIC}}Qualification Matches{{/ITALIC}} with at least one illegal {{ITALIC}}Match Load{{/ITALIC}} (i.e., the third {{ITALIC}}Match{{/ITALIC}} and all subsequent {{ITALIC}}Matches{{/ITALIC}} with a {{ITALIC}}Violation{{/ITALIC}}). \n• For the purposes of this rule, only {{ITALIC}}Match Affecting{{/ITALIC}} {{ITALIC}}Violations{{/ITALIC}} should be considered during {{ITALIC}}Elimination Matches{{/ITALIC}} (i.e., repeated {{ITALIC}}Minor Violations{{/ITALIC}} in {{ITALIC}}Elimination Matches{{/ITALIC}} do not compound to {{ITALIC}}Major Violations{{/ITALIC}}). Point B-1 does not explicitly apply during {{ITALIC}}Elimination Matches{{/ITALIC}}, although the risk of illegal {{ITALIC}}Match Load{{/ITALIC}} becoming {{ITALIC}}Match Affecting{{/ITALIC}} still inherently increases as the quantity of {{ITALIC}}Match Loads{{/ITALIC}} increases. Point B-2 does not apply during {{ITALIC}}Elimination Matches{{/ITALIC}}. \n• The primary intent of clauses A & E are to prevent {{ITALIC}}Match Load{{/ITALIC}} {{ITALIC}}Blocks{{/ITALIC}} from being introduced in a way that overfills the {{ITALIC}}Loaders{{/ITALIC}} (e.g., {{ITALIC}}Blocks{{/ITALIC}} extending well above the top of the {{ITALIC}}Loader{{/ITALIC}}), thereby reducing potential <SG4> and <SG9> {{ITALIC}}Violations{{/ITALIC}} resulting from {{ITALIC}}Blocks{{/ITALIC}} being removed/ejected from the top of the {{ITALIC}}Loader{{/ITALIC}}. If a {{ITALIC}}Head Referee{{/ITALIC}} is not certain whether or not a {{ITALIC}}Violation{{/ITALIC}} of clause E occurred, they should give the {{ITALIC}}Team{{/ITALIC}} the benefit of the doubt and not record it as a {{ITALIC}}Violation{{/ITALIC}}. This benefit of the doubt must be applied equally to all {{ITALIC}}Teams{{/ITALIC}} and {{ITALIC}}Matches{{/ITALIC}} at that event. We don’t intend this to be a rule that requires referees to closely watch every {{ITALIC}}Loader{{/ITALIC}}. If there’s brief overlap in the orange portion of a {{ITALIC}}Goal{{/ITALIC}} as {{ITALIC}}Blocks{{/ITALIC}} are rapidly added to a {{ITALIC}}Loader{{/ITALIC}}, it probably shouldn’t be considered a {{ITALIC}}Violation{{/ITALIC}}.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SG9.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/SG9-1.png",
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/SG9-2.png"
+          ]
+        },
+        {
+          "id": "v5rc_sg10",
+          "rule": "<SG10>",
+          "title": "Don’t reach inside enclosed sections of Goals",
+          "description": "Don’t reach inside enclosed sections of Goals",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SG10.html"
+        },
+        {
+          "id": "v5rc_sg11",
+          "rule": "<SG11>",
+          "title": "Park Zones are protected during the endgame",
+          "description": "Park Zones are protected during the endgame",
+          "fullText": "Violation",
+          "completeText": "Violation Notes: Intentional, strategic, egregious, or {{ITALIC}}Match Affecting{{/ITALIC}} {{ITALIC}}Violations{{/ITALIC}} will be considered {{ITALIC}}Major Violations{{/ITALIC}}.",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/SG11.html"
+        }
+      ]
+    },
+    {
+      "name": "Robot Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_r1",
+          "rule": "<R1>",
+          "title": "One Robot per Team",
+          "description": "One Robot per Team",
+          "fullText": "{{ITALIC}}The intent of <R1a>, <R1b>, and <R1c> is to ensure an unambiguous level playing {{ITALIC}}Field{{/ITALIC}} for all {{ITALIC}}Teams{{/ITALIC}}. {{ITALIC}}Teams{{/ITALIC}} are welcome (and encouraged) to improve or modify their {{ITALIC}}Robots{{/ITALIC}} between events, or to collaborate with other {{ITALIC}}Teams{{/ITALIC}} to develop the best possible game solution. However, a {{ITALIC}}Team{{/ITALIC}} who brings and/or competes with two separate {{ITALIC}}Robots{{/ITALIC}} at the same tournament has diminished the efforts of a {{ITALIC}}Team{{/ITALIC}} who spent extra design time making sure that their one {{ITALIC}}Robot{{/ITALIC}} can accomplish all of the game’s tasks. A multi-{{ITALIC}}Team{{/ITALIC}} organization that shares a single {{ITALIC}}Robot{{/ITALIC}} has diminished the efforts of a multi-{{ITALIC}}Team{{/ITALIC}} organization who puts in the time, effort, and resources to undergo separate individual design processes and develop their own {{ITALIC}}Robots{{/ITALIC}}. To help determine if a {{ITALIC}}Robot{{/ITALIC}} is a “separate {{ITALIC}}Robot{{/ITALIC}}” or not, use the subsystem definitions found in <R1>. Above that, use common sense as referenced in <G3>. If you can place two {{ITALIC}}Robots{{/ITALIC}} on a table next to each other, and they look like two separate legal/complete {{ITALIC}}Robots{{/ITALIC}} (i.e., each has the 3 subsystems defined by <R1>), then they are two {{ITALIC}}Robots{{/ITALIC}}. Trying to decide if changing a screw, a wheel, or a microcontroller constitutes a separate {{ITALIC}}Robot{{/ITALIC}} is missing the intent and spirit of this rule.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}The intent of <R1a>, <R1b>, and <R1c> is to ensure an unambiguous level playing {{ITALIC}}Field{{/ITALIC}} for all {{ITALIC}}Teams{{/ITALIC}}. {{ITALIC}}Teams{{/ITALIC}} are welcome (and encouraged) to improve or modify their {{ITALIC}}Robots{{/ITALIC}} between events, or to collaborate with other {{ITALIC}}Teams{{/ITALIC}} to develop the best possible game solution. However, a {{ITALIC}}Team{{/ITALIC}} who brings and/or competes with two separate {{ITALIC}}Robots{{/ITALIC}} at the same tournament has diminished the efforts of a {{ITALIC}}Team{{/ITALIC}} who spent extra design time making sure that their one {{ITALIC}}Robot{{/ITALIC}} can accomplish all of the game’s tasks. A multi-{{ITALIC}}Team{{/ITALIC}} organization that shares a single {{ITALIC}}Robot{{/ITALIC}} has diminished the efforts of a multi-{{ITALIC}}Team{{/ITALIC}} organization who puts in the time, effort, and resources to undergo separate individual design processes and develop their own {{ITALIC}}Robots{{/ITALIC}}. To help determine if a {{ITALIC}}Robot{{/ITALIC}} is a “separate {{ITALIC}}Robot{{/ITALIC}}” or not, use the subsystem definitions found in <R1>. Above that, use common sense as referenced in <G3>. If you can place two {{ITALIC}}Robots{{/ITALIC}} on a table next to each other, and they look like two separate legal/complete {{ITALIC}}Robots{{/ITALIC}} (i.e., each has the 3 subsystems defined by <R1>), then they are two {{ITALIC}}Robots{{/ITALIC}}. Trying to decide if changing a screw, a wheel, or a microcontroller constitutes a separate {{ITALIC}}Robot{{/ITALIC}} is missing the intent and spirit of this rule.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R1.html"
+        },
+        {
+          "id": "v5rc_r2",
+          "rule": "<R2>",
+          "title": "Robots must represent the Team’s skill level",
+          "description": "Robots must represent the Team’s skill level",
+          "fullText": "{{ITALIC}}In V5RC, we expect {{ITALIC}}Adults{{/ITALIC}} to teach fundamental {{ITALIC}}Robot{{/ITALIC}} principles like linkages, drive-trains, and manipulators, then allow the {{ITALIC}}Students{{/ITALIC}} to determine which designs to implement and build on their {{ITALIC}}Robot{{/ITALIC}}. Similarly, {{ITALIC}}Adults{{/ITALIC}} are encouraged to teach the {{ITALIC}}Students{{/ITALIC}} how to code various functions involving applicable sensors and mechanisms, then have the {{ITALIC}}Students{{/ITALIC}} program the {{ITALIC}}Robot{{/ITALIC}} from what they have learned.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}In V5RC, we expect {{ITALIC}}Adults{{/ITALIC}} to teach fundamental {{ITALIC}}Robot{{/ITALIC}} principles like linkages, drive-trains, and manipulators, then allow the {{ITALIC}}Students{{/ITALIC}} to determine which designs to implement and build on their {{ITALIC}}Robot{{/ITALIC}}. Similarly, {{ITALIC}}Adults{{/ITALIC}} are encouraged to teach the {{ITALIC}}Students{{/ITALIC}} how to code various functions involving applicable sensors and mechanisms, then have the {{ITALIC}}Students{{/ITALIC}} program the {{ITALIC}}Robot{{/ITALIC}} from what they have learned.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R2.html"
+        },
+        {
+          "id": "v5rc_r3",
+          "rule": "<R3>",
+          "title": "Robots must pass inspection",
+          "description": "Robots must pass inspection",
+          "fullText": "{{ITALIC}}Events may wish to use “inspection markers” (e.g., zip tie or sticker) to identify {{ITALIC}}Robots{{/ITALIC}} that have passed inspection at that event. Inspection markers are subject to all {{ITALIC}}Robot{{/ITALIC}} rules, including legal materials and robot size/expansion limits.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}Events may wish to use “inspection markers” (e.g., zip tie or sticker) to identify {{ITALIC}}Robots{{/ITALIC}} that have passed inspection at that event. Inspection markers are subject to all {{ITALIC}}Robot{{/ITALIC}} rules, including legal materials and robot size/expansion limits.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R3.html"
+        },
+        {
+          "id": "v5rc_r4",
+          "rule": "<R4>",
+          "title": "There is a difference between accidentally and willfully violating a Robot rule",
+          "description": "There is a difference between accidentally and willfully violating a Robot rule",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R4.html"
+        },
+        {
+          "id": "v5rc_r5",
+          "rule": "<R5>",
+          "title": "Robots must fit within an 18” x 18” x 18” volume",
+          "description": "Robots must fit within an 18” x 18” x 18” volume",
+          "fullText": "{{ITALIC}}The official sizing tool is intentionally manufactured with a slightly oversized tolerance. Therefore, any contact with the sizing tool (i.e., a “paper test”) while being measured should be considered a clear indication that a {{ITALIC}}Robot{{/ITALIC}} is outside of the permitted size. This tolerance also provides a slight “leeway” for minor protrusions, such as screw heads or zip ties. Other tools, such as custom sizing boxes or the legacy non-expanding VEX Sizing Tool (276-2086), may be used for informal checks. However, in the event of a conflict or “close call,” a check with the official On-Field Robot Expansion Sizing Tool takes precedence.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}The official sizing tool is intentionally manufactured with a slightly oversized tolerance. Therefore, any contact with the sizing tool (i.e., a “paper test”) while being measured should be considered a clear indication that a {{ITALIC}}Robot{{/ITALIC}} is outside of the permitted size. This tolerance also provides a slight “leeway” for minor protrusions, such as screw heads or zip ties. Other tools, such as custom sizing boxes or the legacy non-expanding VEX Sizing Tool (276-2086), may be used for informal checks. However, in the event of a conflict or “close call,” a check with the official On-Field Robot Expansion Sizing Tool takes precedence.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R5.html"
+        },
+        {
+          "id": "v5rc_r6",
+          "rule": "<R6>",
+          "title": "Officially registered Team numbers must be displayed on Robot license plates",
+          "description": "Officially registered Team numbers must be displayed on Robot license plates",
+          "fullText": "{{ITALIC}}Imagine the {{ITALIC}}Robot{{/ITALIC}} as a cube that’s sitting flat on a flat surface. License plates should be placed onto two (2) opposing faces of that cube (excluding the top and bottom). The intent of this rule is to make it immediately apparent to {{ITALIC}}Head Referees{{/ITALIC}} and other event personnel which {{ITALIC}}Alliance{{/ITALIC}} and which {{ITALIC}}Team{{/ITALIC}} each {{ITALIC}}Robot{{/ITALIC}} belongs to, at all times. It will be at the full discretion of the {{ITALIC}}Head Referee{{/ITALIC}} and inspector at a given event to determine whether a given custom license plate satisfies the criteria listed in <R6>. {{ITALIC}}Teams{{/ITALIC}} wishing to utilize custom plates should be prepared for the possibility of this judgment, and ensure that they are prepared to replace any custom parts with official VEX license plates if requested. Not bringing official replacement plates to an event will not be an acceptable reason for overlooking a {{ITALIC}}Violation{{/ITALIC}} of one or more points in <R6>. Teams are encouraged to use an easily-read, sans-serif font (e.g., Arial). If a {{ITALIC}}Robot{{/ITALIC}} must be removed from the {{ITALIC}}Field{{/ITALIC}} based on this rule, <R3ci> applies and the {{ITALIC}}Team{{/ITALIC}} should not be issued a “no-show.”{{/ITALIC}}",
+          "completeText": "{{ITALIC}}Imagine the {{ITALIC}}Robot{{/ITALIC}} as a cube that’s sitting flat on a flat surface. License plates should be placed onto two (2) opposing faces of that cube (excluding the top and bottom). The intent of this rule is to make it immediately apparent to {{ITALIC}}Head Referees{{/ITALIC}} and other event personnel which {{ITALIC}}Alliance{{/ITALIC}} and which {{ITALIC}}Team{{/ITALIC}} each {{ITALIC}}Robot{{/ITALIC}} belongs to, at all times. It will be at the full discretion of the {{ITALIC}}Head Referee{{/ITALIC}} and inspector at a given event to determine whether a given custom license plate satisfies the criteria listed in <R6>. {{ITALIC}}Teams{{/ITALIC}} wishing to utilize custom plates should be prepared for the possibility of this judgment, and ensure that they are prepared to replace any custom parts with official VEX license plates if requested. Not bringing official replacement plates to an event will not be an acceptable reason for overlooking a {{ITALIC}}Violation{{/ITALIC}} of one or more points in <R6>. Teams are encouraged to use an easily-read, sans-serif font (e.g., Arial). If a {{ITALIC}}Robot{{/ITALIC}} must be removed from the {{ITALIC}}Field{{/ITALIC}} based on this rule, <R3ci> applies and the {{ITALIC}}Team{{/ITALIC}} should not be issued a “no-show.”{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R6.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/Red-LicensePlate.png",
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/CustomPlate.142.png"
+          ]
+        },
+        {
+          "id": "v5rc_r7",
+          "rule": "<R7>",
+          "title": "Let go of Blocks after the Match",
+          "description": "Let go of Blocks after the Match",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R7.html"
+        },
+        {
+          "id": "v5rc_r8",
+          "rule": "<R8>",
+          "title": "Robots have one Brain",
+          "description": "Robots have one Brain",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R8.html"
+        },
+        {
+          "id": "v5rc_r9",
+          "rule": "<R9>",
+          "title": "Keep the power button accessible",
+          "description": "Keep the power button accessible",
+          "fullText": "{{ITALIC}}This rule is in place to ensure the safety of both competitors and field staff. In the event that a {{ITALIC}}Robot{{/ITALIC}} needs to be quickly powered off—whether due to a malfunction, {{ITALIC}}Entanglement{{/ITALIC}}, or other safety concern—it is crucial that the power button and/or Robot Battery remains easily accessible. This allows competitors and/or field personnel to safely {{ITALIC}}Disable{{/ITALIC}} the {{ITALIC}}Robot{{/ITALIC}} without putting their hands near moving parts or other hazards inside the {{ITALIC}}Robot{{/ITALIC}}. Additionally, keeping screens and indicator lights visible helps officials diagnose issues efficiently, minimizing downtime and ensuring a smooth competition experience. If the V5 Brain is accessible, {{ITALIC}}Field{{/ITALIC}} volunteers can help {{ITALIC}}Teams{{/ITALIC}} troubleshoot time-sensitive issues prior to a {{ITALIC}}Match{{/ITALIC}}, including switching between Bluetooth and VEXnet radio modes as needed, selecting programs on the V5 Brain in instances that prevent selection via the V5 Controller, etc. {{ITALIC}}Teams{{/ITALIC}} will also have easier access during any needed <GG4> clause a interactions.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}This rule is in place to ensure the safety of both competitors and field staff. In the event that a {{ITALIC}}Robot{{/ITALIC}} needs to be quickly powered off—whether due to a malfunction, {{ITALIC}}Entanglement{{/ITALIC}}, or other safety concern—it is crucial that the power button and/or Robot Battery remains easily accessible. This allows competitors and/or field personnel to safely {{ITALIC}}Disable{{/ITALIC}} the {{ITALIC}}Robot{{/ITALIC}} without putting their hands near moving parts or other hazards inside the {{ITALIC}}Robot{{/ITALIC}}. Additionally, keeping screens and indicator lights visible helps officials diagnose issues efficiently, minimizing downtime and ensuring a smooth competition experience. If the V5 Brain is accessible, {{ITALIC}}Field{{/ITALIC}} volunteers can help {{ITALIC}}Teams{{/ITALIC}} troubleshoot time-sensitive issues prior to a {{ITALIC}}Match{{/ITALIC}}, including switching between Bluetooth and VEXnet radio modes as needed, selecting programs on the V5 Brain in instances that prevent selection via the V5 Controller, etc. {{ITALIC}}Teams{{/ITALIC}} will also have easier access during any needed <GG4> clause a interactions.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R9.html"
+        },
+        {
+          "id": "v5rc_r10",
+          "rule": "<R10>",
+          "title": "Firmware",
+          "description": "Firmware",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R10.html"
+        },
+        {
+          "id": "v5rc_r11",
+          "rule": "<R11>",
+          "title": "Use a “Competition Template” for programming",
+          "description": "Use a “Competition Template” for programming",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R11.html"
+        },
+        {
+          "id": "v5rc_r12",
+          "rule": "<R12>",
+          "title": "Motors are limited",
+          "description": "Motors are limited",
+          "fullText": "Example\nA\nB\nC\nD\nE\n\n\nQty of 11W Motors\n8\n7\n6\n5\n0\n\n\nQty of 5.5W Motors\n0\n2\n4\n6\n16",
+          "completeText": "Example\nA\nB\nC\nD\nE\n\n\nQty of 11W Motors\n8\n7\n6\n5\n0\n\n\nQty of 5.5W Motors\n0\n2\n4\n6\n16",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R12.html"
+        },
+        {
+          "id": "v5rc_r13",
+          "rule": "<R13>",
+          "title": "Electrical power comes from VEX batteries only",
+          "description": "Electrical power comes from VEX batteries only",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R13.html"
+        },
+        {
+          "id": "v5rc_r14",
+          "rule": "<R14>",
+          "title": "Robots use VEXnet",
+          "description": "Robots use VEXnet",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R14.html"
+        },
+        {
+          "id": "v5rc_r15",
+          "rule": "<R15>",
+          "title": "Give the radio some space",
+          "description": "Give the radio some space",
+          "fullText": "{{ITALIC}}It is fine to loosely encapsulate the V5 Radio within {{ITALIC}}Robot{{/ITALIC}} structure. The intent of this rule is to minimize radio connection issues by minimizing obstructions between VEXnet devices. Burying a radio deep within a {{ITALIC}}Robot{{/ITALIC}} may result in {{ITALIC}}Robot{{/ITALIC}} communication issues. It is also recommended that the LEDs on the radio be visible to aid in troubleshooting.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}It is fine to loosely encapsulate the V5 Radio within {{ITALIC}}Robot{{/ITALIC}} structure. The intent of this rule is to minimize radio connection issues by minimizing obstructions between VEXnet devices. Burying a radio deep within a {{ITALIC}}Robot{{/ITALIC}} may result in {{ITALIC}}Robot{{/ITALIC}} communication issues. It is also recommended that the LEDs on the radio be visible to aid in troubleshooting.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R15.html"
+        },
+        {
+          "id": "v5rc_r16",
+          "rule": "<R16>",
+          "title": "One or two Controllers per Robot",
+          "description": "One or two Controllers per Robot",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R16.html"
+        },
+        {
+          "id": "v5rc_r17",
+          "rule": "<R17>",
+          "title": "Robots are built from the VEX V5 system",
+          "description": "Robots are built from the VEX V5 system",
+          "fullText": "SKU\nDescription\n\n\n276-2174 / 276-4859\nLimit Switch V1 / V2\n\n\n276-2159\nBumper Switch\n\n\n276-2156\nOptical Shaft Encoder\n\n\n276-2216\nPotentiometer\n\n\n276-2155\nUltrasonic Range Finder\n\n\n276-2176\nLED Indicator\n\n\n276-2333\nYaw Rate Gyroscope\n\n\n276-2332\nAnalog Accelerometer V1.0\n\n\n276-2154\nLine Tracker\n\n\n276-1380\nJumper\n\n\n276-2158\nLight Sensor",
+          "completeText": "SKU\nDescription\n\n\n276-2174 / 276-4859\nLimit Switch V1 / V2\n\n\n276-2159\nBumper Switch\n\n\n276-2156\nOptical Shaft Encoder\n\n\n276-2216\nPotentiometer\n\n\n276-2155\nUltrasonic Range Finder\n\n\n276-2176\nLED Indicator\n\n\n276-2333\nYaw Rate Gyroscope\n\n\n276-2332\nAnalog Accelerometer V1.0\n\n\n276-2154\nLine Tracker\n\n\n276-1380\nJumper\n\n\n276-2158\nLight Sensor",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R17.html"
+        },
+        {
+          "id": "v5rc_r18",
+          "rule": "<R18>",
+          "title": "New VEX parts are legal",
+          "description": "New VEX parts are legal",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R18.html"
+        },
+        {
+          "id": "v5rc_r19",
+          "rule": "<R19>",
+          "title": "Prohibited Items",
+          "description": "Prohibited Items",
+          "fullText": "SKU\nDescription\n\n\n276-2192\nVEXnet Joystick\n\n\n276-1891\nVEXnet Partner Joystick\n\n\n276-2194\nVEX ARM® Cortex-based Microcontroller\n\n\n276-2245 / 276-3245\nVEXnet Key 1.0 / 2.0\n\n\n276-2177\n2-Wire Motor 393\n\n\n276-2162\n3-Wire Servo\n\n\n276-2210\nVEX Flashlight\n\n\n276-2193\nMotor Controller 29\nSKU\nDescription\n\n\n276-7151\nRobot Arm Metal\n\n\n276-7152\nRobot Brain Mount\n\n\n276-7153\nInput Output Conveyor\n\n\n276-7720\nDisc Feeder\n\n\n276-7047\nV5 Electromagnet\n{{ITALIC}}3D printed Controller attachments, 3D printed {{ITALIC}}Robot{{/ITALIC}} alignment tools, and/or other custom 3D printed tools that do not go onto the {{ITALIC}}Robot{{/ITALIC}} during a {{ITALIC}}Match{{/ITALIC}} are not considered {{ITALIC}}Robot{{/ITALIC}} parts, and may be legal for use if they meet the requirements of other pertinent rules.{{/ITALIC}}",
+          "completeText": "SKU\nDescription\n\n\n276-2192\nVEXnet Joystick\n\n\n276-1891\nVEXnet Partner Joystick\n\n\n276-2194\nVEX ARM® Cortex-based Microcontroller\n\n\n276-2245 / 276-3245\nVEXnet Key 1.0 / 2.0\n\n\n276-2177\n2-Wire Motor 393\n\n\n276-2162\n3-Wire Servo\n\n\n276-2210\nVEX Flashlight\n\n\n276-2193\nMotor Controller 29\nSKU\nDescription\n\n\n276-7151\nRobot Arm Metal\n\n\n276-7152\nRobot Brain Mount\n\n\n276-7153\nInput Output Conveyor\n\n\n276-7720\nDisc Feeder\n\n\n276-7047\nV5 Electromagnet\n{{ITALIC}}3D printed Controller attachments, 3D printed {{ITALIC}}Robot{{/ITALIC}} alignment tools, and/or other custom 3D printed tools that do not go onto the {{ITALIC}}Robot{{/ITALIC}} during a {{ITALIC}}Match{{/ITALIC}} are not considered {{ITALIC}}Robot{{/ITALIC}} parts, and may be legal for use if they meet the requirements of other pertinent rules.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R19.html"
+        },
+        {
+          "id": "v5rc_r20",
+          "rule": "<R20>",
+          "title": "Certain non-VEX components are allowed",
+          "description": "Certain non-VEX components are allowed",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R20.html"
+        },
+        {
+          "id": "v5rc_r21",
+          "rule": "<R21>",
+          "title": "Custom V5 Smart Cables are allowed",
+          "description": "Custom V5 Smart Cables are allowed",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R21.html"
+        },
+        {
+          "id": "v5rc_r22",
+          "rule": "<R22>",
+          "title": "A limited amount of tape is allowed",
+          "description": "A limited amount of tape is allowed",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R22.html"
+        },
+        {
+          "id": "v5rc_r23",
+          "rule": "<R23>",
+          "title": "Certain non-VEX fasteners are allowed",
+          "description": "Certain non-VEX fasteners are allowed",
+          "fullText": "{{ITALIC}}The intent of the rule is to allow {{ITALIC}}Teams{{/ITALIC}} to purchase their own commodity hardware without introducing additional functionality not found in standard VEX equipment. It is up to inspectors to determine whether the non-VEX hardware has introduced additional functionality or not. For the purposes of this rule, weight savings is not considered additional functionality. If a key component of a {{ITALIC}}Robot’s{{/ITALIC}} design relies upon convincing an inspector that a specialized component is “technically a screw,” it is probably outside of the spirit and intent of this rule. All specific dimensions listed in this rule are intended to be ‘nominal’ references to hardware sizes found within the VEX V5 product line and/or their metric equivalents.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}The intent of the rule is to allow {{ITALIC}}Teams{{/ITALIC}} to purchase their own commodity hardware without introducing additional functionality not found in standard VEX equipment. It is up to inspectors to determine whether the non-VEX hardware has introduced additional functionality or not. For the purposes of this rule, weight savings is not considered additional functionality. If a key component of a {{ITALIC}}Robot’s{{/ITALIC}} design relies upon convincing an inspector that a specialized component is “technically a screw,” it is probably outside of the spirit and intent of this rule. All specific dimensions listed in this rule are intended to be ‘nominal’ references to hardware sizes found within the VEX V5 product line and/or their metric equivalents.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R23.html"
+        },
+        {
+          "id": "v5rc_r24",
+          "rule": "<R24>",
+          "title": "Decorations are allowed",
+          "description": "Decorations are allowed",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R24.html"
+        },
+        {
+          "id": "v5rc_r25",
+          "rule": "<R25>",
+          "title": "A limited amount of custom plastic is allowed",
+          "description": "A limited amount of custom plastic is allowed",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R25.html"
+        },
+        {
+          "id": "v5rc_r26",
+          "rule": "<R26>",
+          "title": "Pneumatics are limited",
+          "description": "Pneumatics are limited",
+          "fullText": "{{ITALIC}}The intent of <R26a> and <R26b> is to limit {{ITALIC}}Robots{{/ITALIC}} to the air pressure stored in two reservoir tanks, as well as the normal working air pressure contained in their pneumatic cylinders and tubing on the {{ITALIC}}Robot{{/ITALIC}}. {{ITALIC}}Teams{{/ITALIC}} may not use other elements for the purposes of storing or generating air pressure. Using cylinders or additional pneumatic tubing solely for additional storage is in {{ITALIC}}Violation{{/ITALIC}} of the spirit of this rule. Similarly, using pneumatic cylinders and/or tubing without any air reservoirs is also in {{ITALIC}}Violation{{/ITALIC}} of the spirit of this rule. The intent of <R26c> is to ensure that pneumatics are being used safely. Pressurized systems, such as a {{ITALIC}}Robot’s{{/ITALIC}} pneumatic subsystem, have the potential to be dangerous if used incorrectly. This rule ensures the safety of participants, and prevents potentially unsafe uses in the future. Another way of thinking of <R26c> is that “pneumatics should only be used with pneumatics.” {{ITALIC}}Teams{{/ITALIC}} should not use compressed air as a means of actuating non-pneumatic devices such as screws, nuts, etc. For example, pulling a pin with a pneumatic cylinder is okay, but using air to actuate the pin itself is not.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}The intent of <R26a> and <R26b> is to limit {{ITALIC}}Robots{{/ITALIC}} to the air pressure stored in two reservoir tanks, as well as the normal working air pressure contained in their pneumatic cylinders and tubing on the {{ITALIC}}Robot{{/ITALIC}}. {{ITALIC}}Teams{{/ITALIC}} may not use other elements for the purposes of storing or generating air pressure. Using cylinders or additional pneumatic tubing solely for additional storage is in {{ITALIC}}Violation{{/ITALIC}} of the spirit of this rule. Similarly, using pneumatic cylinders and/or tubing without any air reservoirs is also in {{ITALIC}}Violation{{/ITALIC}} of the spirit of this rule. The intent of <R26c> is to ensure that pneumatics are being used safely. Pressurized systems, such as a {{ITALIC}}Robot’s{{/ITALIC}} pneumatic subsystem, have the potential to be dangerous if used incorrectly. This rule ensures the safety of participants, and prevents potentially unsafe uses in the future. Another way of thinking of <R26c> is that “pneumatics should only be used with pneumatics.” {{ITALIC}}Teams{{/ITALIC}} should not use compressed air as a means of actuating non-pneumatic devices such as screws, nuts, etc. For example, pulling a pin with a pneumatic cylinder is okay, but using air to actuate the pin itself is not.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R26.html"
+        },
+        {
+          "id": "v5rc_r27",
+          "rule": "<R27>",
+          "title": "Most modifications to non-electrical components are allowed",
+          "description": "Most modifications to non-electrical components are allowed",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R27.html"
+        },
+        {
+          "id": "v5rc_r28",
+          "rule": "<R28>",
+          "title": "No modifications to electronic or pneumatic components are allowed",
+          "description": "No modifications to electronic or pneumatic components are allowed",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/R28.html"
+        }
+      ]
+    },
+    {
+      "name": "Robot Skills Challenge Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_rsc1",
+          "rule": "<RSC1>",
+          "title": "Standard rules apply in most cases",
+          "description": "Standard rules apply in most cases",
+          "fullText": "Violation Note: \n•  In the Robot Skills Challenge, the standard definition of {{ITALIC}}Match Affecting{{/ITALIC}} does not apply, because there is no winner or loser. When evaluating whether a rule {{ITALIC}}Violation{{/ITALIC}} should be classified as a {{ITALIC}}Major Violation{{/ITALIC}} or {{ITALIC}}Minor Violation{{/ITALIC}} in the context of this criteria, the term “score affecting” can be substituted for “{{ITALIC}}Match Affecting{{/ITALIC}}.” A {{ITALIC}}Violation{{/ITALIC}} is considered “score affecting” if it results in a net increase of that {{ITALIC}}Team’s{{/ITALIC}} score at the end of the {{ITALIC}}Match{{/ITALIC}}. \n• {{ITALIC}}Violations{{/ITALIC}} of <GG>, <SG>, and <RSC> rules that occur during a {{ITALIC}}Robot Skills Match{{/ITALIC}} should only affect the outcome of that {{ITALIC}}Match{{/ITALIC}} and should not be considered when determining whether a {{ITALIC}}Violation{{/ITALIC}} has been repeated during the event.",
+          "completeText": "Violation Note: \n•  In the Robot Skills Challenge, the standard definition of {{ITALIC}}Match Affecting{{/ITALIC}} does not apply, because there is no winner or loser. When evaluating whether a rule {{ITALIC}}Violation{{/ITALIC}} should be classified as a {{ITALIC}}Major Violation{{/ITALIC}} or {{ITALIC}}Minor Violation{{/ITALIC}} in the context of this criteria, the term “score affecting” can be substituted for “{{ITALIC}}Match Affecting{{/ITALIC}}.” A {{ITALIC}}Violation{{/ITALIC}} is considered “score affecting” if it results in a net increase of that {{ITALIC}}Team’s{{/ITALIC}} score at the end of the {{ITALIC}}Match{{/ITALIC}}. \n• {{ITALIC}}Violations{{/ITALIC}} of <GG>, <SG>, and <RSC> rules that occur during a {{ITALIC}}Robot Skills Match{{/ITALIC}} should only affect the outcome of that {{ITALIC}}Match{{/ITALIC}} and should not be considered when determining whether a {{ITALIC}}Violation{{/ITALIC}} has been repeated during the event.",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/RSC1.html"
+        },
+        {
+          "id": "v5rc_rsc2",
+          "rule": "<RSC2>",
+          "title": "Scoring Robot Skills Matches",
+          "description": "Scoring Robot Skills Matches",
+          "fullText": "Each Block {{ITALIC}}Scored{{/ITALIC}} in a {{ITALIC}}Goal{{/ITALIC}}\n\n1 Point\n\nEach filled {{ITALIC}}Control Zone{{/ITALIC}} in a {{ITALIC}}Long Goal{{/ITALIC}}\n\n5 Points\n\nEach filled {{ITALIC}}Control Zone{{/ITALIC}} in a {{ITALIC}}Center Goal{{/ITALIC}}\n\n10 Points\n\nEach Cleared {{ITALIC}}Park Zone{{/ITALIC}}\n\n5 Points\n\nEach Cleared {{ITALIC}}Loader{{/ITALIC}}\n\n5 Points\n\n{{ITALIC}}Parked{{/ITALIC}} {{ITALIC}}Robot{{/ITALIC}}\n\n15 Points\nEach Block {{ITALIC}}Scored{{/ITALIC}} in a {{ITALIC}}Goal{{/ITALIC}}\n1 Point\nEach filled {{ITALIC}}Control Zone{{/ITALIC}} in a {{ITALIC}}Long Goal{{/ITALIC}}\n5 Points\nEach filled {{ITALIC}}Control Zone{{/ITALIC}} in a {{ITALIC}}Center Goal{{/ITALIC}}\n10 Points\nEach Cleared {{ITALIC}}Park Zone{{/ITALIC}}\n5 Points\nEach Cleared {{ITALIC}}Loader{{/ITALIC}}\n5 Points\n{{ITALIC}}Parked{{/ITALIC}} {{ITALIC}}Robot{{/ITALIC}}\n15 Points",
+          "completeText": "Each Block {{ITALIC}}Scored{{/ITALIC}} in a {{ITALIC}}Goal{{/ITALIC}}\n\n1 Point\n\nEach filled {{ITALIC}}Control Zone{{/ITALIC}} in a {{ITALIC}}Long Goal{{/ITALIC}}\n\n5 Points\n\nEach filled {{ITALIC}}Control Zone{{/ITALIC}} in a {{ITALIC}}Center Goal{{/ITALIC}}\n\n10 Points\n\nEach Cleared {{ITALIC}}Park Zone{{/ITALIC}}\n\n5 Points\n\nEach Cleared {{ITALIC}}Loader{{/ITALIC}}\n\n5 Points\n\n{{ITALIC}}Parked{{/ITALIC}} {{ITALIC}}Robot{{/ITALIC}}\n\n15 Points\nEach Block {{ITALIC}}Scored{{/ITALIC}} in a {{ITALIC}}Goal{{/ITALIC}}\n1 Point\nEach filled {{ITALIC}}Control Zone{{/ITALIC}} in a {{ITALIC}}Long Goal{{/ITALIC}}\n5 Points\nEach filled {{ITALIC}}Control Zone{{/ITALIC}} in a {{ITALIC}}Center Goal{{/ITALIC}}\n10 Points\nEach Cleared {{ITALIC}}Park Zone{{/ITALIC}}\n5 Points\nEach Cleared {{ITALIC}}Loader{{/ITALIC}}\n5 Points\n{{ITALIC}}Parked{{/ITALIC}} {{ITALIC}}Robot{{/ITALIC}}\n15 Points",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/RSC2.html"
+        },
+        {
+          "id": "v5rc_rsc3",
+          "rule": "<RSC3>",
+          "title": "Robot and Field setup for Skills Matches",
+          "description": "Robot and Field setup for Skills Matches",
+          "fullText": "",
+          "completeText": "",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/RSC3.html"
+        },
+        {
+          "id": "v5rc_rsc4",
+          "rule": "<RSC4>",
+          "title": "Skills Stop Time",
+          "description": "Skills Stop Time",
+          "fullText": "",
+          "completeText": "",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/RSC4.html"
+        }
+      ]
+    },
+    {
+      "name": "Tournament Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_t1",
+          "rule": "<T1>",
+          "title": "Head Referees have ultimate and final authority on all gameplay and Robot ruling decisions during the competition",
+          "description": "Head Referees have ultimate and final authority on all gameplay and Robot ruling decisions during the competition",
+          "fullText": "{{ITALIC}}Note from the VEX GDC: The rules contained in this Game Manual are written to be enforced by human {{ITALIC}}Head Referees{{/ITALIC}}. Many rules have “black-and-white” criteria that can be easily checked. However, some rulings will rely on a judgment call from this human {{ITALIC}}Head Referee{{/ITALIC}}. In these cases, {{ITALIC}}Head Referees{{/ITALIC}} will make their calls based on what they and the {{ITALIC}}Scorekeeper Referees{{/ITALIC}} saw, what guidance is provided by their official support materials (the Game Manual and the Q&A), and most crucially, the context of the {{ITALIC}}Match{{/ITALIC}} in question. The VEX V5 Robotics Competition does not have video replay, our {{ITALIC}}Fields{{/ITALIC}} do not have absolute sensors to count scores, and most events do not have the resources for an extensive review conference between each {{ITALIC}}Match{{/ITALIC}}. When an ambiguous rule results in a controversial call, there is a natural instinct to wonder what the “right” ruling “should have been,” or what the GDC “would have ruled.” This is ultimately an irrelevant question; our answer is that when a rule specifies “{{ITALIC}}Head Referee’s{{/ITALIC}} discretion” (or similar), then the “right” call is the one made by a {{ITALIC}}Head Referee{{/ITALIC}} in the moment. The VEX GDC designs games, and writes rules, with this expectation (constraint) in mind.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}Note from the VEX GDC: The rules contained in this Game Manual are written to be enforced by human {{ITALIC}}Head Referees{{/ITALIC}}. Many rules have “black-and-white” criteria that can be easily checked. However, some rulings will rely on a judgment call from this human {{ITALIC}}Head Referee{{/ITALIC}}. In these cases, {{ITALIC}}Head Referees{{/ITALIC}} will make their calls based on what they and the {{ITALIC}}Scorekeeper Referees{{/ITALIC}} saw, what guidance is provided by their official support materials (the Game Manual and the Q&A), and most crucially, the context of the {{ITALIC}}Match{{/ITALIC}} in question. The VEX V5 Robotics Competition does not have video replay, our {{ITALIC}}Fields{{/ITALIC}} do not have absolute sensors to count scores, and most events do not have the resources for an extensive review conference between each {{ITALIC}}Match{{/ITALIC}}. When an ambiguous rule results in a controversial call, there is a natural instinct to wonder what the “right” ruling “should have been,” or what the GDC “would have ruled.” This is ultimately an irrelevant question; our answer is that when a rule specifies “{{ITALIC}}Head Referee’s{{/ITALIC}} discretion” (or similar), then the “right” call is the one made by a {{ITALIC}}Head Referee{{/ITALIC}} in the moment. The VEX GDC designs games, and writes rules, with this expectation (constraint) in mind.{{/ITALIC}}",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T1.html"
+        },
+        {
+          "id": "v5rc_t2",
+          "rule": "<T2>",
+          "title": "Head Referees must be qualified",
+          "description": "Head Referees must be qualified",
+          "fullText": "{{ITALIC}}{{ITALIC}}Head Referees{{/ITALIC}} should demonstrate the following attributes: {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Thorough knowledge of the current game and rules of play {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Effective decision-making skills {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Attention to detail {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Ability to work effectively as a member of a team {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Ability to be confident and assertive when necessary {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Strong communication and diplomacy skills{{/ITALIC}}",
+          "completeText": "{{ITALIC}}{{ITALIC}}Head Referees{{/ITALIC}} should demonstrate the following attributes: {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Thorough knowledge of the current game and rules of play {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Effective decision-making skills {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Attention to detail {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Ability to work effectively as a member of a team {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Ability to be confident and assertive when necessary {{ITALIC}}{{/ITALIC}}\n{{ITALIC}}• {{/ITALIC}}Strong communication and diplomacy skills{{/ITALIC}}",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T2.html"
+        },
+        {
+          "id": "v5rc_t3",
+          "rule": "<T3>",
+          "title": "Drive Team Members are permitted to immediately appeal a Head Referee’s ruling",
+          "description": "Drive Team Members are permitted to immediately appeal a Head Referee’s ruling",
+          "fullText": "{{ITALIC}}Some events may choose to utilize a “question box” or other designated location for discussions with {{ITALIC}}Head Referees{{/ITALIC}}. Offering a “question box” is within the discretion of the {{ITALIC}}Event Partner{{/ITALIC}} and/or {{ITALIC}}Head Referee{{/ITALIC}}, and may act as an alternate option for asking {{ITALIC}}Drive Team Members{{/ITALIC}} to remain in the {{ITALIC}}Alliance Station{{/ITALIC}} (although all other aspects of this rule apply). However, by using this alternate location, {{ITALIC}}Drive Team Members{{/ITALIC}} acknowledge that they are forfeiting the opportunity to use any contextual information involving the specific state of the {{ITALIC}}Field{{/ITALIC}} at the end of the {{ITALIC}}Match{{/ITALIC}}. For example, it is impossible to appeal whether a {{ITALIC}}Block{{/ITALIC}} was {{ITALIC}}Scored{{/ITALIC}} or not if the {{ITALIC}}Field{{/ITALIC}} has already been reset. If this information is pertinent to the appeal, {{ITALIC}}Drive Team Members{{/ITALIC}} should still remain in the {{ITALIC}}Alliance Station{{/ITALIC}}, and relocate to the “question box” once the {{ITALIC}}Head Referee{{/ITALIC}} has been made aware of the concern and/or any relevant context.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}Some events may choose to utilize a “question box” or other designated location for discussions with {{ITALIC}}Head Referees{{/ITALIC}}. Offering a “question box” is within the discretion of the {{ITALIC}}Event Partner{{/ITALIC}} and/or {{ITALIC}}Head Referee{{/ITALIC}}, and may act as an alternate option for asking {{ITALIC}}Drive Team Members{{/ITALIC}} to remain in the {{ITALIC}}Alliance Station{{/ITALIC}} (although all other aspects of this rule apply). However, by using this alternate location, {{ITALIC}}Drive Team Members{{/ITALIC}} acknowledge that they are forfeiting the opportunity to use any contextual information involving the specific state of the {{ITALIC}}Field{{/ITALIC}} at the end of the {{ITALIC}}Match{{/ITALIC}}. For example, it is impossible to appeal whether a {{ITALIC}}Block{{/ITALIC}} was {{ITALIC}}Scored{{/ITALIC}} or not if the {{ITALIC}}Field{{/ITALIC}} has already been reset. If this information is pertinent to the appeal, {{ITALIC}}Drive Team Members{{/ITALIC}} should still remain in the {{ITALIC}}Alliance Station{{/ITALIC}}, and relocate to the “question box” once the {{ITALIC}}Head Referee{{/ITALIC}} has been made aware of the concern and/or any relevant context.{{/ITALIC}}",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T3.html"
+        },
+        {
+          "id": "v5rc_t4",
+          "rule": "<T4>",
+          "title": "The Event Partner has ultimate authority regarding all non-gameplay decisions during an event",
+          "description": "The Event Partner has ultimate authority regarding all non-gameplay decisions during an event",
+          "fullText": "{{ITALIC}}This rule exists alongside <G1>, <S1>, and <G3>. Even though there isn’t a rule that says “do not steal from the concession stand,” it would still be within an {{ITALIC}}Event Partner’s{{/ITALIC}} authority to remove a thief from the competition.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}This rule exists alongside <G1>, <S1>, and <G3>. Even though there isn’t a rule that says “do not steal from the concession stand,” it would still be within an {{ITALIC}}Event Partner’s{{/ITALIC}} authority to remove a thief from the competition.{{/ITALIC}}",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T4.html"
+        },
+        {
+          "id": "v5rc_t5",
+          "rule": "<T5>",
+          "title": "Be prepared for minor Field variance",
+          "description": "Be prepared for minor Field variance",
+          "fullText": "{{ITALIC}}The {{ITALIC}}Field Perimeter{{/ITALIC}} and Elements are designed to be assembled and disassembled multiple times each year. {{ITALIC}}Event Partners{{/ITALIC}} store and transport {{ITALIC}}Fields{{/ITALIC}} between events, and the individuals setting up the {{ITALIC}}Field{{/ITALIC}} at one event may differ from those at the next. While every effort will be made to ensure minimal variance, {{ITALIC}}Teams{{/ITALIC}} should expect that any {{ITALIC}}Field{{/ITALIC}} may be slightly different than another, and prepare accordingly. Just because something works on one {{ITALIC}}Field{{/ITALIC}} does not fully guarantee it will work on the next, and is not enough evidence alone to determine if a {{ITALIC}}Field{{/ITALIC}} is out of tolerance.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}The {{ITALIC}}Field Perimeter{{/ITALIC}} and Elements are designed to be assembled and disassembled multiple times each year. {{ITALIC}}Event Partners{{/ITALIC}} store and transport {{ITALIC}}Fields{{/ITALIC}} between events, and the individuals setting up the {{ITALIC}}Field{{/ITALIC}} at one event may differ from those at the next. While every effort will be made to ensure minimal variance, {{ITALIC}}Teams{{/ITALIC}} should expect that any {{ITALIC}}Field{{/ITALIC}} may be slightly different than another, and prepare accordingly. Just because something works on one {{ITALIC}}Field{{/ITALIC}} does not fully guarantee it will work on the next, and is not enough evidence alone to determine if a {{ITALIC}}Field{{/ITALIC}} is out of tolerance.{{/ITALIC}}",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T5.html"
+        },
+        {
+          "id": "v5rc_t6",
+          "rule": "<T6>",
+          "title": "Fields may be repaired at the Event Partner’s discretion",
+          "description": "Fields may be repaired at the Event Partner’s discretion",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T6.html"
+        },
+        {
+          "id": "v5rc_t7",
+          "rule": "<T7>",
+          "title": "Fields at an event must be consistent with each other",
+          "description": "Fields at an event must be consistent with each other",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T7.html"
+        },
+        {
+          "id": "v5rc_t8",
+          "rule": "<T8>",
+          "title": "There are three types of Field control that may be used",
+          "description": "There are three types of Field control that may be used",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T8.html"
+        },
+        {
+          "id": "v5rc_t9",
+          "rule": "<T9>",
+          "title": "There are two types of Field Perimeter that may be used",
+          "description": "There are two types of Field Perimeter that may be used",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T9.html"
+        },
+        {
+          "id": "v5rc_t10",
+          "rule": "<T10>",
+          "title": "Qualification Matches follow the Match schedule",
+          "description": "Qualification Matches follow the Match schedule",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T10.html"
+        },
+        {
+          "id": "v5rc_t11",
+          "rule": "<T11>",
+          "title": "Each Team will have at least six Qualification Matches",
+          "description": "Each Team will have at least six Qualification Matches",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T11.html"
+        },
+        {
+          "id": "v5rc_t12",
+          "rule": "<T12>",
+          "title": "Qualification Matches contribute to a Team’s ranking for Alliance Selection",
+          "description": "Qualification Matches contribute to a Team’s ranking for Alliance Selection",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T12.html"
+        },
+        {
+          "id": "v5rc_t13",
+          "rule": "<T13>",
+          "title": "Qualification Match tiebreakers",
+          "description": "Qualification Match tiebreakers",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T13.html"
+        },
+        {
+          "id": "v5rc_t14",
+          "rule": "<T14>",
+          "title": "Small tournaments have fewer Alliances",
+          "description": "Small tournaments have fewer Alliances",
+          "fullText": "# of {{ITALIC}}Teams{{/ITALIC}}\n\n# of {{ITALIC}}Elimination Alliances{{/ITALIC}}\n\n32+\n\n16\n\n24-31\n\n12\n\n16-23\n\n8\n\n<16\n\n# of {{ITALIC}}Teams{{/ITALIC}} divided by 2, less any remainder\n# of {{ITALIC}}Teams{{/ITALIC}}\n# of {{ITALIC}}Elimination Alliances{{/ITALIC}}\n32+\n16\n24-31\n12\n16-23\n8\n<16\n# of {{ITALIC}}Teams{{/ITALIC}} divided by 2, less any remainder",
+          "completeText": "# of {{ITALIC}}Teams{{/ITALIC}}\n\n# of {{ITALIC}}Elimination Alliances{{/ITALIC}}\n\n32+\n\n16\n\n24-31\n\n12\n\n16-23\n\n8\n\n<16\n\n# of {{ITALIC}}Teams{{/ITALIC}} divided by 2, less any remainder\n# of {{ITALIC}}Teams{{/ITALIC}}\n# of {{ITALIC}}Elimination Alliances{{/ITALIC}}\n32+\n16\n24-31\n12\n16-23\n8\n<16\n# of {{ITALIC}}Teams{{/ITALIC}} divided by 2, less any remainder",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T14.html"
+        },
+        {
+          "id": "v5rc_t15",
+          "rule": "<T15>",
+          "title": "Send a Student representative to Alliance Selection",
+          "description": "Send a Student representative to Alliance Selection",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T15.html"
+        },
+        {
+          "id": "v5rc_t16",
+          "rule": "<T16>",
+          "title": "Each Team may only be invited once to join one Alliance",
+          "description": "Each Team may only be invited once to join one Alliance",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T16.html"
+        },
+        {
+          "id": "v5rc_t17",
+          "rule": "<T17>",
+          "title": "Elimination Matches follow the Elimination Bracket",
+          "description": "Elimination Matches follow the Elimination Bracket",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T17.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/16-Bracket.png",
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/8-Bracket.png"
+          ]
+        },
+        {
+          "id": "v5rc_t18",
+          "rule": "<T18>",
+          "title": "Elimination Matches are a blend of “Best of 1” and “Best of 3",
+          "description": "Elimination Matches are a blend of “Best of 1” and “Best of 3",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T18.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/TournamentFlowchart.png"
+          ]
+        },
+        {
+          "id": "v5rc_t19",
+          "rule": "<T19>",
+          "title": "Ties in Elimination Matches lead to limited rematches",
+          "description": "Ties in Elimination Matches lead to limited rematches",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T19.html"
+        },
+        {
+          "id": "v5rc_t20",
+          "rule": "<T20>",
+          "title": "Skills Match Schedule",
+          "description": "Skills Match Schedule",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T20.html"
+        },
+        {
+          "id": "v5rc_t21",
+          "rule": "<T21>",
+          "title": "There is no requirement that Skills Challenge Fields have the same consistent modifications as the Head-to-Head Fields",
+          "description": "There is no requirement that Skills Challenge Fields have the same consistent modifications as the Head-to-Head Fields",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T21.html"
+        },
+        {
+          "id": "v5rc_t22",
+          "rule": "<T22>",
+          "title": "Skills Rankings at events",
+          "description": "Skills Rankings at events",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T22.html"
+        },
+        {
+          "id": "v5rc_t23",
+          "rule": "<T23>",
+          "title": "Skills Rankings Globally",
+          "description": "Skills Rankings Globally",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T23.html"
+        },
+        {
+          "id": "v5rc_t24",
+          "rule": "<T24>",
+          "title": "Robot Skills at League Events",
+          "description": "Robot Skills at League Events",
+          "fullText": "{{ITALIC}}Autonomous Coding Skills Match{{/ITALIC}}\n\n{{ITALIC}}Driving Skills Match{{/ITALIC}}\n\nRobot Skills Score\n\nSession 1\n\n40\n\n60\n\n100\n\nSession 2\n\n50\n\n100\n\n150\n{{ITALIC}}Autonomous Coding Skills Match{{/ITALIC}}\n{{ITALIC}}Driving Skills Match{{/ITALIC}}\nRobot Skills Score\nSession 1\n40\n60\n100\nSession 2\n50\n100\n150",
+          "completeText": "{{ITALIC}}Autonomous Coding Skills Match{{/ITALIC}}\n\n{{ITALIC}}Driving Skills Match{{/ITALIC}}\n\nRobot Skills Score\n\nSession 1\n\n40\n\n60\n\n100\n\nSession 2\n\n50\n\n100\n\n150\n{{ITALIC}}Autonomous Coding Skills Match{{/ITALIC}}\n{{ITALIC}}Driving Skills Match{{/ITALIC}}\nRobot Skills Score\nSession 1\n40\n60\n100\nSession 2\n50\n100\n150",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/T24.html"
+        }
+      ]
+    },
+    {
+      "name": "VURC General Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_vug1",
+          "rule": "<VUG1>",
+          "title": "Different Robot placement than rule <GG10>",
+          "description": "Different Robot placement than rule <GG10>",
+          "fullText": "",
+          "completeText": "",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUG1.html"
+        },
+        {
+          "id": "v5rc_vug2",
+          "rule": "<VUG2>",
+          "title": "Different expansion",
+          "description": "Different expansion",
+          "fullText": "",
+          "completeText": "",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUG2.html"
+        },
+        {
+          "id": "v5rc_vug3",
+          "rule": "<VUG3>",
+          "title": "Different availability of Loaders",
+          "description": "Different availability of Loaders",
+          "fullText": "",
+          "completeText": "",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUG3.html"
+        },
+        {
+          "id": "v5rc_vug4",
+          "rule": "<VUG4>",
+          "title": "Different Autonomous Win Point criteria",
+          "description": "Different Autonomous Win Point criteria",
+          "fullText": "",
+          "completeText": "",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUG4.html"
+        },
+        {
+          "id": "v5rc_vug5",
+          "rule": "<VUG5>",
+          "title": "Don’t cross the Autonomous Line, and don’t interfere with your opponents’ actions",
+          "description": "Don’t cross the Autonomous Line, and don’t interfere with your opponents’ actions",
+          "fullText": "",
+          "completeText": "",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUG5.html"
+        },
+        {
+          "id": "v5rc_vug6",
+          "rule": "<VUG6>",
+          "title": "Engage with the Autonomous Line and Neutral Zone at your own risk",
+          "description": "Engage with the Autonomous Line and Neutral Zone at your own risk",
+          "fullText": "{{ITALIC}}The {{ITALIC}}Neutral Zone{{/ITALIC}} and the {{ITALIC}}Goals{{/ITALIC}} and {{ITALIC}}Blocks{{/ITALIC}} within it are intended to be utilized by either {{ITALIC}}Alliance{{/ITALIC}} during the {{ITALIC}}Autonomous Period{{/ITALIC}}. This will inevitably result in {{ITALIC}}Robot{{/ITALIC}}-on-{{ITALIC}}Robot{{/ITALIC}} interactions, both incidental and intentional. The overarching intent of <VUG6> is for the vast majority of these interactions to result in no rule {{ITALIC}}Violations{{/ITALIC}} and/or penalties for either {{ITALIC}}Alliance{{/ITALIC}}, just as no rules {{ITALIC}}Violations{{/ITALIC}} occur in 99% of Driver Controlled interactions.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}The {{ITALIC}}Neutral Zone{{/ITALIC}} and the {{ITALIC}}Goals{{/ITALIC}} and {{ITALIC}}Blocks{{/ITALIC}} within it are intended to be utilized by either {{ITALIC}}Alliance{{/ITALIC}} during the {{ITALIC}}Autonomous Period{{/ITALIC}}. This will inevitably result in {{ITALIC}}Robot{{/ITALIC}}-on-{{ITALIC}}Robot{{/ITALIC}} interactions, both incidental and intentional. The overarching intent of <VUG6> is for the vast majority of these interactions to result in no rule {{ITALIC}}Violations{{/ITALIC}} and/or penalties for either {{ITALIC}}Alliance{{/ITALIC}}, just as no rules {{ITALIC}}Violations{{/ITALIC}} occur in 99% of Driver Controlled interactions.{{/ITALIC}}",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUG6.html"
+        },
+        {
+          "id": "v5rc_vug7",
+          "rule": "<VUG7>",
+          "title": "Some electronic devices may be in motion or moving at the beginning of the Match",
+          "description": "Some electronic devices may be in motion or moving at the beginning of the Match",
+          "fullText": "",
+          "completeText": "",
+          "category": "General",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUG7.html"
+        }
+      ]
+    },
+    {
+      "name": "VURS Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_vurs1",
+          "rule": "<VURS1>",
+          "title": "VEX U Robot Skills Matches use the same Field layout, object placements, and tape lines as VEX U Head-to-Head Matches",
+          "description": "VEX U Robot Skills Matches use the same Field layout, object placements, and tape lines as VEX U Head-to-Head Matches",
+          "fullText": "",
+          "completeText": "",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VURS1.html"
+        },
+        {
+          "id": "v5rc_vurs2",
+          "rule": "<VURS2>",
+          "title": "Both Robots must start the Robot Skills Match in legal starting positions for the red Alliance",
+          "description": "Both Robots must start the Robot Skills Match in legal starting positions for the red Alliance",
+          "fullText": "",
+          "completeText": "",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VURS2.html"
+        },
+        {
+          "id": "v5rc_vurs3",
+          "rule": "<VURS3>",
+          "title": "Teams are permitted to use both Robots in their VEX U Robot Skills Challenge Matches, per <VUT1> and <VUR1>",
+          "description": "Teams are permitted to use both Robots in their VEX U Robot Skills Challenge Matches, per <VUT1> and <VUR1>",
+          "fullText": "",
+          "completeText": "",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VURS3.html"
+        }
+      ]
+    },
+    {
+      "name": "VUT Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_vut1",
+          "rule": "<VUT1>",
+          "title": "Instead of a 2-Team Alliance format, VURC Head-to-Head Matches will be played 1-Team vs",
+          "description": "Instead of a 2-Team Alliance format, VURC Head-to-Head Matches will be played 1-Team vs",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUT1.html"
+        },
+        {
+          "id": "v5rc_vut2",
+          "rule": "<VUT2>",
+          "title": "Qualification Matches will be conducted in the same manner as in a V5RC tournament, but in the revised 1v1 format described in <VUT1>",
+          "description": "Qualification Matches will be conducted in the same manner as in a V5RC tournament, but in the revised 1v1 format described in <VUT1>",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUT2.html"
+        },
+        {
+          "id": "v5rc_vut3",
+          "rule": "<VUT3>",
+          "title": "Elimination Matches will be conducted in the same manner as in a V5RC tournament, but without an Alliance Selection",
+          "description": "Elimination Matches will be conducted in the same manner as in a V5RC tournament, but without an Alliance Selection",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUT3.html"
+        },
+        {
+          "id": "v5rc_vut4",
+          "rule": "<VUT4>",
+          "title": "The Autonomous Period at the beginning of each Head-to-Head Match will be 30 seconds",
+          "description": "The Autonomous Period at the beginning of each Head-to-Head Match will be 30 seconds",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUT4.html"
+        },
+        {
+          "id": "v5rc_vut5",
+          "rule": "<VUT5>",
+          "title": "The Driver Controlled Period is shortened to 90 seconds and immediately follows the Autonomous Period",
+          "description": "The Driver Controlled Period is shortened to 90 seconds and immediately follows the Autonomous Period",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUT5.html"
+        },
+        {
+          "id": "v5rc_vut6",
+          "rule": "<VUT6>",
+          "title": "VEX U Student eligibility",
+          "description": "VEX U Student eligibility",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUT6.html"
+        },
+        {
+          "id": "v5rc_vut7",
+          "rule": "<VUT7>",
+          "title": "VURC tournaments have fewer Teams in Eliminations",
+          "description": "VURC tournaments have fewer Teams in Eliminations",
+          "fullText": "# of Teams\n\n# of Elimination Teams\n\n16+\n\n16\n\n<16\n\n# of {{ITALIC}}Teams{{/ITALIC}}\n# of Teams\n# of Elimination Teams\n16+\n16\n<16\n# of {{ITALIC}}Teams{{/ITALIC}}",
+          "completeText": "# of Teams\n\n# of Elimination Teams\n\n16+\n\n16\n\n<16\n\n# of {{ITALIC}}Teams{{/ITALIC}}\n# of Teams\n# of Elimination Teams\n16+\n16\n<16\n# of {{ITALIC}}Teams{{/ITALIC}}",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUT7.html"
+        }
+      ]
+    },
+    {
+      "name": "VURC Robot Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_vur1",
+          "rule": "<VUR1>",
+          "title": "Teams may use two (2) Robots in each Match",
+          "description": "Teams may use two (2) Robots in each Match",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUR1.html"
+        },
+        {
+          "id": "v5rc_vur2",
+          "rule": "<VUR2>",
+          "title": "Teams may use any official VEX Robotics products, other than the exceptions listed in the tables below, to construct their Robot",
+          "description": "Teams may use any official VEX Robotics products, other than the exceptions listed in the tables below, to construct their Robot",
+          "fullText": "SKU\nDescription\n\n\n217-8080\nTalon SRX\n\n\n217-9191\nVictor SPX\n\n\n217-9090\nVictor SP\n\n\n217-4243\nPneumatic Control Module\n\n\n217-4244\nPower Distribution Panel\n\n\n217-4245\nVoltage Regulator Module\nSKU\nDescription\n\n\n217-4347\n775pro\n\n\n217-2000\nCIM Motor\n\n\n217-3371\nMini CIM Motor\n\n\n217-3351\nBAG Motor\n\n\n217-6515\nFalcon 500",
+          "completeText": "SKU\nDescription\n\n\n217-8080\nTalon SRX\n\n\n217-9191\nVictor SPX\n\n\n217-9090\nVictor SP\n\n\n217-4243\nPneumatic Control Module\n\n\n217-4244\nPower Distribution Panel\n\n\n217-4245\nVoltage Regulator Module\nSKU\nDescription\n\n\n217-4347\n775pro\n\n\n217-2000\nCIM Motor\n\n\n217-3371\nMini CIM Motor\n\n\n217-3351\nBAG Motor\n\n\n217-6515\nFalcon 500",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUR2.html"
+        },
+        {
+          "id": "v5rc_vur3",
+          "rule": "<VUR3>",
+          "title": "Fabricated Parts may be made by applying the following manufacturing processes to legal Raw Stock:",
+          "description": "Fabricated Parts may be made by applying the following manufacturing processes to legal Raw Stock:",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUR3.html"
+        },
+        {
+          "id": "v5rc_vur4",
+          "rule": "<VUR4>",
+          "title": "Fabricated Parts must be made from legal Raw Stock",
+          "description": "Fabricated Parts must be made from legal Raw Stock",
+          "fullText": "Type\nShape / Profile\nExamples\n\n\n1\nSheet\nFlat Plane\nSheet metal ⅛” polycarbonate sheet Plywood\n\n\n2\nSolid Billet\n“Thick” rectangular beam / block\n4” x 4” x 6” solid aluminum billet 2” x 2” x 2” acetal block\n\n\n3\nSolid Bar\n“Thin” rectangular beam\n2x4 wood planks ¼” x 3” aluminum bars\n\n\n4\nHollow Bar\nHollow rectangular beam\n1” x 1”, 1/32” wall aluminum box tube\n\n\n5\nSolid Rod\nCylinder, Hexagonal or Rounded Hexagonal Stock\n¼” steel rod ¼” acetal rod VEXpro Hex Shaft\n\n\n6\nHollow Rod / Tube\nHollow Cylinder, Drilled/Threaded Hexagonal or Rounded Hexagonal Stock\nCopper tubing PVC pipe VEXpro ThunderHex Stock\n\n\n7\nAngle\n90° “L” shape\n1” x 1”, 1/16” thickness aluminum angle\n\n\n8\nU- / C-Channel\n“U” or “C”. See this Q&A.\n1/4” High x 1” Wide Aluminum U-Channel\n\n\n9\nNon-Metal 3D Printer Filament\nThin cylinder\nPLA or TPU filament Composite nylon filament (e.g. Markforged OnyxTM)\n\n\n10\nSynthetic Polymer used for Molding\nLiquid\nPolyurethane Silicone\n\n\n11\nSolid Sphere\nSolid (not hollow) uniformly rounded stock\nSteel ball bearing Shaped wood finial\n{{ITALIC}}{{ITALIC}}Teams{{/ITALIC}} are not required to exhaustively define the specific material type for each component of every {{ITALIC}}Fabricated Part{{/ITALIC}} in their Engineering Notebook, as it should be obvious from the engineering drawings required by <VUR7>. However, unusual parts should be expected to receive increased scrutiny. If any materials do not easily fall into one of these categories, then that is probably an indication that it is not intended to be a legal type of {{ITALIC}}Raw Stock{{/ITALIC}}. If a {{ITALIC}}Team{{/ITALIC}} cannot demonstrate that the component was made from a legal type of {{ITALIC}}Raw Stock{{/ITALIC}}, then they will be asked to remove it from their {{ITALIC}}Robot{{/ITALIC}}.{{/ITALIC}}",
+          "completeText": "Type\nShape / Profile\nExamples\n\n\n1\nSheet\nFlat Plane\nSheet metal ⅛” polycarbonate sheet Plywood\n\n\n2\nSolid Billet\n“Thick” rectangular beam / block\n4” x 4” x 6” solid aluminum billet 2” x 2” x 2” acetal block\n\n\n3\nSolid Bar\n“Thin” rectangular beam\n2x4 wood planks ¼” x 3” aluminum bars\n\n\n4\nHollow Bar\nHollow rectangular beam\n1” x 1”, 1/32” wall aluminum box tube\n\n\n5\nSolid Rod\nCylinder, Hexagonal or Rounded Hexagonal Stock\n¼” steel rod ¼” acetal rod VEXpro Hex Shaft\n\n\n6\nHollow Rod / Tube\nHollow Cylinder, Drilled/Threaded Hexagonal or Rounded Hexagonal Stock\nCopper tubing PVC pipe VEXpro ThunderHex Stock\n\n\n7\nAngle\n90° “L” shape\n1” x 1”, 1/16” thickness aluminum angle\n\n\n8\nU- / C-Channel\n“U” or “C”. See this Q&A.\n1/4” High x 1” Wide Aluminum U-Channel\n\n\n9\nNon-Metal 3D Printer Filament\nThin cylinder\nPLA or TPU filament Composite nylon filament (e.g. Markforged OnyxTM)\n\n\n10\nSynthetic Polymer used for Molding\nLiquid\nPolyurethane Silicone\n\n\n11\nSolid Sphere\nSolid (not hollow) uniformly rounded stock\nSteel ball bearing Shaped wood finial\n{{ITALIC}}{{ITALIC}}Teams{{/ITALIC}} are not required to exhaustively define the specific material type for each component of every {{ITALIC}}Fabricated Part{{/ITALIC}} in their Engineering Notebook, as it should be obvious from the engineering drawings required by <VUR7>. However, unusual parts should be expected to receive increased scrutiny. If any materials do not easily fall into one of these categories, then that is probably an indication that it is not intended to be a legal type of {{ITALIC}}Raw Stock{{/ITALIC}}. If a {{ITALIC}}Team{{/ITALIC}} cannot demonstrate that the component was made from a legal type of {{ITALIC}}Raw Stock{{/ITALIC}}, then they will be asked to remove it from their {{ITALIC}}Robot{{/ITALIC}}.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUR4.html"
+        },
+        {
+          "id": "v5rc_vur5",
+          "rule": "<VUR5>",
+          "title": "The following material types are not considered Raw Stock, and are therefore not permitted:",
+          "description": "The following material types are not considered Raw Stock, and are therefore not permitted:",
+          "fullText": "Type\n\nExamples\n\n1\n\nAny otherwise-legal {{ITALIC}}Raw Stock{{/ITALIC}} that has been post-processed by drilling, machining, or otherwise removing material\n\nAngle aluminum with regularly-spaced holes or slots Perforated sheet metal\n\n2\n\nExtrusions that do not fall under one of the categories listed in <VUR4>\n\nNon-rectangular aluminum extrusions, such as 80/20, T-slot, or Octanorm Gear stock\n\n3\n\nAssembled items (or pre-arranged kits of unassembled items) that form a single, more complex component\n\nGearboxes Claw mechanisms Swerve drive modules\n\n4\n\nCommercial Off-the-Shelf items that are intended to be used with minimal modification\n\nWheels Gears Timing belts and pulleys\n\n5\n\nMaterials that are intended to be cast or sintered\n\nResin / powdered-bed 3D printing Molten aluminum used for sand casting\nType\nExamples\n1\nAny otherwise-legal {{ITALIC}}Raw Stock{{/ITALIC}} that has been post-processed by drilling, machining, or otherwise removing material\nAngle aluminum with regularly-spaced holes or slots Perforated sheet metal\n2\nExtrusions that do not fall under one of the categories listed in <VUR4>\nNon-rectangular aluminum extrusions, such as 80/20, T-slot, or Octanorm Gear stock\n3\nAssembled items (or pre-arranged kits of unassembled items) that form a single, more complex component\nGearboxes Claw mechanisms Swerve drive modules\n4\nCommercial Off-the-Shelf items that are intended to be used with minimal modification\nWheels Gears Timing belts and pulleys\n5\nMaterials that are intended to be cast or sintered\nResin / powdered-bed 3D printing Molten aluminum used for sand casting\n{{ITALIC}}In industry, terms like “raw stock,” “raw material,” and “material stock” are often used interchangeably and cover an extremely broad scope of physical goods. The lists in <VUR4> and <VUR5> are intended to explain what specific material types and profiles fall under the defined term “{{ITALIC}}Raw Stock{{/ITALIC}}” in the context of the VEX U competition.{{/ITALIC}}",
+          "completeText": "Type\n\nExamples\n\n1\n\nAny otherwise-legal {{ITALIC}}Raw Stock{{/ITALIC}} that has been post-processed by drilling, machining, or otherwise removing material\n\nAngle aluminum with regularly-spaced holes or slots Perforated sheet metal\n\n2\n\nExtrusions that do not fall under one of the categories listed in <VUR4>\n\nNon-rectangular aluminum extrusions, such as 80/20, T-slot, or Octanorm Gear stock\n\n3\n\nAssembled items (or pre-arranged kits of unassembled items) that form a single, more complex component\n\nGearboxes Claw mechanisms Swerve drive modules\n\n4\n\nCommercial Off-the-Shelf items that are intended to be used with minimal modification\n\nWheels Gears Timing belts and pulleys\n\n5\n\nMaterials that are intended to be cast or sintered\n\nResin / powdered-bed 3D printing Molten aluminum used for sand casting\nType\nExamples\n1\nAny otherwise-legal {{ITALIC}}Raw Stock{{/ITALIC}} that has been post-processed by drilling, machining, or otherwise removing material\nAngle aluminum with regularly-spaced holes or slots Perforated sheet metal\n2\nExtrusions that do not fall under one of the categories listed in <VUR4>\nNon-rectangular aluminum extrusions, such as 80/20, T-slot, or Octanorm Gear stock\n3\nAssembled items (or pre-arranged kits of unassembled items) that form a single, more complex component\nGearboxes Claw mechanisms Swerve drive modules\n4\nCommercial Off-the-Shelf items that are intended to be used with minimal modification\nWheels Gears Timing belts and pulleys\n5\nMaterials that are intended to be cast or sintered\nResin / powdered-bed 3D printing Molten aluminum used for sand casting\n{{ITALIC}}In industry, terms like “raw stock,” “raw material,” and “material stock” are often used interchangeably and cover an extremely broad scope of physical goods. The lists in <VUR4> and <VUR5> are intended to explain what specific material types and profiles fall under the defined term “{{ITALIC}}Raw Stock{{/ITALIC}}” in the context of the VEX U competition.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUR5.html"
+        },
+        {
+          "id": "v5rc_vur6",
+          "rule": "<VUR6>",
+          "title": "Fabricated Parts cannot be made from Raw Stock which poses a safety or damage risk to the event, other Teams, or Field Elements",
+          "description": "Fabricated Parts cannot be made from Raw Stock which poses a safety or damage risk to the event, other Teams, or Field Elements",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUR6.html"
+        },
+        {
+          "id": "v5rc_vur7",
+          "rule": "<VUR7>",
+          "title": "Fabricated Parts must be made by Team members",
+          "description": "Fabricated Parts must be made by Team members",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUR7.html"
+        },
+        {
+          "id": "v5rc_vur8",
+          "rule": "<VUR8>",
+          "title": "Teams may use commercially-available springs on their Robots",
+          "description": "Teams may use commercially-available springs on their Robots",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUR8.html"
+        },
+        {
+          "id": "v5rc_vur9",
+          "rule": "<VUR9>",
+          "title": "Teams may use commercially available fastener hardware on their Robot",
+          "description": "Teams may use commercially available fastener hardware on their Robot",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUR9.html"
+        },
+        {
+          "id": "v5rc_vur10",
+          "rule": "<VUR10>",
+          "title": "Each Robot must utilize exactly one (1) V5 Robot Brain and at least one (1) V5 Robot Radio connected to a V5 Controller",
+          "description": "Each Robot must utilize exactly one (1) V5 Robot Brain and at least one (1) V5 Robot Radio connected to a V5 Controller",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUR10.html"
+        },
+        {
+          "id": "v5rc_vur11",
+          "rule": "<VUR11>",
+          "title": "There is no restriction on the number of V5 Smart Motors (11W) [276-4840] and/or Smart Motors (5",
+          "description": "There is no restriction on the number of V5 Smart Motors (11W) [276-4840] and/or Smart Motors (5",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUR11.html"
+        },
+        {
+          "id": "v5rc_vur12",
+          "rule": "<VUR12>",
+          "title": "There is no restriction on commercially available Sensors, External Processors, or Additional Electronics that Robots may use for sensing and processing, except as follows:",
+          "description": "There is no restriction on commercially available Sensors, External Processors, or Additional Electronics that Robots may use for sensing and processing, except as follows:",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUR12.html"
+        },
+        {
+          "id": "v5rc_vur13",
+          "rule": "<VUR13>",
+          "title": "Commercially available Electromechanical Assemblies are not legal for use on Robots",
+          "description": "Commercially available Electromechanical Assemblies are not legal for use on Robots",
+          "fullText": "{{ITALIC}}The intent of this rule is to remind teams to focus their efforts on integrating custom parts with the VEX Robotics ecosystem. The VEX U Competition operates within a semi-closed system, not an open-build system. {{ITALIC}}Teams{{/ITALIC}} should make efforts to use VEX Robotics parts where possible. Parts like additional sensors (LIDAR, encoders, etc.) should generally be considered okay, but assemblies/systems from other robotics suppliers that remove the challenge of systems integration should not be considered a legal part.{{/ITALIC}}",
+          "completeText": "{{ITALIC}}The intent of this rule is to remind teams to focus their efforts on integrating custom parts with the VEX Robotics ecosystem. The VEX U Competition operates within a semi-closed system, not an open-build system. {{ITALIC}}Teams{{/ITALIC}} should make efforts to use VEX Robotics parts where possible. Parts like additional sensors (LIDAR, encoders, etc.) should generally be considered okay, but assemblies/systems from other robotics suppliers that remove the challenge of systems integration should not be considered a legal part.{{/ITALIC}}",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUR13.html"
+        },
+        {
+          "id": "v5rc_vur14",
+          "rule": "<VUR14>",
+          "title": "Teams may utilize an unlimited amount of the following commercially available pneumatic components: cylinders, actuators, valves, gauges, storage tanks, regulators, manifolds, tubing, and solenoids",
+          "description": "Teams may utilize an unlimited amount of the following commercially available pneumatic components: cylinders, actuators, valves, gauges, storage tanks, regulators, manifolds, tubing, and solenoids",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUR14.html"
+        },
+        {
+          "id": "v5rc_vur15",
+          "rule": "<VUR15>",
+          "title": "Teams may use commercially available bearings on their Robot",
+          "description": "Teams may use commercially available bearings on their Robot",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VUR15.html"
+        }
+      ]
+    },
+    {
+      "name": "VAISC Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_vaisc1",
+          "rule": "<VAISC1>",
+          "title": "A Team receives a Control Bonus if the outermost Block Scored in one end of a Long Goal and the nearest corresponding end of a Center Goal are the same color as the Team",
+          "description": "A Team receives a Control Bonus if the outermost Block Scored in one end of a Long Goal and the nearest corresponding end of a Center Goal are the same color as the Team",
+          "fullText": "",
+          "completeText": "",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAISC1.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/End-Zone.png",
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/End_Zone.png"
+          ]
+        },
+        {
+          "id": "v5rc_vaisc2",
+          "rule": "<VAISC2>",
+          "title": "A VAIRC Robot is considered Parked at the end of the Match if it meets all of the following criteria:",
+          "description": "A VAIRC Robot is considered Parked at the end of the Match if it meets all of the following criteria:",
+          "fullText": "",
+          "completeText": "",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAISC2.html"
+        },
+        {
+          "id": "v5rc_vaisc3",
+          "rule": "<VAISC3>",
+          "title": "Scoring of the Isolation Bonus is evaluated immediately after the Isolation Period ends (i",
+          "description": "Scoring of the Isolation Bonus is evaluated immediately after the Isolation Period ends (i",
+          "fullText": "",
+          "completeText": "",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAISC3.html"
+        },
+        {
+          "id": "v5rc_vaisc4",
+          "rule": "<VAISC4>",
+          "title": "Isolation Win Point criteria",
+          "description": "Isolation Win Point criteria",
+          "fullText": "",
+          "completeText": "",
+          "category": "Scoring",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAISC4.html"
+        }
+      ]
+    },
+    {
+      "name": "VAIG Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_vaig1",
+          "rule": "<VAIG1>",
+          "title": "Standard game rules apply",
+          "description": "Standard game rules apply",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIG1.html"
+        },
+        {
+          "id": "v5rc_vaig2",
+          "rule": "<VAIG2>",
+          "title": "Autonomous means “no humans",
+          "description": "Autonomous means “no humans",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIG2.html"
+        },
+        {
+          "id": "v5rc_vaig3",
+          "rule": "<VAIG3>",
+          "title": "Teams are responsible for the actions of their Robots",
+          "description": "Teams are responsible for the actions of their Robots",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIG3.html"
+        },
+        {
+          "id": "v5rc_vaig4",
+          "rule": "<VAIG4>",
+          "title": "Different expansion",
+          "description": "Different expansion",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIG4.html"
+        },
+        {
+          "id": "v5rc_vaig5",
+          "rule": "<VAIG5>",
+          "title": "Different availability of Loaders",
+          "description": "Different availability of Loaders",
+          "fullText": "",
+          "completeText": "",
+          "category": "Game",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIG5.html"
+        }
+      ]
+    },
+    {
+      "name": "VAIRS Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_vairs1",
+          "rule": "<VAIRS1>",
+          "title": "Standard rules from the V5RC and VURC sections of the game manual apply in most cases, unless otherwise specified in this section or when V5RC rules are modified in the VURC section",
+          "description": "Standard rules from the V5RC and VURC sections of the game manual apply in most cases, unless otherwise specified in this section or when V5RC rules are modified in the VURC section",
+          "fullText": "",
+          "completeText": "",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIRS1.html"
+        },
+        {
+          "id": "v5rc_vairs2",
+          "rule": "<VAIRS2>",
+          "title": "Rule <VURS3> applies as written, and VAIRC Teams are permitted to use two Robots in their Robot Skills Matches",
+          "description": "Rule <VURS3> applies as written, and VAIRC Teams are permitted to use two Robots in their Robot Skills Matches",
+          "fullText": "",
+          "completeText": "",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIRS2.html"
+        },
+        {
+          "id": "v5rc_vairs3",
+          "rule": "<VAIRS3>",
+          "title": "VAIRC Robot Skills Matches use the same tape lines as VAIRC and V5RC head-to-head Matches, but a revised Field layout as shown below",
+          "description": "VAIRC Robot Skills Matches use the same tape lines as VAIRC and V5RC head-to-head Matches, but a revised Field layout as shown below",
+          "fullText": "",
+          "completeText": "",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIRS3.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/VEX_AI_Skills_Side_View.png",
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/VEX_AI_Skills_Top_View.png"
+          ]
+        },
+        {
+          "id": "v5rc_vairs4",
+          "rule": "<VAIRS4>",
+          "title": "A 24” Robot in a VAIRC Robot Skills Match begins the Match in a Parked position in the blue Park Zone",
+          "description": "A 24” Robot in a VAIRC Robot Skills Match begins the Match in a Parked position in the blue Park Zone",
+          "fullText": "",
+          "completeText": "",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIRS4.html"
+        },
+        {
+          "id": "v5rc_vairs5",
+          "rule": "<VAIRS5>",
+          "title": "In VAIRC Robot Skills Matches, Blocks can be added to Loaders by Robots",
+          "description": "In VAIRC Robot Skills Matches, Blocks can be added to Loaders by Robots",
+          "fullText": "",
+          "completeText": "",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIRS5.html"
+        },
+        {
+          "id": "v5rc_vairs6",
+          "rule": "<VAIRS6>",
+          "title": "Blocks that leave the Field during a VAIRC Robot Skills Match must remain outside the Field for the remainder of the Match, and cannot be reintroduced",
+          "description": "Blocks that leave the Field during a VAIRC Robot Skills Match must remain outside the Field for the remainder of the Match, and cannot be reintroduced",
+          "fullText": "",
+          "completeText": "",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIRS6.html"
+        },
+        {
+          "id": "v5rc_vairs7",
+          "rule": "<VAIRS7>",
+          "title": "Scoring VAIRC Robot Skills Matches",
+          "description": "Scoring VAIRC Robot Skills Matches",
+          "fullText": "Each {{ITALIC}}Block{{/ITALIC}} of the majority color {{ITALIC}}Scored{{/ITALIC}} in a {{ITALIC}}Goal{{/ITALIC}}\n\n3 Points\n\nEach {{ITALIC}}Scored{{/ITALIC}} {{ITALIC}}Bullseye{{/ITALIC}}\n\n3 Points\n\nEach {{ITALIC}}Block{{/ITALIC}} in a {{ITALIC}}Loader{{/ITALIC}} that matches the adjacent {{ITALIC}}Park Zone{{/ITALIC}}\n\n3 Points\n\nEach {{ITALIC}}Loader{{/ITALIC}} that is filled with the color of the adjacent {{ITALIC}}Park Zone{{/ITALIC}}\n\n5 Points\n\n{{ITALIC}}Parked{{/ITALIC}} {{ITALIC}}Robot{{/ITALIC}}\n\n5 Points\nEach {{ITALIC}}Block{{/ITALIC}} of the majority color {{ITALIC}}Scored{{/ITALIC}} in a {{ITALIC}}Goal{{/ITALIC}}\n3 Points\nEach {{ITALIC}}Scored{{/ITALIC}} {{ITALIC}}Bullseye{{/ITALIC}}\n3 Points\nEach {{ITALIC}}Block{{/ITALIC}} in a {{ITALIC}}Loader{{/ITALIC}} that matches the adjacent {{ITALIC}}Park Zone{{/ITALIC}}\n3 Points\nEach {{ITALIC}}Loader{{/ITALIC}} that is filled with the color of the adjacent {{ITALIC}}Park Zone{{/ITALIC}}\n5 Points\n{{ITALIC}}Parked{{/ITALIC}} {{ITALIC}}Robot{{/ITALIC}}\n5 Points",
+          "completeText": "Each {{ITALIC}}Block{{/ITALIC}} of the majority color {{ITALIC}}Scored{{/ITALIC}} in a {{ITALIC}}Goal{{/ITALIC}}\n\n3 Points\n\nEach {{ITALIC}}Scored{{/ITALIC}} {{ITALIC}}Bullseye{{/ITALIC}}\n\n3 Points\n\nEach {{ITALIC}}Block{{/ITALIC}} in a {{ITALIC}}Loader{{/ITALIC}} that matches the adjacent {{ITALIC}}Park Zone{{/ITALIC}}\n\n3 Points\n\nEach {{ITALIC}}Loader{{/ITALIC}} that is filled with the color of the adjacent {{ITALIC}}Park Zone{{/ITALIC}}\n\n5 Points\n\n{{ITALIC}}Parked{{/ITALIC}} {{ITALIC}}Robot{{/ITALIC}}\n\n5 Points\nEach {{ITALIC}}Block{{/ITALIC}} of the majority color {{ITALIC}}Scored{{/ITALIC}} in a {{ITALIC}}Goal{{/ITALIC}}\n3 Points\nEach {{ITALIC}}Scored{{/ITALIC}} {{ITALIC}}Bullseye{{/ITALIC}}\n3 Points\nEach {{ITALIC}}Block{{/ITALIC}} in a {{ITALIC}}Loader{{/ITALIC}} that matches the adjacent {{ITALIC}}Park Zone{{/ITALIC}}\n3 Points\nEach {{ITALIC}}Loader{{/ITALIC}} that is filled with the color of the adjacent {{ITALIC}}Park Zone{{/ITALIC}}\n5 Points\n{{ITALIC}}Parked{{/ITALIC}} {{ITALIC}}Robot{{/ITALIC}}\n5 Points",
+          "category": "Skills",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIRS7.html",
+          "imageUrls": [
+            "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/images/VAIRS7-anno.png"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "VAIT Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_vait1",
+          "rule": "<VAIT1>",
+          "title": "The following VURC rules apply as written:",
+          "description": "The following VURC rules apply as written:",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIT1.html"
+        },
+        {
+          "id": "v5rc_vait2",
+          "rule": "<VAIT2>",
+          "title": "VEX AI Robotics Competition Teams may consist of Students that fall into one of the following categories",
+          "description": "VEX AI Robotics Competition Teams may consist of Students that fall into one of the following categories",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIT2.html"
+        },
+        {
+          "id": "v5rc_vait3",
+          "rule": "<VAIT3>",
+          "title": "Each Student may only participate on one (1) VAIRC Team in a given season",
+          "description": "Each Student may only participate on one (1) VAIRC Team in a given season",
+          "fullText": "",
+          "completeText": "",
+          "category": "Tournament",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIT3.html"
+        }
+      ]
+    },
+    {
+      "name": "VAIRM Rules",
+      "programs": [
+        "V5RC",
+        "VURC",
+        "VAIRC"
+      ],
+      "rules": [
+        {
+          "id": "v5rc_vairm1",
+          "rule": "<VAIRM1>",
+          "title": "All <VURx> rules apply as written",
+          "description": "All <VURx> rules apply as written",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIRM1.html"
+        },
+        {
+          "id": "v5rc_vairm2",
+          "rule": "<VAIRM2>",
+          "title": "Any components used for AI vision processing, such as those found in the VEX AI kit (276- 8983), are considered standard Additional Electronics and must abide by <VUR12> as written",
+          "description": "Any components used for AI vision processing, such as those found in the VEX AI kit (276- 8983), are considered standard Additional Electronics and must abide by <VUR12> as written",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIRM2.html"
+        },
+        {
+          "id": "v5rc_vairm3",
+          "rule": "<VAIRM3>",
+          "title": "VAIRC Teams may also participate in the V5RC or VURC programs",
+          "description": "VAIRC Teams may also participate in the V5RC or VURC programs",
+          "fullText": "",
+          "completeText": "",
+          "category": "Robot",
+          "vexLink": "https://www.robotevents.com/storage/game_manual/VEX_V5_Robotics_Competition_2025-2026_Push_Back/rules/VAIRM3.html"
+        }
+      ]
+    }
+  ]
+}
