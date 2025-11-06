@@ -29,21 +29,21 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import TeamEventsScreen from './src/screens/TeamEventsScreen';       
 
 
-import EventDetailScreen from './src/screens/EventDetailScreen';                         
-import EventInformationScreen from './src/screens/EventInformationScreen';               
-import EventAgendaScreen from './src/screens/EventAgendaScreen';                         
-import EventDivisionScreen from './src/screens/EventDivisionScreen';                     
-import EventTeamsScreen from './src/screens/EventTeamsScreen';                           
-import EventSkillsRankingsScreen from './src/screens/EventSkillsRankingsScreen';         
-import EventDivisionRankingsScreen from './src/screens/EventDivisionRankingsScreen';     
-import EventDivisionMatchesScreen from './src/screens/EventDivisionMatchesScreen';       
-import EventTeamMatchesScreen from './src/screens/EventTeamMatchesScreen';               
-import EventTeamViewScreen from './src/screens/EventTeamViewScreen';                     
-import EventDivisionAwardsScreen from './src/screens/EventDivisionAwardsScreen';         
-import FavoriteTeamsMatchesScreen from './src/screens/FavoriteTeamsMatchesScreen';       
-import TeamInfoScreen from './src/screens/TeamInfoScreen';                               
-import { TeamEligibilityDetailScreen } from './src/screens/TeamEligibilityDetailScreen'; 
-import MatchNotesScreen from './src/screens/MatchNotesScreen';                           
+import EventMainView from './src/screens/EventMainView';
+import EventInformationScreen from './src/screens/EventInformationScreen';
+import EventAgendaScreen from './src/screens/EventAgendaScreen';
+import EventDivisionScreen from './src/screens/EventDivisionScreen';
+import EventTeamListScreen from './src/screens/EventTeamListScreen';
+import EventSkillsRankingsScreen from './src/screens/EventSkillsRankingsScreen';
+import EventDivisionRankingsScreen from './src/screens/EventDivisionRankingsScreen';
+import EventDivisionMatchesScreen from './src/screens/EventDivisionMatchesScreen';
+import EventTeamMatchesScreen from './src/screens/EventTeamMatchesScreen';
+import EventTeamInfoScreen from './src/screens/EventTeamInfoScreen';
+import EventDivisionAwardsScreen from './src/screens/EventDivisionAwardsScreen';
+import FavoriteTeamsMatchesScreen from './src/screens/FavoriteTeamsMatchesScreen';
+import TeamInfoScreen from './src/screens/TeamInfoScreen';
+import { TeamEligibilityDetailScreen } from './src/screens/TeamEligibilityDetailScreen';
+import MatchNotesScreen from './src/screens/MatchNotesScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';                                  
 
 
@@ -66,18 +66,18 @@ import { Alert } from 'react-native';
 
 // Define the navigation parameter types
 type RootStackParamList = {
-  EventDetail: any;
+  EventMainView: any;
   EventInformation: any;
   EventAgenda: any;
   EventDivision: any;
-  EventTeams: any;
+  EventTeamList: any;
   EventSkillsRankings: any;
   EventDivisionRankings: any;
   EventDivisionMatches: any;
   EventTeamMatches: any;
   FavoriteTeamsMatches: any;
   TeamInfo: any;
-  EventTeamView: any;
+  EventTeamInfo: any;
   EventDivisionAwards: any;
   TeamEligibilityDetail: any;
   MatchNotes: any;
@@ -297,8 +297,8 @@ const AppNavigator = () => {
 
           {/* Event-related screens */}
           <Stack.Screen
-            name="EventDetail"
-            component={EventDetailScreen as any}
+            name="EventMainView"
+            component={EventMainView as any}
             options={{ headerShown: true }}
           />
           <Stack.Screen
@@ -317,8 +317,8 @@ const AppNavigator = () => {
             options={{ headerShown: true }}
           />
           <Stack.Screen
-            name="EventTeams"
-            component={EventTeamsScreen as any}
+            name="EventTeamList"
+            component={EventTeamListScreen as any}
             options={{ headerShown: true }}
           />
           <Stack.Screen
@@ -352,8 +352,8 @@ const AppNavigator = () => {
             options={{ headerShown: true }}
           />
           <Stack.Screen
-            name="EventTeamView"
-            component={EventTeamViewScreen as any}
+            name="EventTeamInfo"
+            component={EventTeamInfoScreen as any}
             options={{ headerShown: true }}
           />
           <Stack.Screen
