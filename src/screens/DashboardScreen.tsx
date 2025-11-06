@@ -1508,11 +1508,31 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
 
     if (isLimitedMode) {
       // Limited mode: Show custom message without the find teams button
+      // Parse message for styled text markup
+      const renderStyledMessage = (message: string) => {
+        // Support <alert>text</alert> for red alert text
+        const parts = message.split(/(<alert>.*?<\/alert>)/g);
+
+        return (
+          <Text style={[styles.emptyTitle, { color: settings.textColor }]}>
+            {parts.map((part, index) => {
+              const alertMatch = part.match(/<alert>(.*?)<\/alert>/);
+              if (alertMatch) {
+                return (
+                  <Text key={index} style={{ color: '#FF3B30' }}>
+                    {alertMatch[1]}
+                  </Text>
+                );
+              }
+              return part;
+            })}
+          </Text>
+        );
+      };
+
       return (
         <View style={styles.emptyState}>
-          <Text style={[styles.emptyTitle, { color: settings.textColor }]}>
-            {customMessage || 'Limited Mode'}
-          </Text>
+          {renderStyledMessage(customMessage || 'Limited Mode')}
           <Text style={[styles.emptySubtitle, { color: settings.secondaryTextColor }]}>
             Use the quick actions above to access available features for this program.
           </Text>
@@ -1886,7 +1906,7 @@ const styles = StyleSheet.create({
   },
   quickActionsRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
   },
   quickActionButton: {
     borderRadius: 12,

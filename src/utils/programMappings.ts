@@ -300,7 +300,7 @@ export const PROGRAM_CONFIGS: Record<ProgramType, ProgramConfig> = {
     hasFinalistRankings: false,
     devOnly: false,
     limitedMode: true, // Show limited dashboard until API is ready
-    limitedModeMessage: 'Due to the change in website for the Aerial Drone Competition, the app is currently unable to access data for this program. In the meantime, you can access score calculators and the game manual.',
+    limitedModeMessage: 'Due to the change in website for the Aerial Drone Competition, this app is currently unable to access data for this program. In the meantime, you can access the <alert>UNOFFICIAL</alert> score calculators and the game manual.',
   },
   'VEX AIR Drone Competition': {
     id: 58,
