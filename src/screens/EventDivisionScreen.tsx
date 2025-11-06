@@ -24,7 +24,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Linking,
   Alert,
   ScrollView,
   Dimensions,
@@ -32,7 +31,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../contexts/SettingsContext';
 import { Event, Team, Division } from '../types';
-import EventTeamsScreen from './EventTeamsScreen';
+import EventTeamListScreen from './EventTeamListScreen';
 import EventDivisionRankingsScreen from './EventDivisionRankingsScreen';
 import EventDivisionMatchesScreen from './EventDivisionMatchesScreen';
 import EventDivisionAwardsScreen from './EventDivisionAwardsScreen';
@@ -84,7 +83,7 @@ const EventTeamsTab: React.FC<{
   navigation: any;
 }> = ({ event, division, navigation }) => {
   return (
-    <EventTeamsScreen
+    <EventTeamListScreen
       route={{
         params: {
           event,
@@ -171,7 +170,6 @@ const EventDivisionScreen = ({ route, navigation }: EventDivisionScreenProps) =>
   const [activeTab, setActiveTab] = useState('teams');
   const [currentTabTitle, setCurrentTabTitle] = useState('Teams');
   const [favorited, setFavorited] = useState(false);
-  const [shouldReload, setShouldReload] = useState(false);
 
   const styles = StyleSheet.create({
     container: {
@@ -236,55 +234,40 @@ const EventDivisionScreen = ({ route, navigation }: EventDivisionScreenProps) =>
       },
       headerTintColor: '#fff',
       headerTitleAlign: 'center',
-      headerRight: () => (
-        <View style={styles.headerButtons}>
-          {/* Favorites button - shown when on Teams tab */}
-          {currentTabTitle === 'Teams' && (
-            <TouchableOpacity
-              onPress={toggleFavorite}
-              style={styles.headerButton}
-            >
-              <Ionicons
-                name={favorited ? "star" : "star-outline"}
-                size={24}
-                color="#fff"
-              />
-            </TouchableOpacity>
-          )}
+      headerRight: () => {
+        // Only show headerRight for Teams tab
+        if (currentTabTitle !== 'Teams' && !currentTabTitle.includes('Teams')) {
+          return null;
+        }
 
-          {/* Data exporter - shown when title contains "Teams" */}
-          {currentTabTitle.includes('Teams') && (
-            <TouchableOpacity
-              onPress={navigateToDataExporter}
-              style={styles.headerButton}
-            >
-              <Ionicons name="document-attach" size={24} color="#fff" />
-            </TouchableOpacity>
-          )}
+        return (
+          <View style={styles.headerButtons}>
+            {/* Favorites button - shown when on Teams tab */}
+            {currentTabTitle === 'Teams' && (
+              <TouchableOpacity
+                onPress={toggleFavorite}
+                style={styles.headerButton}
+              >
+                <Ionicons
+                  name={favorited ? "star" : "star-outline"}
+                  size={24}
+                  color="#fff"
+                />
+              </TouchableOpacity>
+            )}
 
-          {/* Refresh button - shown for certain titles */}
-          {(currentTabTitle.includes('Game Manual') ||
-            currentTabTitle.includes('Match List') ||
-            currentTabTitle.includes('Rankings')) && (
-            <TouchableOpacity
-              onPress={handleRefresh}
-              style={styles.headerButton}
-            >
-              <Ionicons name="refresh" size={24} color="#fff" />
-            </TouchableOpacity>
-          )}
-
-          {/* World Skills link - shown when title contains "Skills" */}
-          {currentTabTitle.includes('Skills') && (
-            <TouchableOpacity
-              onPress={openWorldSkillsLink}
-              style={styles.headerButton}
-            >
-              <Ionicons name="link" size={24} color="#fff" />
-            </TouchableOpacity>
-          )}
-        </View>
-      ),
+            {/* Data exporter - shown when title contains "Teams" */}
+            {currentTabTitle.includes('Teams') && (
+              <TouchableOpacity
+                onPress={navigateToDataExporter}
+                style={styles.headerButton}
+              >
+                <Ionicons name="document-attach" size={24} color="#fff" />
+              </TouchableOpacity>
+            )}
+          </View>
+        );
+      },
     });
   }, [navigation, buttonColor, currentTabTitle, favorited]);
 
@@ -301,18 +284,6 @@ const EventDivisionScreen = ({ route, navigation }: EventDivisionScreenProps) =>
 
   const navigateToDataExporter = () => {
     navigation.navigate('DataExporter', { event, division });
-  };
-
-  const handleRefresh = () => {
-    setShouldReload(true);
-    // Trigger refresh logic here
-    Alert.alert('Refresh', 'Data has been refreshed.');
-    setShouldReload(false);
-  };
-
-  const openWorldSkillsLink = () => {
-    const url = 'https://www.robotevents.com/robot-competitions/adc/standings/skills';
-    Linking.openURL(url);
   };
 
   const handleTabPress = (tabKey: string, tabName: string) => {

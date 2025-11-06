@@ -30,6 +30,7 @@ import {
   Linking,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettings, ProgramType, ThemeMode } from '../contexts/SettingsContext';
@@ -37,9 +38,13 @@ import { useFavorites } from '../contexts/FavoritesContext';
 import { useNotes } from '../contexts/NotesContext';
 import DropdownPicker from '../components/DropdownPicker';
 import NotesManagementModal from '../components/NotesManagementModal';
+import DevInfoModal from '../components/DevInfoModal';
+import ColorOverrideModal from '../components/ColorOverrideModal';
+import DeveloperModeDisableModal from '../components/DeveloperModeDisableModal';
 import { robotEventsAPI } from '../services/apiRouter';
 import * as Application from 'expo-application';
 import { getProgramId, PROGRAM_CONFIGS, getAllProgramNames, isProgramLimitedMode } from '../utils/programMappings';
+import { alerts } from '../utils/webCompatibility';
 
 interface SettingsScreenProps {
   onShowWelcome?: () => void;
@@ -55,6 +60,11 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
   const [isLoadingSeasons, setIsLoadingSeasons] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [showDeveloperCodeInput, setShowDeveloperCodeInput] = useState(false);
+  const [showCompactViewModal, setShowCompactViewModal] = useState(false);
+  const [showScrollBarModal, setShowScrollBarModal] = useState(false);
+  const [showDevInfoModal, setShowDevInfoModal] = useState(false);
+  const [showColorOverrideModal, setShowColorOverrideModal] = useState(false);
+  const [showDeveloperModeDisableModal, setShowDeveloperModeDisableModal] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Get list of dev-only programs for display
@@ -218,32 +228,21 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
   };
 
   const handleDeveloperModeDisable = () => {
-    Alert.alert(
-      'Disable Developer Mode?',
-      'Choose how you want to disable Developer Mode. This will also disable dev-only programs and scoring calculators if enabled.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Disable Temporarily',
-          style: 'default',
-          onPress: async () => {
-            // The valid code is already stored in settings.storedDeveloperCode
-            // We just need to disable developer mode temporarily
-            settings.setIsDeveloperMode(false);
-          }
-        },
-        {
-          text: 'Disable & Require Code',
-          style: 'destructive',
-          onPress: async () => {
-            // Fully disable and clear stored code
-            await settings.setStoredDeveloperCode('');
-            settings.setIsDeveloperMode(false);
-            setDeveloperCode('');
-          }
-        }
-      ]
-    );
+    // Use custom modal on all platforms for consistent UX
+    setShowDeveloperModeDisableModal(true);
+  };
+
+  const handleDisableTemporarily = () => {
+    // The valid code is already stored in settings.storedDeveloperCode
+    // We just need to disable developer mode temporarily
+    settings.setIsDeveloperMode(false);
+  };
+
+  const handleDisablePermanently = async () => {
+    // Fully disable and clear stored code
+    await settings.setStoredDeveloperCode('');
+    settings.setIsDeveloperMode(false);
+    setDeveloperCode('');
   };
 
   const openDiscord = () => {
@@ -359,6 +358,20 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
         </View>
         <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}>
           <View style={styles.optionTextContainer}>
+            <Text style={[styles.optionText, { color: settings.textColor }]}>Sort Dashboard by Next Match</Text>
+            <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+              When enabled, teams at live events with upcoming matches appear first
+            </Text>
+          </View>
+          <Switch
+            value={settings.sortDashboardByNextMatch}
+            onValueChange={settings.setSortDashboardByNextMatch}
+            trackColor={{ false: '#767577', true: settings.buttonColor }}
+            thumbColor={settings.sortDashboardByNextMatch ? '#fff' : '#f4f3f4'}
+          />
+        </View>
+        <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}>
+          <View style={styles.optionTextContainer}>
             <Text style={[styles.optionText, { color: settings.textColor }]}>Date Filter</Text>
             <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
               Show events from the past {settings.dateFilter} days
@@ -438,13 +451,13 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
         </TouchableOpacity>
       </View>
 
-      {/* Appearance */}
+      {/* App Customization */}
       <View style={[styles.section, {
         backgroundColor: settings.cardBackgroundColor,
         borderTopColor: settings.borderColor,
         borderBottomColor: settings.borderColor
       }]}>
-        <Text style={[styles.sectionTitle, { color: settings.secondaryTextColor }]}>Appearance</Text>
+        <Text style={[styles.sectionTitle, { color: settings.secondaryTextColor }]}>App Customization</Text>
 
         {/* Theme Mode Selector */}
         <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor, flexDirection: 'column', alignItems: 'stretch' }]}>
@@ -462,89 +475,33 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
           />
         </View>
 
-        <View style={[styles.optionRow, styles.lastOptionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}>
-          <Text style={[styles.optionText, { color: settings.textColor }]}>Effective Theme</Text>
-          <Text style={[styles.infoValue, { color: settings.secondaryTextColor }]}>{settings.colorScheme === 'dark' ? 'Dark' : 'Light'}</Text>
-        </View>
-      </View>
+        {/* Compact View Settings */}
+        <TouchableOpacity
+          style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}
+          onPress={() => setShowCompactViewModal(true)}
+        >
+          <View style={styles.optionTextContainer}>
+            <Text style={[styles.optionText, { color: settings.textColor }]}>Compact View Settings</Text>
+            <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+              Configure compact mode for different list types
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={settings.secondaryTextColor} />
+        </TouchableOpacity>
 
-      {/* Compact View */}
-      <View style={[styles.section, {
-        backgroundColor: settings.cardBackgroundColor,
-        borderTopColor: settings.borderColor,
-        borderBottomColor: settings.borderColor
-      }]}>
-        <Text style={[styles.sectionTitle, { color: settings.secondaryTextColor }]}>Compact View</Text>
-        <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}>
+        {/* Scroll Bar Settings */}
+        <TouchableOpacity
+          style={[styles.optionRow, styles.lastOptionRow, { backgroundColor: settings.cardBackgroundColor }]}
+          onPress={() => setShowScrollBarModal(true)}
+        >
           <View style={styles.optionTextContainer}>
-            <Text style={[styles.optionText, { color: settings.textColor }]}>All Lists</Text>
+            <Text style={[styles.optionText, { color: settings.textColor }]}>Scroll Bar Settings</Text>
             <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
-              Enable compact mode for all list types
+              Show scroll indicators on lists
             </Text>
           </View>
-          <Switch
-            value={settings.compactViewAll}
-            onValueChange={settings.setCompactViewAll}
-            trackColor={{ false: '#767577', true: settings.buttonColor }}
-            thumbColor={settings.compactViewAll ? '#fff' : '#f4f3f4'}
-          />
-        </View>
-        <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}>
-          <View style={styles.optionTextContainer}>
-            <Text style={[styles.optionText, { color: settings.textColor }]}>Match Lists</Text>
-            <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
-              Show matches in compact view
-            </Text>
-          </View>
-          <Switch
-            value={settings.compactViewMatches}
-            onValueChange={settings.setCompactViewMatches}
-            trackColor={{ false: '#767577', true: settings.buttonColor }}
-            thumbColor={settings.compactViewMatches ? '#fff' : '#f4f3f4'}
-          />
-        </View>
-        <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}>
-          <View style={styles.optionTextContainer}>
-            <Text style={[styles.optionText, { color: settings.textColor }]}>Rankings</Text>
-            <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
-              Show rankings in compact view
-            </Text>
-          </View>
-          <Switch
-            value={settings.compactViewRankings}
-            onValueChange={settings.setCompactViewRankings}
-            trackColor={{ false: '#767577', true: settings.buttonColor }}
-            thumbColor={settings.compactViewRankings ? '#fff' : '#f4f3f4'}
-          />
-        </View>
-        <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}>
-          <View style={styles.optionTextContainer}>
-            <Text style={[styles.optionText, { color: settings.textColor }]}>Skills Rankings</Text>
-            <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
-              Show skills rankings in compact view
-            </Text>
-          </View>
-          <Switch
-            value={settings.compactViewSkills}
-            onValueChange={settings.setCompactViewSkills}
-            trackColor={{ false: '#767577', true: settings.buttonColor }}
-            thumbColor={settings.compactViewSkills ? '#fff' : '#f4f3f4'}
-          />
-        </View>
-        <View style={[styles.optionRow, styles.lastOptionRow, { backgroundColor: settings.cardBackgroundColor }]}>
-          <View style={styles.optionTextContainer}>
-            <Text style={[styles.optionText, { color: settings.textColor }]}>Team Lists</Text>
-            <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
-              Show teams in compact view
-            </Text>
-          </View>
-          <Switch
-            value={settings.compactViewTeams}
-            onValueChange={settings.setCompactViewTeams}
-            trackColor={{ false: '#767577', true: settings.buttonColor }}
-            thumbColor={settings.compactViewTeams ? '#fff' : '#f4f3f4'}
-          />
-        </View>
+          <Ionicons name="chevron-forward" size={20} color={settings.secondaryTextColor} />
+        </TouchableOpacity>
       </View>
 
       {/* Danger */}
@@ -616,22 +573,34 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
         {/* Developer Code Input - Shows when user wants to enable dev mode */}
         {showDeveloperCodeInput && !settings.isDeveloperMode && (
           <View style={{ backgroundColor: settings.cardBackgroundColor, paddingHorizontal: 20, paddingBottom: 16 }}>
-            <TextInput
-              style={[styles.textInput, {
-                borderColor: settings.borderColor,
-                backgroundColor: settings.backgroundColor,
-                color: settings.textColor,
-                marginBottom: 8
-              }]}
-              placeholder="Enter Developer Code"
-              placeholderTextColor={settings.secondaryTextColor}
-              value={developerCode}
-              onChangeText={setDeveloperCode}
-              secureTextEntry
-              autoFocus
-              returnKeyType="done"
-              onSubmitEditing={() => handleDeveloperModeUnlock()}
-            />
+            <View style={{ position: 'relative' }}>
+              <TextInput
+                style={[styles.textInput, {
+                  borderColor: settings.borderColor,
+                  backgroundColor: settings.backgroundColor,
+                  color: settings.textColor,
+                  marginBottom: 8,
+                  paddingRight: developerCode.length > 0 ? 40 : 16
+                }]}
+                placeholder="Enter Developer Code"
+                placeholderTextColor={settings.secondaryTextColor}
+                value={developerCode}
+                onChangeText={setDeveloperCode}
+                secureTextEntry
+                autoFocus
+                returnKeyType="done"
+                onSubmitEditing={() => handleDeveloperModeUnlock()}
+              />
+              {developerCode.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setDeveloperCode('')}
+                  style={styles.clearButtonInInput}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Ionicons name="close-circle" size={20} color={settings.secondaryTextColor} />
+                </TouchableOpacity>
+              )}
+            </View>
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <TouchableOpacity
                 style={[styles.button, { backgroundColor: settings.buttonColor, flex: 1, marginHorizontal: 0 }]}
@@ -743,19 +712,30 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
                   Force a specific event ID to be marked as live for testing (leave empty to use actual live events)
                 </Text>
               </View>
-              <TextInput
-                style={[styles.textInput, {
-                  backgroundColor: settings.backgroundColor,
-                  color: settings.textColor,
-                  borderColor: settings.borderColor,
-                  marginTop: 8,
-                }]}
-                placeholder="Enter event ID (e.g., 12345)"
-                placeholderTextColor={settings.secondaryTextColor}
-                value={settings.devTestEventId}
-                onChangeText={settings.setDevTestEventId}
-                keyboardType="numeric"
-              />
+              <View style={{ position: 'relative', marginTop: 8 }}>
+                <TextInput
+                  style={[styles.textInput, {
+                    backgroundColor: settings.backgroundColor,
+                    color: settings.textColor,
+                    borderColor: settings.borderColor,
+                    paddingRight: settings.devTestEventId && settings.devTestEventId.length > 0 ? 40 : 16
+                  }]}
+                  placeholder="Enter event ID (e.g., 12345)"
+                  placeholderTextColor={settings.secondaryTextColor}
+                  value={settings.devTestEventId}
+                  onChangeText={settings.setDevTestEventId}
+                  keyboardType="numeric"
+                />
+                {settings.devTestEventId && settings.devTestEventId.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => settings.setDevTestEventId('')}
+                    style={styles.clearButtonInInput}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <Ionicons name="close-circle" size={20} color={settings.secondaryTextColor} />
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
 
             {/* Developer Tab Toggle */}
@@ -773,6 +753,37 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
                 thumbColor={settings.developerTabEnabled ? '#FFFFFF' : '#f4f3f4'}
               />
             </View>
+
+            {/* Developer Information Button */}
+            <TouchableOpacity
+              style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}
+              onPress={() => setShowDevInfoModal(true)}
+              activeOpacity={0.6}
+            >
+              <View style={styles.optionTextContainer}>
+                <Text style={[styles.optionText, { color: settings.textColor }]}>Developer Information</Text>
+                <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                  View detailed app, API, and system debug information
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={settings.secondaryTextColor} />
+            </TouchableOpacity>
+
+            {/* Color Override Button */}
+            <TouchableOpacity
+              style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}
+              onPress={() => setShowColorOverrideModal(true)}
+              activeOpacity={0.6}
+            >
+              <View style={styles.optionTextContainer}>
+                <Text style={[styles.optionText, { color: settings.textColor }]}>Program Color Overrides</Text>
+                <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                  Customize theme colors for each program
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={settings.secondaryTextColor} />
+            </TouchableOpacity>
+
             {/* Team Browser Toggle */}
             <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}>
               <View style={styles.optionTextContainer}>
@@ -786,6 +797,22 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
                 onValueChange={settings.setTeamBrowserEnabled}
                 trackColor={{ false: '#767577', true: settings.buttonColor }}
                 thumbColor={settings.teamBrowserEnabled ? '#FFFFFF' : '#f4f3f4'}
+              />
+            </View>
+
+            {/* Use Bundled Game Manuals Toggle */}
+            <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}>
+              <View style={styles.optionTextContainer}>
+                <Text style={[styles.optionText, { color: settings.textColor }]}>Use Bundled Game Manuals</Text>
+                <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                  Force use of locally bundled game manual data instead of fetching from GitHub
+                </Text>
+              </View>
+              <Switch
+                value={settings.useBundledGameManuals}
+                onValueChange={settings.setUseBundledGameManuals}
+                trackColor={{ false: '#767577', true: settings.buttonColor }}
+                thumbColor={settings.useBundledGameManuals ? '#FFFFFF' : '#f4f3f4'}
               />
             </View>
 
@@ -841,7 +868,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
         borderBottomColor: settings.borderColor
       }]}>
         <Text style={[styles.creditText, { color: settings.secondaryTextColor }]}>
-          Developed by Skyler Clagg, <Text style={[styles.warningText, { color: '#FF3B30' }]}>Note this app is NOT an OFFICIAL RECF App.</Text> This App took inspiration from VRC RoboScout.
+          Developed by Skyler Clagg, <Text style={[styles.warningText, { color: '#FF3B30' }]}>Note this app is NOT an OFFICIAL RECF App.</Text> This app takes inspiration from VRC RoboScout.
         </Text>
         <TouchableOpacity style={[styles.button, { backgroundColor: settings.buttonColor, marginTop: 16 }]} onPress={openDiscord}>
           <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>Join the Discord Server</Text>
@@ -854,6 +881,273 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
         visible={showNotesModal}
         onClose={() => setShowNotesModal(false)}
       />
+
+      {/* Developer Information Modal */}
+      <DevInfoModal
+        visible={showDevInfoModal}
+        onClose={() => setShowDevInfoModal(false)}
+      />
+
+      {/* Color Override Modal */}
+      <ColorOverrideModal
+        visible={showColorOverrideModal}
+        onClose={() => setShowColorOverrideModal(false)}
+      />
+
+      {/* Developer Mode Disable Modal */}
+      <DeveloperModeDisableModal
+        visible={showDeveloperModeDisableModal}
+        onClose={() => setShowDeveloperModeDisableModal(false)}
+        onDisableTemporarily={handleDisableTemporarily}
+        onDisablePermanently={handleDisablePermanently}
+      />
+
+      {/* Compact View Settings Modal */}
+      <Modal
+        visible={showCompactViewModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowCompactViewModal(false)}
+      >
+        <View style={[styles.fullScreenModal, { backgroundColor: settings.backgroundColor }]}>
+          {/* Header */}
+          <View style={[styles.fullScreenHeader, {
+            backgroundColor: settings.topBarColor,
+            borderBottomColor: settings.borderColor
+          }]}>
+            <Text style={[styles.fullScreenHeaderTitle, { color: settings.topBarContentColor }]}>
+              Compact View Settings
+            </Text>
+            <TouchableOpacity style={styles.fullScreenCloseButton} onPress={() => setShowCompactViewModal(false)}>
+              <Ionicons name="close" size={24} color={settings.topBarContentColor} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Modal Content */}
+          <ScrollView style={styles.fullScreenModalContent}>
+            <View style={[styles.modalCard, {
+              backgroundColor: settings.cardBackgroundColor,
+              borderTopColor: settings.borderColor,
+              borderBottomColor: settings.borderColor
+            }]}>
+              <View style={[styles.modalOptionRow, { borderBottomColor: settings.borderColor }]}>
+                <View style={styles.optionTextContainer}>
+                  <Text style={[styles.optionText, { color: settings.textColor }]}>All Lists</Text>
+                  <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                    Enable compact mode for all list types
+                  </Text>
+                </View>
+                <Switch
+                  value={settings.compactViewAll}
+                  onValueChange={settings.setCompactViewAll}
+                  trackColor={{ false: '#767577', true: settings.buttonColor }}
+                  thumbColor={settings.compactViewAll ? '#fff' : '#f4f3f4'}
+                />
+              </View>
+
+              <View style={[styles.modalOptionRow, { borderBottomColor: settings.borderColor }]}>
+                <View style={styles.optionTextContainer}>
+                  <Text style={[styles.optionText, { color: settings.textColor }]}>Match Lists</Text>
+                  <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                    Show matches in compact view
+                  </Text>
+                </View>
+                <Switch
+                  value={settings.compactViewMatches}
+                  onValueChange={settings.setCompactViewMatches}
+                  trackColor={{ false: '#767577', true: settings.buttonColor }}
+                  thumbColor={settings.compactViewMatches ? '#fff' : '#f4f3f4'}
+                />
+              </View>
+
+              <View style={[styles.modalOptionRow, { borderBottomColor: settings.borderColor }]}>
+                <View style={styles.optionTextContainer}>
+                  <Text style={[styles.optionText, { color: settings.textColor }]}>Rankings</Text>
+                  <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                    Show rankings in compact view
+                  </Text>
+                </View>
+                <Switch
+                  value={settings.compactViewRankings}
+                  onValueChange={settings.setCompactViewRankings}
+                  trackColor={{ false: '#767577', true: settings.buttonColor }}
+                  thumbColor={settings.compactViewRankings ? '#fff' : '#f4f3f4'}
+                />
+              </View>
+
+              <View style={[styles.modalOptionRow, { borderBottomColor: settings.borderColor }]}>
+                <View style={styles.optionTextContainer}>
+                  <Text style={[styles.optionText, { color: settings.textColor }]}>Skills Rankings</Text>
+                  <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                    Show skills rankings in compact view
+                  </Text>
+                </View>
+                <Switch
+                  value={settings.compactViewSkills}
+                  onValueChange={settings.setCompactViewSkills}
+                  trackColor={{ false: '#767577', true: settings.buttonColor }}
+                  thumbColor={settings.compactViewSkills ? '#fff' : '#f4f3f4'}
+                />
+              </View>
+
+              <View style={[styles.modalOptionRow, { borderBottomWidth: 0 }]}>
+                <View style={styles.optionTextContainer}>
+                  <Text style={[styles.optionText, { color: settings.textColor }]}>Team Lists</Text>
+                  <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                    Show teams in compact view
+                  </Text>
+                </View>
+                <Switch
+                  value={settings.compactViewTeams}
+                  onValueChange={settings.setCompactViewTeams}
+                  trackColor={{ false: '#767577', true: settings.buttonColor }}
+                  thumbColor={settings.compactViewTeams ? '#fff' : '#f4f3f4'}
+                />
+              </View>
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* Scroll Bar Settings Modal */}
+      <Modal
+        visible={showScrollBarModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowScrollBarModal(false)}
+      >
+        <View style={[styles.fullScreenModal, { backgroundColor: settings.backgroundColor }]}>
+          {/* Header */}
+          <View style={[styles.fullScreenHeader, {
+            backgroundColor: settings.topBarColor,
+            borderBottomColor: settings.borderColor
+          }]}>
+            <Text style={[styles.fullScreenHeaderTitle, { color: settings.topBarContentColor }]}>
+              Scroll Bar Settings
+            </Text>
+            <TouchableOpacity style={styles.fullScreenCloseButton} onPress={() => setShowScrollBarModal(false)}>
+              <Ionicons name="close" size={24} color={settings.topBarContentColor} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Modal Content */}
+          <ScrollView style={styles.fullScreenModalContent}>
+            <View style={[styles.modalCard, {
+              backgroundColor: settings.cardBackgroundColor,
+              borderTopColor: settings.borderColor,
+              borderBottomColor: settings.borderColor
+            }]}>
+              <View style={[styles.modalOptionRow, { borderBottomColor: settings.borderColor }]}>
+                <View style={styles.optionTextContainer}>
+                  <Text style={[styles.optionText, { color: settings.textColor }]}>Enable All Scroll Bars</Text>
+                  <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                    Show scroll indicators on all lists
+                  </Text>
+                </View>
+                <Switch
+                  value={settings.scrollBarEnabled}
+                  onValueChange={settings.setScrollBarEnabled}
+                  trackColor={{ false: '#767577', true: settings.buttonColor }}
+                  thumbColor={settings.scrollBarEnabled ? '#fff' : '#f4f3f4'}
+                />
+              </View>
+
+              <View style={[styles.modalOptionRow, { borderBottomColor: settings.borderColor }]}>
+                <View style={styles.optionTextContainer}>
+                  <Text style={[styles.optionText, { color: settings.textColor }]}>Match Lists</Text>
+                  <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                    Show scroll bar on match lists
+                  </Text>
+                </View>
+                <Switch
+                  value={settings.scrollBarMatches}
+                  onValueChange={settings.setScrollBarMatches}
+                  trackColor={{ false: '#767577', true: settings.buttonColor }}
+                  thumbColor={settings.scrollBarMatches ? '#fff' : '#f4f3f4'}
+                />
+              </View>
+
+              <View style={[styles.modalOptionRow, { borderBottomColor: settings.borderColor }]}>
+                <View style={styles.optionTextContainer}>
+                  <Text style={[styles.optionText, { color: settings.textColor }]}>Rankings</Text>
+                  <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                    Show scroll bar on rankings
+                  </Text>
+                </View>
+                <Switch
+                  value={settings.scrollBarRankings}
+                  onValueChange={settings.setScrollBarRankings}
+                  trackColor={{ false: '#767577', true: settings.buttonColor }}
+                  thumbColor={settings.scrollBarRankings ? '#fff' : '#f4f3f4'}
+                />
+              </View>
+
+              <View style={[styles.modalOptionRow, { borderBottomColor: settings.borderColor }]}>
+                <View style={styles.optionTextContainer}>
+                  <Text style={[styles.optionText, { color: settings.textColor }]}>Skills Rankings</Text>
+                  <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                    Show scroll bar on skills rankings
+                  </Text>
+                </View>
+                <Switch
+                  value={settings.scrollBarSkills}
+                  onValueChange={settings.setScrollBarSkills}
+                  trackColor={{ false: '#767577', true: settings.buttonColor }}
+                  thumbColor={settings.scrollBarSkills ? '#fff' : '#f4f3f4'}
+                />
+              </View>
+
+              <View style={[styles.modalOptionRow, { borderBottomColor: settings.borderColor }]}>
+                <View style={styles.optionTextContainer}>
+                  <Text style={[styles.optionText, { color: settings.textColor }]}>Team Lists</Text>
+                  <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                    Show scroll bar on team lists
+                  </Text>
+                </View>
+                <Switch
+                  value={settings.scrollBarTeams}
+                  onValueChange={settings.setScrollBarTeams}
+                  trackColor={{ false: '#767577', true: settings.buttonColor }}
+                  thumbColor={settings.scrollBarTeams ? '#fff' : '#f4f3f4'}
+                />
+              </View>
+
+              <View style={[styles.modalOptionRow, { borderBottomColor: settings.borderColor }]}>
+                <View style={styles.optionTextContainer}>
+                  <Text style={[styles.optionText, { color: settings.textColor }]}>World Skills Rankings</Text>
+                  <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                    Show scroll bar on world skills
+                  </Text>
+                </View>
+                <Switch
+                  value={settings.scrollBarWorldSkills}
+                  onValueChange={settings.setScrollBarWorldSkills}
+                  trackColor={{ false: '#767577', true: settings.buttonColor }}
+                  thumbColor={settings.scrollBarWorldSkills ? '#fff' : '#f4f3f4'}
+                />
+              </View>
+
+              <View style={[styles.modalOptionRow, { borderBottomWidth: 0 }]}>
+                <View style={styles.optionTextContainer}>
+                  <Text style={[styles.optionText, { color: settings.textColor }]}>Event & Team Lookup</Text>
+                  <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                    Show scroll bar on event lookup and team browser
+                  </Text>
+                </View>
+                <Switch
+                  value={settings.scrollBarEventLookup && settings.scrollBarTeamBrowser}
+                  onValueChange={(enabled) => {
+                    settings.setScrollBarEventLookup(enabled);
+                    settings.setScrollBarTeamBrowser(enabled);
+                  }}
+                  trackColor={{ false: '#767577', true: settings.buttonColor }}
+                  thumbColor={(settings.scrollBarEventLookup && settings.scrollBarTeamBrowser) ? '#fff' : '#f4f3f4'}
+                />
+              </View>
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -941,6 +1235,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     marginHorizontal: 20,
     fontWeight: '500',
+  },
+  clearButtonInInput: {
+    position: 'absolute',
+    right: 32,
+    top: 12,
+    padding: 4,
   },
   button: {
     paddingVertical: 16,
@@ -1065,6 +1365,92 @@ const styles = StyleSheet.create({
     marginTop: 4,
     lineHeight: 18,
     opacity: 0.7,
+  },
+  // Full-screen modal styles (matching NotesManagementModal)
+  fullScreenModal: {
+    flex: 1,
+  },
+  fullScreenHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+  },
+  fullScreenHeaderTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  fullScreenCloseButton: {
+    padding: 4,
+  },
+  fullScreenModalContent: {
+    flex: 1,
+    paddingTop: 16,
+    paddingHorizontal: 16,
+  },
+  modalCard: {
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  // Legacy modal styles (kept for compatibility)
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  swipeIndicator: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  swipeHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    opacity: 0.5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  modalContent: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 32,
+  },
+  modalOptionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
   },
 });
 

@@ -163,6 +163,9 @@ export interface ProgramConfig {
   hasDriverSkills: boolean;      // Has driver/primary skill (API: type='driver')
   hasProgrammingSkills: boolean; // Has programming/secondary skill (API: type='programming')
 
+  // Rankings
+  hasFinalistRankings: boolean;  // Has finalist rankings in addition to qualification rankings
+
   // Score calculator
   scoreCalculator: ScoreCalculatorType;
   scoreCalculatorRequiresDev: boolean;
@@ -196,6 +199,7 @@ export const PROGRAM_CONFIGS: Record<ProgramType, ProgramConfig> = {
     hasScoreCalculators: true,
     hasDriverSkills: true,      // Driver Skills
     hasProgrammingSkills: true, // Programming Skills
+    hasFinalistRankings: false,
     scoreCalculator: 'v5rc',
     scoreCalculatorRequiresDev: true,
     devOnly: false,
@@ -219,6 +223,7 @@ export const PROGRAM_CONFIGS: Record<ProgramType, ProgramConfig> = {
     hasScoreCalculators: false,
     hasDriverSkills: true,      // Driver Skills
     hasProgrammingSkills: true, // Programming Skills
+    hasFinalistRankings: true,  // VEX IQ has finalist rankings
     scoreCalculator: 'viqrc',
     scoreCalculatorRequiresDev: true,
     devOnly: false,
@@ -227,7 +232,7 @@ export const PROGRAM_CONFIGS: Record<ProgramType, ProgramConfig> = {
   'VEX U Robotics Competition': {
     id: 4,
     shortName: 'VURC',
-    useThemedScoreColors: true, // Competitive 1v1 - use red/blue alliance colors
+    useThemedScoreColors: false, // Competitive 1v1 - use red/blue alliance colors
     competitionType: 'robotics',
     apiType: 'RobotEvents',
     matchFormat: '1v1',
@@ -242,6 +247,7 @@ export const PROGRAM_CONFIGS: Record<ProgramType, ProgramConfig> = {
     hasScoreCalculators: false, // No calculators yet
     hasDriverSkills: true,      // Driver Skills
     hasProgrammingSkills: true, // Programming Skills
+    hasFinalistRankings: false,
     scoreCalculator: 'vurc',
     scoreCalculatorRequiresDev: true,
     devOnly: false,
@@ -249,11 +255,11 @@ export const PROGRAM_CONFIGS: Record<ProgramType, ProgramConfig> = {
   },
   'VEX AI Robotics Competition': {
     id: 57,
-    useThemedScoreColors: true, 
+    useThemedScoreColors: true,
     shortName: 'VAIRC',
     competitionType: 'robotics',
     apiType: 'RobotEvents',
-    matchFormat: '1v1', 
+    matchFormat: '1v1',
     skillsTypes: ['autonomous'],
     availableGrades: ['High School', 'College'],
     hasSkills: true,
@@ -263,8 +269,9 @@ export const PROGRAM_CONFIGS: Record<ProgramType, ProgramConfig> = {
     hasAwards: true,
     hasWorldSkills: true,
     hasScoreCalculators: false,
-    hasDriverSkills: false,      
-    hasProgrammingSkills: true, 
+    hasDriverSkills: false,
+    hasProgrammingSkills: true,
+    hasFinalistRankings: false,
     scoreCalculator: 'vairc',
     scoreCalculatorRequiresDev: true,
     devOnly: false,
@@ -287,10 +294,11 @@ export const PROGRAM_CONFIGS: Record<ProgramType, ProgramConfig> = {
     hasWorldSkills: false,
     hasScoreCalculators: true,
     scoreCalculator: 'adc',
-    scoreCalculatorRequiresDev: false, 
-    hasDriverSkills: true,   
-    hasProgrammingSkills: true, 
-    devOnly: false, 
+    scoreCalculatorRequiresDev: false,
+    hasDriverSkills: true,
+    hasProgrammingSkills: true,
+    hasFinalistRankings: false,
+    devOnly: false,
     limitedMode: true, // Show limited dashboard until API is ready
     limitedModeMessage: 'Due to the change in website for the Aerial Drone Competition, the app is currently unable to access data for this program. In the meantime, you can access score calculators and the game manual.',
   },
@@ -312,6 +320,7 @@ export const PROGRAM_CONFIGS: Record<ProgramType, ProgramConfig> = {
     hasScoreCalculators: false,
     hasDriverSkills: true,      // Flight Skills (API stores as 'driver')
     hasProgrammingSkills: true, // Autonomous Flight (API stores as 'programming')
+    hasFinalistRankings: false,
     scoreCalculator: 'vadc',
     scoreCalculatorRequiresDev: true, // Available to all users
     devOnly: true,

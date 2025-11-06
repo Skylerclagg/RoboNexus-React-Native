@@ -1,8 +1,17 @@
 /**
- * TEAMS MAP CONTENT COMPONENT
+ * TEAM BROWSER SCREEN
  *
- * Content component for the Teams Map that can be used within the Lookup tab.
- * This contains all the teams map functionality without navigation setup.
+ * Shows all registered teams for the current season with filtering and search.
+ * This is a developer mode feature for exploring team distribution.
+ *
+ * NAVIGATION ACCESS:
+ * - Developer mode only via Lookup
+ *
+ * KEY FEATURES:
+ * - List view with search and filters similar to event lookup
+ * - Search by team name or number
+ * - Filter by region, state, country, grade level
+ * - Link to individual team pages
  */
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -17,29 +26,29 @@ import {
   FlatList,
   Alert,
   Switch,
-  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../contexts/SettingsContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { useTeams } from '../contexts/TeamsContext';
 import { Team } from '../types';
-import DropdownPicker from './DropdownPicker';
+import DropdownPicker from '../components/DropdownPicker';
+import AnimatedScrollBar from '../components/AnimatedScrollBar';
 import { getProgramId, getAvailableGrades } from '../utils/programMappings';
 
 interface Props {
-  navigation?: any;
-  viewMode?: 'list' | 'map';
+  navigation: any;
 }
 
 interface TeamFilters {
+  season: string;
   region: string;
   country: string;
   gradeLevel: string;
   registeredOnly: boolean;
 }
 
-const TeamsMapContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) => {
+const TeamBrowserScreen: React.FC<Props> = ({ navigation }) => {
   const settings = useSettings();
   const { addTeam, removeTeam, isTeamFavorited } = useFavorites();
   const {
@@ -52,107 +61,49 @@ const TeamsMapContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) => 
     loadingProgress,
     getAvailableRegions,
     getAvailableCountries,
-    getRegionsByCountry,
     filterTeams
   } = useTeams();
 
   // Local UI state
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [currentSeason, setCurrentSeason] = useState('');
 
   // Filter states
   const [filters, setFilters] = useState<TeamFilters>({
+    season: '',
     region: '',
     country: '',
     gradeLevel: '',
-    registeredOnly: false, // Default to showing all teams
+    registeredOnly: true,
   });
-
-  // Local filters for modal (like EventFiltersModal)
-  const [localFilters, setLocalFilters] = useState<TeamFilters>(filters);
-
-  // Update local filters when main filters change
-  React.useEffect(() => {
-    setLocalFilters(filters);
-  }, [filters]);
 
   // Filter options
   const [seasons, setSeasons] = useState<{label: string, value: string}[]>([]);
 
+  // Scroll tracking for AnimatedScrollBar
+  const [scrollY, setScrollY] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const flatListRef = useRef<any>(null);
+
   // Computed data from context
   const allTeams = currentSeason ? getTeamsForProgramSeason(settings.selectedProgram, currentSeason) : [];
-  const rawAvailableRegions = currentSeason ? getAvailableRegions(settings.selectedProgram, currentSeason) : [];
-  const rawAvailableCountries = currentSeason ? getAvailableCountries(settings.selectedProgram, currentSeason) : [];
-  const regionsByCountryMap = currentSeason ? getRegionsByCountry(settings.selectedProgram, currentSeason) : {};
+  const availableRegions = currentSeason ? getAvailableRegions(settings.selectedProgram, currentSeason) : [];
+  const availableCountries = currentSeason ? getAvailableCountries(settings.selectedProgram, currentSeason) : [];
 
-  // Get filtered regions based on selected country (like EventFiltersModal)
-  const getFilteredRegions = () => {
-    if (!localFilters.country || !regionsByCountryMap) {
-      const uniqueRegions = [...new Set(rawAvailableRegions)].sort();
-      return [
-        { label: 'All Regions', value: '' },
-        ...uniqueRegions.map(region => ({ label: region, value: region }))
-      ];
-    }
-
-    // Get regions for the selected country
-    const regionsForCountry = regionsByCountryMap[localFilters.country] || [];
-    return [
-      { label: 'All Regions', value: '' },
-      ...regionsForCountry.map(region => ({ label: region, value: region }))
-    ];
-  };
-
-  // Deduplicate and format for DropdownPicker
-  const availableRegions = React.useMemo(() => {
-    return getFilteredRegions();
-  }, [rawAvailableRegions, localFilters.country, regionsByCountryMap]);
-
-  const availableCountries = React.useMemo(() => {
-    const uniqueCountries = [...new Set(rawAvailableCountries)].sort();
-    return [
-      { label: 'All Countries', value: '' },
-      ...uniqueCountries.map(country => ({ label: country, value: country }))
-    ];
-  }, [rawAvailableCountries]);
-
-  // Generate grade options based on selected program
-  const gradeOptions = React.useMemo(() => {
-    const availableGrades = getAvailableGrades(settings.selectedProgram);
-    return [
-      { label: 'All Grade Levels', value: '' },
-      ...availableGrades.map(grade => ({ label: grade, value: grade }))
-    ];
-  }, [settings.selectedProgram]);
-
-  // Apply client-side filtering (excluding search)
-  const baseFilteredTeams = React.useMemo(() => {
+  // Apply client-side filtering
+  const filteredTeams = React.useMemo(() => {
     const clientFilters = {
+      search: searchQuery,
       region: filters.region,
       country: filters.country,
       gradeLevel: filters.gradeLevel,
       registeredOnly: filters.registeredOnly
     };
     return filterTeams(allTeams, clientFilters);
-  }, [allTeams, filters, filterTeams]);
-
-  // Apply search on top of the filtered teams
-  const filteredTeams = React.useMemo(() => {
-    if (!searchQuery.trim()) {
-      return baseFilteredTeams;
-    }
-
-    const searchLower = searchQuery.toLowerCase();
-    return baseFilteredTeams.filter(team =>
-      team.number?.toLowerCase().includes(searchLower) ||
-      team.team_name?.toLowerCase().includes(searchLower) ||
-      team.organization?.toLowerCase().includes(searchLower) ||
-      team.location?.city?.toLowerCase().includes(searchLower) ||
-      team.location?.region?.toLowerCase().includes(searchLower) ||
-      team.location?.country?.toLowerCase().includes(searchLower)
-    );
-  }, [baseFilteredTeams, searchQuery]);
+  }, [allTeams, searchQuery, filters, filterTeams]);
 
   // Search debouncing
   const [isSearching, setIsSearching] = useState(false);
@@ -171,8 +122,18 @@ const TeamsMapContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) => 
     if (seasons.length > 0 && !currentSeason) {
       const defaultSeason = seasons[0]; // First season is usually current
       setCurrentSeason(defaultSeason.value);
+      setFilters(prev => ({ ...prev, season: defaultSeason.value }));
     }
   }, [seasons]);
+
+  // Update current season when filter changes
+  useEffect(() => {
+    if (filters.season && filters.season !== currentSeason) {
+      setCurrentSeason(filters.season);
+    }
+  }, [filters.season]);
+
+  // Header is now handled in App.tsx navigation configuration
 
   // Use centralized program mapping
 
@@ -189,7 +150,7 @@ const TeamsMapContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) => 
         }));
       setSeasons(seasonOptions);
     } catch (error) {
-      console.error('[TeamsMapContent] Error loading seasons:', error);
+      console.error('[TeamsMap] Error loading seasons:', error);
     }
   };
 
@@ -199,11 +160,13 @@ const TeamsMapContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) => 
       try {
         await refreshTeams(settings.selectedProgram, currentSeason);
       } catch (error) {
-        console.error('[TeamsMapContent] Error refreshing teams:', error);
+        console.error('[TeamsMap] Error refreshing teams:', error);
         Alert.alert('Error', 'Failed to refresh teams. Please try again.');
       }
     }
   };
+
+  // No longer needed - filtering is handled by useMemo above
 
   // Debounced search
   const handleSearchChange = useCallback((text: string) => {
@@ -219,40 +182,13 @@ const TeamsMapContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) => 
     }, 300);
   }, []);
 
-  // Handle filter changes (for local state)
-  const handleLocalFilterChange = (key: keyof TeamFilters, value: any) => {
-    setLocalFilters(prev => {
-      const newFilters = { ...prev, [key]: value };
-
-      if (key === 'country') {
-        newFilters.region = '';
-      }
-
-      return newFilters;
-    });
-  };
-
-  // Apply filters (like EventFiltersModal)
-  const applyFilters = () => {
-    console.log('[TeamsMapContent] Applying filters:', localFilters);
-    setFilters(localFilters);
-    setShowFilters(false);
-  };
-
-  // Clear filters (like EventFiltersModal)
-  const clearFilters = () => {
-    const clearedFilters: TeamFilters = {
-      region: '',
-      country: '',
-      gradeLevel: '',
-      registeredOnly: false, // Default to showing all teams
-    };
-    setLocalFilters(clearedFilters);
-    setFilters(clearedFilters);
+  // Handle filter changes
+  const handleFilterChange = (key: keyof TeamFilters, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
   };
 
   const navigateToTeam = (teamNumber: string) => {
-    navigation?.navigate('TeamInfo', {
+    navigation.navigate('TeamInfo', {
       teamNumber,
       teamData: null,
     });
@@ -286,7 +222,7 @@ const TeamsMapContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) => 
             <Text style={[styles.teamNumber, { color: settings.textColor }]}>
               {team.number}
             </Text>
-            <Text style={[styles.teamName, { color: settings.textColor }]} numberOfLines={1}>
+            <Text style={[styles.teamName, { color: settings.textColor }]}>
               {team.team_name}
             </Text>
           </View>
@@ -361,121 +297,83 @@ const TeamsMapContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) => 
   );
 
   const renderFiltersModal = () => (
-    <Modal
-      visible={showFilters}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={() => setShowFilters(false)}
-    >
-      <View style={[styles.container, { backgroundColor: settings.backgroundColor }]}>
-        {/* Modern Header */}
-        <View style={[styles.header, {
-          backgroundColor: settings.cardBackgroundColor,
-          borderBottomColor: settings.borderColor,
-          shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000'
-        }]}>
-          <TouchableOpacity onPress={() => setShowFilters(false)} style={styles.headerButton}>
-            <Ionicons name="close" size={24} color={settings.iconColor} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: settings.textColor }]}>Team Filters</Text>
-          <TouchableOpacity onPress={applyFilters} style={[styles.applyHeaderButton, { backgroundColor: settings.buttonColor }]}>
-            <Text style={styles.applyHeaderButtonText}>Apply</Text>
-          </TouchableOpacity>
+    <View style={[styles.filtersModal, {
+      backgroundColor: settings.backgroundColor,
+      borderColor: settings.borderColor,
+    }]}>
+      <View style={styles.filtersHeader}>
+        <Text style={[styles.filtersTitle, { color: settings.textColor }]}>Filters</Text>
+        <TouchableOpacity onPress={() => setShowFilters(false)}>
+          <Ionicons name="close" size={24} color={settings.textColor} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView style={styles.filtersContent}>
+        {/* Season Filter */}
+        <View style={styles.filterSection}>
+          <Text style={[styles.filterLabel, { color: settings.textColor }]}>Season</Text>
+          <DropdownPicker
+            options={seasons}
+            selectedValue={filters.season}
+            onValueChange={(value) => handleFilterChange('season', value)}
+            placeholder="Select Season"
+          />
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Region Filter Card */}
-          <View style={[styles.modernFilterCard, {
-            backgroundColor: settings.cardBackgroundColor,
-            borderColor: settings.borderColor,
-            shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000'
-          }]}>
-            <View style={styles.filterHeader}>
-              <Ionicons name="location-outline" size={20} color={settings.buttonColor} />
-              <Text style={[styles.modernFilterTitle, { color: settings.textColor }]}>Region</Text>
-            </View>
-            <DropdownPicker
-              options={availableRegions}
-              selectedValue={localFilters.region}
-              onValueChange={(value) => handleLocalFilterChange('region', value)}
-              placeholder="All Regions"
+        {/* Region Filter */}
+        <View style={styles.filterSection}>
+          <Text style={[styles.filterLabel, { color: settings.textColor }]}>Region</Text>
+          <DropdownPicker
+            options={availableRegions.map(region => ({ label: region, value: region }))}
+            selectedValue={filters.region}
+            onValueChange={(value) => handleFilterChange('region', value)}
+            placeholder="All Regions"
+          />
+        </View>
+
+        {/* Country Filter */}
+        <View style={styles.filterSection}>
+          <Text style={[styles.filterLabel, { color: settings.textColor }]}>Country</Text>
+          <DropdownPicker
+            options={availableCountries.map(country => ({ label: country, value: country }))}
+            selectedValue={filters.country}
+            onValueChange={(value) => handleFilterChange('country', value)}
+            placeholder="All Countries"
+          />
+        </View>
+
+        {/* Grade Level Filter */}
+        <View style={styles.filterSection}>
+          <Text style={[styles.filterLabel, { color: settings.textColor }]}>Grade Level</Text>
+          <DropdownPicker
+            options={getAvailableGrades(settings.selectedProgram).map(grade => ({
+              label: grade,
+              value: grade
+            }))}
+            selectedValue={filters.gradeLevel}
+            onValueChange={(value) => handleFilterChange('gradeLevel', value)}
+            placeholder="All Grade Levels"
+          />
+        </View>
+
+        {/* Registered Only Toggle */}
+        <View style={styles.filterSection}>
+          <View style={styles.switchRow}>
+            <Text style={[styles.filterLabel, { color: settings.textColor }]}>Registered Teams Only</Text>
+            <Switch
+              value={filters.registeredOnly}
+              onValueChange={(value) => handleFilterChange('registeredOnly', value)}
+              trackColor={{ false: '#767577', true: settings.buttonColor }}
+              thumbColor={filters.registeredOnly ? '#FFFFFF' : '#f4f3f4'}
             />
           </View>
-
-          {/* Country Filter Card */}
-          <View style={[styles.modernFilterCard, {
-            backgroundColor: settings.cardBackgroundColor,
-            borderColor: settings.borderColor,
-            shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000'
-          }]}>
-            <View style={styles.filterHeader}>
-              <Ionicons name="globe-outline" size={20} color={settings.buttonColor} />
-              <Text style={[styles.modernFilterTitle, { color: settings.textColor }]}>Country</Text>
-            </View>
-            <DropdownPicker
-              options={availableCountries}
-              selectedValue={localFilters.country}
-              onValueChange={(value) => handleLocalFilterChange('country', value)}
-              placeholder="All Countries"
-            />
-          </View>
-
-          {/* Grade Level Filter Card */}
-          <View style={[styles.modernFilterCard, {
-            backgroundColor: settings.cardBackgroundColor,
-            borderColor: settings.borderColor,
-            shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000'
-          }]}>
-            <View style={styles.filterHeader}>
-              <Ionicons name="school-outline" size={20} color={settings.buttonColor} />
-              <Text style={[styles.modernFilterTitle, { color: settings.textColor }]}>Grade Level</Text>
-            </View>
-            <DropdownPicker
-              options={gradeOptions}
-              selectedValue={localFilters.gradeLevel}
-              onValueChange={(value) => handleLocalFilterChange('gradeLevel', value)}
-              placeholder="All Grade Levels"
-            />
-          </View>
-
-          {/* Registered Only Toggle Card */}
-          <View style={[styles.modernFilterCard, {
-            backgroundColor: settings.cardBackgroundColor,
-            borderColor: settings.borderColor,
-            shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000'
-          }]}>
-            <View style={styles.modernSwitchRow}>
-              <View style={styles.switchIconAndInfo}>
-                <Ionicons name="checkmark-circle-outline" size={20} color={settings.buttonColor} />
-                <View style={styles.switchTextInfo}>
-                  <Text style={[styles.modernFilterTitle, { color: settings.textColor }]}>Registered Teams Only</Text>
-                  <Text style={[styles.modernFilterDescription, { color: settings.secondaryTextColor }]}>Filter to show only registered teams</Text>
-                </View>
-              </View>
-              <Switch
-                value={localFilters.registeredOnly}
-                onValueChange={(value) => handleLocalFilterChange('registeredOnly', value)}
-                trackColor={{ false: '#767577', true: settings.buttonColor }}
-                thumbColor={localFilters.registeredOnly ? '#FFFFFF' : '#f4f3f4'}
-              />
-            </View>
-          </View>
-
-          {/* Clear Filters Button */}
-          <TouchableOpacity
-            style={[styles.clearButton, { borderColor: settings.borderColor }]}
-            onPress={clearFilters}
-          >
-            <Ionicons name="refresh-outline" size={20} color={settings.secondaryTextColor} />
-            <Text style={[styles.clearButtonText, { color: settings.secondaryTextColor }]}>Clear All Filters</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
-    </Modal>
+        </View>
+      </ScrollView>
+    </View>
   );
 
   const renderContent = () => {
-    if (loading && filteredTeams.length === 0) {
+    if (loading) {
       return (
         <View style={[styles.container, styles.centered, { backgroundColor: settings.backgroundColor }]}>
           <ActivityIndicator size="large" color={settings.buttonColor} />
@@ -494,20 +392,38 @@ const TeamsMapContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) => 
     }
 
     return (
-      <FlatList
-        data={filteredTeams}
-        keyExtractor={(item) => item.id?.toString() || item.number || ''}
-        renderItem={renderTeamItem}
-        style={styles.teamList}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.teamListContent}
-      />
+      <View style={{ flex: 1 }}>
+        <FlatList
+          ref={flatListRef}
+          data={filteredTeams}
+          keyExtractor={(item) => item.id?.toString() || item.number || ''}
+          renderItem={renderTeamItem}
+          style={styles.teamList}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.teamListContent}
+          onScroll={(event) => {
+            const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+            setScrollY(contentOffset.y);
+            setContentHeight(contentSize.height);
+            setViewportHeight(layoutMeasurement.height);
+          }}
+          scrollEventThrottle={16}
+        />
+        <AnimatedScrollBar
+          scrollY={scrollY}
+          contentHeight={contentHeight}
+          viewportHeight={viewportHeight}
+          color={settings.buttonColor}
+          enabled={settings.scrollBarEnabled && settings.scrollBarTeamBrowser}
+          scrollViewRef={flatListRef}
+        />
+      </View>
     );
   };
 
   return (
     <View style={[styles.container, { backgroundColor: settings.backgroundColor }]}>
-      {/* Search Section */}
+      {/* Search Section - matching EventLookup pattern */}
       <View style={[styles.sectionCard, {
         backgroundColor: settings.cardBackgroundColor,
         borderColor: settings.borderColor,
@@ -516,6 +432,13 @@ const TeamsMapContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) => 
         <View style={styles.searchHeader}>
           <Text style={[styles.sectionTitle, { color: settings.textColor }]}>Team Search</Text>
           <View style={styles.headerActions}>
+            {/* Last Updated Info */}
+            {lastUpdated && !teamsLoading && (
+              <Text style={[styles.lastUpdated, { color: settings.secondaryTextColor }]}>
+                Updated {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+            )}
+
             {/* Refresh Button */}
             <TouchableOpacity
               style={[styles.refreshButton, { opacity: teamsLoading ? 0.5 : 1 }]}
@@ -530,6 +453,41 @@ const TeamsMapContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) => 
               />
             </TouchableOpacity>
 
+            {/* View Mode Toggle */}
+            {settings.isDeveloperMode && (
+              <View style={styles.viewModeToggle}>
+                <TouchableOpacity
+                  style={[
+                    styles.viewModeButton,
+                    styles.viewModeLeft,
+                    viewMode === 'list' && [styles.viewModeActive, { backgroundColor: settings.buttonColor }],
+                    viewMode !== 'list' && [styles.viewModeInactive, { backgroundColor: 'rgba(128, 128, 128, 0.1)' }]
+                  ]}
+                  onPress={() => setViewMode('list')}
+                >
+                  <Ionicons
+                    name="list"
+                    size={16}
+                    color={viewMode === 'list' ? '#FFFFFF' : settings.secondaryTextColor}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.viewModeButton,
+                    styles.viewModeRight,
+                    viewMode === 'map' && [styles.viewModeActive, { backgroundColor: settings.buttonColor }],
+                    viewMode !== 'map' && [styles.viewModeInactive, { backgroundColor: 'rgba(128, 128, 128, 0.1)' }]
+                  ]}
+                  onPress={() => setViewMode('map')}
+                >
+                  <Ionicons
+                    name="map"
+                    size={16}
+                    color={viewMode === 'map' ? '#FFFFFF' : settings.secondaryTextColor}
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
             <TouchableOpacity
               style={styles.filterButton}
               onPress={() => setShowFilters(true)}
@@ -563,16 +521,12 @@ const TeamsMapContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) => 
           )}
         </View>
 
-        {/* Simplified Results Summary */}
+        {/* Results Summary */}
         {!loading && (
           <View style={styles.resultsRow}>
             <Text style={[styles.resultsText, { color: settings.secondaryTextColor }]}>
-              {filteredTeams.length} teams
+              {filteredTeams.length} of {allTeams.length} teams
               {searchQuery && ` matching "${searchQuery}"`}
-              {filters.region && ` in ${filters.region}`}
-              {filters.country && ` in ${filters.country}`}
-              {filters.gradeLevel && ` (${filters.gradeLevel})`}
-              {filters.registeredOnly && ` (registered only)`}
             </Text>
             {teamsError && (
               <Text style={[styles.errorText, { color: '#FF3B30' }]}>
@@ -583,13 +537,10 @@ const TeamsMapContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) => 
         )}
       </View>
 
-      {/* Teams Content */}
+      {/* Teams Content - List or Map View */}
       <View style={styles.teamsContainer}>
         {renderContent()}
       </View>
-
-      {/* Filters Modal */}
-      {renderFiltersModal()}
 
       {/* Show loading progress during initial load */}
       {isInitialLoad && teamsLoading && (
@@ -608,6 +559,13 @@ const TeamsMapContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) => 
           </View>
         </View>
       )}
+
+      {/* Filters Modal */}
+      {showFilters && (
+        <View style={styles.modalOverlay}>
+          {renderFiltersModal()}
+        </View>
+      )}
     </View>
   );
 };
@@ -619,6 +577,16 @@ const styles = StyleSheet.create({
   centered: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    marginRight: 8,
+  },
+  headerButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    marginLeft: 4,
   },
   sectionCard: {
     borderRadius: 10,
@@ -646,6 +614,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+  viewModeToggle: {
+    flexDirection: 'row',
+    borderRadius: 6,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(128, 128, 128, 0.3)',
+  },
+  viewModeButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  viewModeLeft: {
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  viewModeRight: {
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+  },
+  viewModeActive: {
+    // backgroundColor applied inline
+  },
+  viewModeInactive: {
+    // backgroundColor applied inline
+  },
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -657,13 +652,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontSize: 14,
     fontWeight: '500',
-  },
-  refreshButton: {
-    padding: 4,
-    marginRight: 8,
-  },
-  resultsRow: {
-    marginTop: 8,
   },
   searchInput: {
     flexDirection: 'row',
@@ -685,9 +673,11 @@ const styles = StyleSheet.create({
   searchLoadingIndicator: {
     marginLeft: 8,
   },
+  resultsRow: {
+    marginTop: 8,
+  },
   resultsText: {
     fontSize: 14,
-    fontWeight: '500',
   },
   teamList: {
     flex: 1,
@@ -780,91 +770,52 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
   },
-  header: {
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filtersModal: {
+    width: '90%',
+    maxHeight: '80%',
+    borderRadius: 12,
+    borderWidth: 1,
+    backgroundColor: 'white',
+  },
+  filtersHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    padding: 16,
     borderBottomWidth: 1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    borderBottomColor: '#E5E5E5',
   },
-  headerButton: {
-    padding: 8,
-  },
-  headerTitle: {
+  filtersTitle: {
     fontSize: 18,
     fontWeight: '600',
   },
-  applyHeaderButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+  filtersContent: {
+    maxHeight: 400,
   },
-  applyHeaderButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
-  modernFilterCard: {
-    borderRadius: 12,
+  filterSection: {
     padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E5E5',
   },
-  filterHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  modernFilterTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  modernSwitchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  switchIconAndInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  switchTextInfo: {
-    marginLeft: 8,
-    flex: 1,
-  },
-  modernFilterDescription: {
-    fontSize: 14,
-    marginTop: 2,
-    lineHeight: 18,
-  },
-  clearButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginTop: 8,
-  },
-  clearButtonText: {
+  filterLabel: {
     fontSize: 16,
     fontWeight: '500',
-    marginLeft: 8,
+    marginBottom: 8,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   loadingText: {
     fontSize: 16,
@@ -875,6 +826,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 8,
     textAlign: 'center',
+  },
+  lastUpdated: {
+    fontSize: 12,
+    marginRight: 8,
+  },
+  refreshButton: {
+    padding: 4,
+    marginRight: 8,
   },
   spinning: {
     // Add animation in React Native Reanimated if needed
@@ -923,4 +882,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TeamsMapContent;
+export default TeamBrowserScreen;

@@ -100,6 +100,30 @@ const ScoreCalculatorsHomeScreen: React.FC<ScoreCalculatorsHomeScreenProps> = ({
       shadowRadius: 4,
       elevation: 3,
     },
+    disclaimerCard: {
+      backgroundColor: cardBackgroundColor,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: '#FF3B30',
+      marginBottom: 16,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    disclaimerIcon: {
+      marginRight: 12,
+    },
+    disclaimerText: {
+      flex: 1,
+      fontSize: 14,
+      color: '#FF3B30',
+      lineHeight: 20,
+    },
     calculatorButton: {
       padding: 20,
       flexDirection: 'row',
@@ -148,6 +172,21 @@ const ScoreCalculatorsHomeScreen: React.FC<ScoreCalculatorsHomeScreenProps> = ({
   return (
     <View style={styles.container}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Disclaimer Card */}
+        {showCalculators && availableCalculators.length > 0 && (
+          <View style={styles.disclaimerCard}>
+            <Ionicons
+              name="warning-outline"
+              size={24}
+              color="#FF3B30"
+              style={styles.disclaimerIcon}
+            />
+            <Text style={styles.disclaimerText}>
+              Please be aware that these calculators are unofficial and could potentially be inaccurate.
+            </Text>
+          </View>
+        )}
+
         {/* Show calculators if available and permitted for the selected program */}
         {showCalculators && availableCalculators.length > 0 ? (
           availableCalculators.map((calculator, index) => (

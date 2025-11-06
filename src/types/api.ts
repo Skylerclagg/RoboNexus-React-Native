@@ -78,7 +78,7 @@ export interface Division {
 // Event types
 export type EventLevel = 'World' | 'National' | 'Regional' | 'State' | 'Signature' | 'Other';
 export type EventType = 'tournament' | 'league' | 'workshop' | 'virtual';
-export type Grade = 'College' | 'High School' | 'Middle School' | 'Elementary School';
+export type Grade = 'College' | 'High School' | 'Middle School' | 'Elementary';
 
 export interface Event {
   id: number;
@@ -213,6 +213,7 @@ export interface WorldSkillsResponse {
     id: number;
     name: string;
   };
+  eligible?: boolean;
 }
 
 // Filter interfaces for comprehensive API coverage

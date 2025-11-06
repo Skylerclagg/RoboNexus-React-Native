@@ -3,7 +3,7 @@ import { robotEventsAPI } from '../services/apiRouter';
 import { useSettings } from './SettingsContext';
 import { Event, WorldSkillsResponse } from '../types';
 import { Award, Season } from '../types/api';
-import { getProgramId } from '../utils/programMappings';
+import { getProgramId, PROGRAM_CONFIGS, getProgramConfig } from '../utils/programMappings';
 
 interface CachedData {
   // Seasons data (loaded once per program)
@@ -29,6 +29,7 @@ interface DataCacheContextType {
   // Data getters
   getSeasons: (programId: number) => Season[];
   getWorldSkills: (seasonId: number, programId: number, grade: string) => WorldSkillsResponse[];
+  getWorldSkillsForProgram: (seasonId: number, programId: number) => WorldSkillsResponse[];
   getTeamEvents: (teamId: number) => Event[];
   getTeamAwards: (teamId: number) => Award[];
 
@@ -40,7 +41,8 @@ interface DataCacheContextType {
 
   // Pre-load functions
   preloadSeasons: (programId: number) => Promise<void>;
-  preloadWorldSkills: (seasonId: number, programId: number, grade: string) => Promise<void>;
+  preloadWorldSkills: (seasonId: number, programId: number, grade: string) => Promise<WorldSkillsResponse[]>;
+  preloadWorldSkillsForProgram: (seasonId: number, programId: number) => Promise<WorldSkillsResponse[]>;
   preloadTeamEvents: (teamId: number) => Promise<void>;
   preloadTeamAwards: (teamId: number) => Promise<void>;
 
@@ -129,17 +131,39 @@ export const DataCacheProvider: React.FC<DataCacheProviderProps> = ({ children }
   }, [cachedData.seasons, cachedData.seasonsLoading]);
 
   // World Skills cache functions
+  // Returns ALL World Skills data for a program/season (across all grades)
+  const getWorldSkillsForProgram = useCallback((seasonId: number, programId: number): WorldSkillsResponse[] => {
+    // Find all cache keys for this program/season
+    const prefix = `${seasonId}_${programId}_`;
+    const allData: WorldSkillsResponse[] = [];
+
+    Object.keys(cachedData.worldSkills).forEach(key => {
+      if (key.startsWith(prefix)) {
+        allData.push(...cachedData.worldSkills[key]);
+      }
+    });
+
+    return allData;
+  }, [cachedData.worldSkills]);
+
+  // Legacy method - returns World Skills data for a specific grade
   const getWorldSkills = useCallback((seasonId: number, programId: number, grade: string): WorldSkillsResponse[] => {
     const key = `${seasonId}_${programId}_${grade}`;
     return cachedData.worldSkills[key] || [];
   }, [cachedData.worldSkills]);
 
-  const preloadWorldSkills = useCallback(async (seasonId: number, programId: number, grade: string): Promise<void> => {
+  const preloadWorldSkills = useCallback(async (seasonId: number, programId: number, grade: string): Promise<WorldSkillsResponse[]> => {
     const key = `${seasonId}_${programId}_${grade}`;
 
-    // Don't reload if already cached or currently loading
-    if (cachedData.worldSkills[key] || cachedData.worldSkillsLoading[key]) {
-      return;
+    if (cachedData.worldSkills[key]) {
+      return cachedData.worldSkills[key];
+    }
+
+    if (cachedData.worldSkillsLoading[key]) {
+      while (cachedData.worldSkillsLoading[key]) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      return cachedData.worldSkills[key] || [];
     }
 
     setCachedData(prev => ({
@@ -148,7 +172,6 @@ export const DataCacheProvider: React.FC<DataCacheProviderProps> = ({ children }
     }));
 
     try {
-      console.log(`[DataCache] Pre-loading world skills for season ${seasonId}, program ${programId}, grade ${grade}...`);
       const worldSkillsData = await robotEventsAPI.getWorldSkillsRankings(seasonId, grade);
 
       setCachedData(prev => ({
@@ -157,17 +180,44 @@ export const DataCacheProvider: React.FC<DataCacheProviderProps> = ({ children }
         worldSkillsLoading: { ...prev.worldSkillsLoading, [key]: false }
       }));
 
-      console.log(`[DataCache] Pre-loaded ${worldSkillsData.length} world skills rankings for season ${seasonId}, program ${programId}, grade ${grade}`);
+      return worldSkillsData;
     } catch (error) {
       console.error(`[DataCache] Failed to pre-load world skills for season ${seasonId}, program ${programId}, grade ${grade}:`, error);
       setCachedData(prev => ({
         ...prev,
         worldSkillsLoading: { ...prev.worldSkillsLoading, [key]: false }
       }));
+      return [];
     }
   }, [cachedData.worldSkills, cachedData.worldSkillsLoading]);
 
-  // Team Events cache functions
+  const preloadWorldSkillsForProgram = useCallback(async (seasonId: number, programId: number): Promise<WorldSkillsResponse[]> => {
+    const programName = Object.keys(PROGRAM_CONFIGS).find(p => {
+      const config = PROGRAM_CONFIGS[p as keyof typeof PROGRAM_CONFIGS];
+      return config.id === programId;
+    });
+
+    if (!programName) {
+      console.error(`[DataCache] No program found with ID ${programId}`);
+      return [];
+    }
+
+    const programConfig = getProgramConfig(programName);
+    if (!programConfig.hasWorldSkills || programConfig.apiType !== 'RobotEvents') {
+      console.log(`[DataCache] Program ${programName} does not support World Skills`);
+      return [];
+    }
+
+    const gradePromises = programConfig.availableGrades.map(grade =>
+      preloadWorldSkills(seasonId, programId, grade)
+    );
+
+    const gradeResults = await Promise.all(gradePromises);
+    const allData: WorldSkillsResponse[] = gradeResults.flat();
+
+    return allData;
+  }, [preloadWorldSkills]);
+
   const getTeamEvents = useCallback((teamId: number): Event[] => {
     return cachedData.teamEvents[teamId.toString()] || [];
   }, [cachedData.teamEvents]);
@@ -175,7 +225,6 @@ export const DataCacheProvider: React.FC<DataCacheProviderProps> = ({ children }
   const preloadTeamEvents = useCallback(async (teamId: number): Promise<void> => {
     const key = teamId.toString();
 
-    // Don't reload if already cached or currently loading
     if (cachedData.teamEvents[key] || cachedData.teamEventsLoading[key]) {
       return;
     }
@@ -360,6 +409,13 @@ export const DataCacheProvider: React.FC<DataCacheProviderProps> = ({ children }
     if (!selectedSeason) return;
 
     const programId = getProgramIdHelper(selectedProgram);
+    const programConfig = getProgramConfig(selectedProgram);
+
+    // Only pre-load if program has World Skills and uses RobotEvents API
+    if (!programConfig.hasWorldSkills || programConfig.apiType !== 'RobotEvents') {
+      console.log(`[DataCache] Program ${selectedProgram} does not support World Skills, skipping pre-load`);
+      return;
+    }
 
     // Handle season name vs season ID conversion
     const loadEssentialData = async () => {
@@ -380,24 +436,24 @@ export const DataCacheProvider: React.FC<DataCacheProviderProps> = ({ children }
         seasonId = parseInt(selectedSeason);
       }
 
-      console.log(`[DataCache] Season/Program changed to ${selectedProgram} season ${selectedSeason} (ID: ${seasonId}), pre-loading essential data...`);
+      console.log(`[DataCache] Season/Program changed to ${selectedProgram} season ${selectedSeason} (ID: ${seasonId}), pre-loading World Skills for all grades...`);
 
-      // This reduces API calls from 4 per season change to 2 per season change
-      const essentialGrades = ['High School', 'Middle School'];
+      // Dynamically get available grades from program config
+      const availableGrades = programConfig.availableGrades;
 
-      essentialGrades.forEach(grade => {
-        // Pre-load in background (don't await to avoid blocking)
+      // Pre-load all grades in parallel
+      const preloadPromises = availableGrades.map(grade =>
         preloadWorldSkills(seasonId, programId, grade).catch(error => {
-          console.log(`[DataCache] Background pre-load failed for ${grade} world skills:`, error.message);
-        });
-      });
+          // Silently handle background preload errors
+        })
+      );
 
-      // TODO: Add events pre-loading for the current program/season when needed
-      // This can be added later: preloadEventsForSeason(seasonId, programId)
+      // Execute all in parallel (non-blocking)
+      Promise.all(preloadPromises);
     };
 
     loadEssentialData();
-  }, [selectedSeason, selectedProgram, getProgramId, preloadWorldSkills]);
+  }, [selectedSeason, selectedProgram, getProgramIdHelper, preloadWorldSkills]);
 
   // Force refresh methods (clear cache and reload)
   const forceRefreshSeasons = useCallback(async (programId: number): Promise<void> => {
@@ -486,6 +542,7 @@ export const DataCacheProvider: React.FC<DataCacheProviderProps> = ({ children }
     // Data getters
     getSeasons,
     getWorldSkills,
+    getWorldSkillsForProgram,
     getTeamEvents,
     getTeamAwards,
 
@@ -498,6 +555,7 @@ export const DataCacheProvider: React.FC<DataCacheProviderProps> = ({ children }
     // Pre-load functions
     preloadSeasons,
     preloadWorldSkills,
+    preloadWorldSkillsForProgram,
     preloadTeamEvents,
     preloadTeamAwards,
 

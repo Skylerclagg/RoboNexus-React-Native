@@ -3,6 +3,7 @@ import { Appearance, ColorSchemeName } from 'react-native';
 import { storage } from '../utils/webCompatibility';
 import { robotEventsAPI } from '../services/apiRouter';
 import { getAllProgramNames, getProgramConfig } from '../utils/programMappings';
+import { setUseBundledGameManuals as setGameManualServiceBundled } from '../services/gameManualService';
 import CryptoJS from 'crypto-js';
 
 export type ProgramType =
@@ -15,7 +16,32 @@ export type ProgramType =
 
 export type ThemeMode = 'auto' | 'light' | 'dark';
 
+export type ColorProperty =
+  | 'primary'
+  | 'topBarColor'
+  | 'topBarContentColor'
+  | 'buttonColor'
+  | 'cardBackgroundColor'
+  | 'backgroundColor'
+  | 'textColor'
+  | 'secondaryTextColor'
+  | 'borderColor'
+  | 'iconColor';
+
+export interface ColorOverride {
+  property: ColorProperty;
+  lightModeValue?: string;
+  darkModeValue?: string;
+}
+
+export type ProgramColorOverrides = {
+  [program in ProgramType]?: ColorOverride[];
+};
+
 interface SettingsContextType {
+  programColorOverrides: ProgramColorOverrides;
+  setProgramColorOverrides: (overrides: ProgramColorOverrides) => void;
+  resetProgramColorOverrides: (programs: ProgramType[], properties?: ColorProperty[]) => void;
   selectedProgram: ProgramType;
   selectedSeason: string;
   enableHaptics: boolean;
@@ -38,18 +64,37 @@ interface SettingsContextType {
   devOnlyProgramsEnabled: boolean;
   scoringCalculatorsEnabled: boolean;
   teamBrowserEnabled: boolean;
+  useBundledGameManuals: boolean;
   compactViewAll: boolean;
   compactViewMatches: boolean;
   compactViewRankings: boolean;
   compactViewSkills: boolean;
   compactViewTeams: boolean;
+  sortDashboardByNextMatch: boolean;
+  scrollBarEnabled: boolean;
+  scrollBarMatches: boolean;
+  scrollBarRankings: boolean;
+  scrollBarSkills: boolean;
+  scrollBarTeams: boolean;
+  scrollBarWorldSkills: boolean;
+  scrollBarEventLookup: boolean;
+  scrollBarTeamBrowser: boolean;
   storedDeveloperCode: string;
   setStoredDeveloperCode: (code: string) => void;
   setCompactViewAll: (enabled: boolean) => void;
+  setSortDashboardByNextMatch: (enabled: boolean) => void;
   setCompactViewMatches: (enabled: boolean) => void;
   setCompactViewRankings: (enabled: boolean) => void;
   setCompactViewSkills: (enabled: boolean) => void;
   setCompactViewTeams: (enabled: boolean) => void;
+  setScrollBarEnabled: (enabled: boolean) => void;
+  setScrollBarMatches: (enabled: boolean) => void;
+  setScrollBarRankings: (enabled: boolean) => void;
+  setScrollBarSkills: (enabled: boolean) => void;
+  setScrollBarTeams: (enabled: boolean) => void;
+  setScrollBarWorldSkills: (enabled: boolean) => void;
+  setScrollBarEventLookup: (enabled: boolean) => void;
+  setScrollBarTeamBrowser: (enabled: boolean) => void;
   availablePrograms: ProgramType[];
   colorScheme: ColorSchemeName;
   backgroundColor: string;
@@ -79,6 +124,7 @@ interface SettingsContextType {
   setDevOnlyProgramsEnabled: (enabled: boolean) => void;
   setScoringCalculatorsEnabled: (enabled: boolean) => void;
   setTeamBrowserEnabled: (enabled: boolean) => void;
+  setUseBundledGameManuals: (enabled: boolean) => void;
   updateGlobalSeason: (season: string) => void;
   validateDeveloperCode: (code: string) => boolean;
   enableDeveloperModeWithCode: (code: string) => Promise<boolean>;
@@ -109,13 +155,25 @@ const STORAGE_KEYS = {
   devOnlyProgramsEnabled: 'devOnlyProgramsEnabled',
   scoringCalculatorsEnabled: 'scoringCalculatorsEnabled',
   teamBrowserEnabled: 'teamBrowserEnabled',
+  useBundledGameManuals: 'useBundledGameManuals',
   compactViewAll: 'compactViewAll',
   compactViewMatches: 'compactViewMatches',
   compactViewRankings: 'compactViewRankings',
   compactViewSkills: 'compactViewSkills',
   compactViewTeams: 'compactViewTeams',
+  sortDashboardByNextMatch: 'sortDashboardByNextMatch',
+  scrollBarEnabled: 'scrollBarEnabled',
+  scrollBarMatches: 'scrollBarMatches',
+  scrollBarRankings: 'scrollBarRankings',
+  scrollBarSkills: 'scrollBarSkills',
+  scrollBarTeams: 'scrollBarTeams',
+  scrollBarWorldSkills: 'scrollBarWorldSkills',
+  scrollBarEventLookup: 'scrollBarEventLookup',
+  scrollBarTeamBrowser: 'scrollBarTeamBrowser',
   storedDeveloperCode: 'storedDeveloperCode',
   lastWelcomeVersion: 'lastWelcomeVersion',
+  programColorOverrides: 'programColorOverrides',
+  globalSeasonMigrated: 'globalSeasonMigrated', // One-time migration flag
 };
 
 // Developer mode security - SHA-256 hashes of valid codes
@@ -130,54 +188,77 @@ const validateDeveloperCode = (code: string): boolean => {
   return VALID_DEV_CODE_HASHES.includes(codeHash);
 };
 
-// Program-based theming function
-export const getProgramTheme = (program: ProgramType, colorScheme: ColorSchemeName) => {
+// Program-based theming function with optional override support
+export const getProgramTheme = (program: ProgramType, colorScheme: ColorSchemeName, overrides?: ProgramColorOverrides) => {
   const isDark = colorScheme === 'dark';
 
+  // Get default theme
+  let defaultTheme;
   switch (program) {
     case 'VEX V5 Robotics Competition':
     case 'VEX U Robotics Competition':
-      return {
+      defaultTheme = {
         primary: '#FF3B30',    // Red
         background: isDark ? '#000000' : '#FFFFFF',
         content: isDark ? '#FFFFFF' : '#000000',
       };
+      break;
 
     case 'VEX AI Robotics Competition':
-      return {
+      defaultTheme = {
         primary: '#48484A',    // Dark Gray
         background: isDark ? '#000000' : '#FFFFFF',
         content: isDark ? '#FFFFFF' : '#000000',
       };
+      break;
 
     case 'VEX IQ Robotics Competition':
-      return {
+      defaultTheme = {
         primary: '#007AFF',    // Blue
         background: isDark ? '#000000' : '#FFFFFF',
         content: isDark ? '#FFFFFF' : '#000000',
       };
+      break;
 
     case 'Aerial Drone Competition':
-      return {
+      defaultTheme = {
         primary: '#34C759',    // Green
         background: isDark ? '#000000' : '#FFFFFF',
         content: isDark ? '#FFFFFF' : '#000000',
       };
+      break;
 
     case 'VEX AIR Drone Competition':
-      return {
+      defaultTheme = {
         primary: '#FF9500',    // Orange
         background: isDark ? '#000000' : '#FFFFFF',
         content: isDark ? '#FFFFFF' : '#000000',
       };
+      break;
 
     default:
-      return {
+      defaultTheme = {
         primary: '#FF3B30',    // Default to red
         background: isDark ? '#000000' : '#FFFFFF',
         content: isDark ? '#FFFFFF' : '#000000',
       };
   }
+
+  // Apply overrides if they exist
+  if (overrides && overrides[program]) {
+    const programOverrides = overrides[program]!;
+    programOverrides.forEach(override => {
+      if (override.property === 'primary') {
+        if (isDark && override.darkModeValue) {
+          defaultTheme.primary = override.darkModeValue;
+        } else if (!isDark && override.lightModeValue) {
+          defaultTheme.primary = override.lightModeValue;
+        }
+      }
+    });
+  }
+
+  return defaultTheme;
 };
 
 export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -185,7 +266,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   // All hooks must be called at the top level, before any conditional logic
   const [selectedProgram, setSelectedProgramState] = useState<ProgramType>('VEX V5 Robotics Competition');
-  const [selectedSeason, setSelectedSeasonState] = useState('2025-2026');
+  const [selectedSeason, setSelectedSeasonState] = useState('');
   const [enableHaptics, setEnableHapticsState] = useState(true);
   const [dateFilter, setDateFilterState] = useState(7);
   const [nearbyRange, setNearbyRangeState] = useState(100);
@@ -203,14 +284,25 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [devOnlyProgramsEnabled, setDevOnlyProgramsEnabledState] = useState(false);
   const [scoringCalculatorsEnabled, setScoringCalculatorsEnabledState] = useState(false);
   const [teamBrowserEnabled, setTeamBrowserEnabledState] = useState(false);
+  const [useBundledGameManuals, setUseBundledGameManualsState] = useState(false);
   const [compactViewAll, setCompactViewAllState] = useState(false);
   const [compactViewMatches, setCompactViewMatchesState] = useState(false);
   const [compactViewRankings, setCompactViewRankingsState] = useState(false);
   const [compactViewSkills, setCompactViewSkillsState] = useState(false);
   const [compactViewTeams, setCompactViewTeamsState] = useState(false);
+  const [sortDashboardByNextMatch, setSortDashboardByNextMatchState] = useState(true);
+  const [scrollBarEnabled, setScrollBarEnabledState] = useState(false);
+  const [scrollBarMatches, setScrollBarMatchesState] = useState(false);
+  const [scrollBarRankings, setScrollBarRankingsState] = useState(false);
+  const [scrollBarSkills, setScrollBarSkillsState] = useState(false);
+  const [scrollBarTeams, setScrollBarTeamsState] = useState(false);
+  const [scrollBarWorldSkills, setScrollBarWorldSkillsState] = useState(false);
+  const [scrollBarEventLookup, setScrollBarEventLookupState] = useState(false);
+  const [scrollBarTeamBrowser, setScrollBarTeamBrowserState] = useState(false);
   const [storedDeveloperCode, setStoredDeveloperCodeState] = useState('');
   const [deviceColorScheme, setDeviceColorScheme] = useState<ColorSchemeName>(Appearance.getColorScheme());
   const [previewProgram, setPreviewProgramState] = useState<ProgramType | null>(null);
+  const [programColorOverrides, setProgramColorOverridesState] = useState<ProgramColorOverrides>({});
 
   // Calculate effective color scheme based on theme mode
   const colorScheme: ColorSchemeName = themeMode === 'auto'
@@ -223,18 +315,37 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   // Use preview program if set (for temporary visual preview), otherwise use selected program
   const effectiveProgram = previewProgram || selectedProgram;
   console.log('[SettingsProvider] Getting theme for program:', effectiveProgram, 'themeMode:', themeMode, 'effectiveColorScheme:', colorScheme);
-  const theme = getProgramTheme(effectiveProgram, colorScheme);
+  const theme = getProgramTheme(effectiveProgram, colorScheme, programColorOverrides);
   console.log('[SettingsProvider] Theme calculated:', theme);
   const isDark = colorScheme === 'dark';
-  const topBarColor = theme.primary;
-  const topBarContentColor = '#FFFFFF'; // Always white for navigation bars
-  const buttonColor = theme.primary;
-  const backgroundColor = theme.background;
-  const textColor = theme.content;
-  const cardBackgroundColor = isDark ? '#1C1C1E' : '#FFFFFF';
-  const secondaryTextColor = isDark ? '#8E8E93' : '#666666';
-  const iconColor = isDark ? '#8E8E93' : '#666666';
-  const borderColor = isDark ? '#38383A' : '#E5E5E7';
+
+  // Helper function to get color with override support
+  const getColorWithOverride = (property: ColorProperty, defaultValue: string): string => {
+    const overrides = programColorOverrides[effectiveProgram];
+    if (!overrides) return defaultValue;
+
+    const override = overrides.find(o => o.property === property);
+    if (!override) return defaultValue;
+
+    if (isDark && override.darkModeValue) {
+      return override.darkModeValue;
+    } else if (!isDark && override.lightModeValue) {
+      return override.lightModeValue;
+    }
+
+    return defaultValue;
+  };
+
+  // Apply overrides to all color properties
+  const topBarColor = getColorWithOverride('topBarColor', theme.primary);
+  const topBarContentColor = getColorWithOverride('topBarContentColor', '#FFFFFF');
+  const buttonColor = getColorWithOverride('buttonColor', theme.primary);
+  const backgroundColor = getColorWithOverride('backgroundColor', theme.background);
+  const textColor = getColorWithOverride('textColor', theme.content);
+  const cardBackgroundColor = getColorWithOverride('cardBackgroundColor', isDark ? '#1C1C1E' : '#FFFFFF');
+  const secondaryTextColor = getColorWithOverride('secondaryTextColor', isDark ? '#8E8E93' : '#666666');
+  const iconColor = getColorWithOverride('iconColor', isDark ? '#8E8E93' : '#666666');
+  const borderColor = getColorWithOverride('borderColor', isDark ? '#38383A' : '#E5E5E7');
 
   // Define available programs dynamically from program mappings based on devOnly setting
   const availablePrograms: ProgramType[] = useMemo(() => {
@@ -272,12 +383,24 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         const savedDevOnlyProgramsEnabled = await storage.getItem(STORAGE_KEYS.devOnlyProgramsEnabled);
         const savedScoringCalculatorsEnabled = await storage.getItem(STORAGE_KEYS.scoringCalculatorsEnabled);
         const savedTeamBrowserEnabled = await storage.getItem(STORAGE_KEYS.teamBrowserEnabled);
+        const savedUseBundledGameManuals = await storage.getItem(STORAGE_KEYS.useBundledGameManuals);
         const savedCompactViewAll = await storage.getItem(STORAGE_KEYS.compactViewAll);
         const savedCompactViewMatches = await storage.getItem(STORAGE_KEYS.compactViewMatches);
         const savedCompactViewRankings = await storage.getItem(STORAGE_KEYS.compactViewRankings);
         const savedCompactViewSkills = await storage.getItem(STORAGE_KEYS.compactViewSkills);
         const savedCompactViewTeams = await storage.getItem(STORAGE_KEYS.compactViewTeams);
+        const savedSortDashboardByNextMatch = await storage.getItem(STORAGE_KEYS.sortDashboardByNextMatch);
+        const savedScrollBarEnabled = await storage.getItem(STORAGE_KEYS.scrollBarEnabled);
+        const savedScrollBarMatches = await storage.getItem(STORAGE_KEYS.scrollBarMatches);
+        const savedScrollBarRankings = await storage.getItem(STORAGE_KEYS.scrollBarRankings);
+        const savedScrollBarSkills = await storage.getItem(STORAGE_KEYS.scrollBarSkills);
+        const savedScrollBarTeams = await storage.getItem(STORAGE_KEYS.scrollBarTeams);
+        const savedScrollBarWorldSkills = await storage.getItem(STORAGE_KEYS.scrollBarWorldSkills);
+        const savedScrollBarEventLookup = await storage.getItem(STORAGE_KEYS.scrollBarEventLookup);
+        const savedScrollBarTeamBrowser = await storage.getItem(STORAGE_KEYS.scrollBarTeamBrowser);
         const savedStoredDeveloperCode = await storage.getItem(STORAGE_KEYS.storedDeveloperCode);
+        const savedProgramColorOverrides = await storage.getItem(STORAGE_KEYS.programColorOverrides);
+        const globalSeasonMigrated = await storage.getItem(STORAGE_KEYS.globalSeasonMigrated);
 
         if (savedProgram) setSelectedProgramState(savedProgram as ProgramType);
         if (savedSeason) setSelectedSeasonState(savedSeason);
@@ -291,19 +414,53 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         if (savedTestingEligibility) setTestingEligibilityEnabledState(JSON.parse(savedTestingEligibility));
         if (savedEligibilityWarningDismissed) setEligibilityWarningDismissedState(JSON.parse(savedEligibilityWarningDismissed));
         if (savedShowAwardsSummary) setShowAwardsSummaryState(JSON.parse(savedShowAwardsSummary));
-        if (savedGlobalSeason) setGlobalSeasonEnabledState(JSON.parse(savedGlobalSeason));
+
+        // Global Season Migration: Enable by default for new users and migrate old users
+        if (!globalSeasonMigrated) {
+          // First time running with this migration
+          if (savedGlobalSeason === null) {
+            // New user - set to true (new default)
+            setGlobalSeasonEnabledState(true);
+            await storage.setItem(STORAGE_KEYS.globalSeasonEnabled, JSON.stringify(true));
+          } else {
+            // Existing user with old false default - migrate to true
+            setGlobalSeasonEnabledState(true);
+            await storage.setItem(STORAGE_KEYS.globalSeasonEnabled, JSON.stringify(true));
+          }
+          // Mark migration as complete
+          await storage.setItem(STORAGE_KEYS.globalSeasonMigrated, 'true');
+        } else {
+          // Migration already done - respect user's current setting
+          if (savedGlobalSeason !== null) {
+            setGlobalSeasonEnabledState(JSON.parse(savedGlobalSeason));
+          }
+        }
+
         if (savedDevLiveEventSimulation) setDevLiveEventSimulationState(JSON.parse(savedDevLiveEventSimulation));
         if (savedDevTestEventId) setDevTestEventIdState(savedDevTestEventId);
         if (savedDeveloperTabEnabled) setDeveloperTabEnabledState(JSON.parse(savedDeveloperTabEnabled));
         if (savedDevOnlyProgramsEnabled) setDevOnlyProgramsEnabledState(JSON.parse(savedDevOnlyProgramsEnabled));
         if (savedScoringCalculatorsEnabled) setScoringCalculatorsEnabledState(JSON.parse(savedScoringCalculatorsEnabled));
         if (savedTeamBrowserEnabled) setTeamBrowserEnabledState(JSON.parse(savedTeamBrowserEnabled));
+        if (savedUseBundledGameManuals) setUseBundledGameManualsState(JSON.parse(savedUseBundledGameManuals));
         if (savedCompactViewAll) setCompactViewAllState(JSON.parse(savedCompactViewAll));
         if (savedCompactViewMatches) setCompactViewMatchesState(JSON.parse(savedCompactViewMatches));
         if (savedCompactViewRankings) setCompactViewRankingsState(JSON.parse(savedCompactViewRankings));
         if (savedCompactViewSkills) setCompactViewSkillsState(JSON.parse(savedCompactViewSkills));
         if (savedCompactViewTeams) setCompactViewTeamsState(JSON.parse(savedCompactViewTeams));
+        if (savedSortDashboardByNextMatch !== null) {
+          setSortDashboardByNextMatchState(JSON.parse(savedSortDashboardByNextMatch));
+        }
+        if (savedScrollBarEnabled) setScrollBarEnabledState(JSON.parse(savedScrollBarEnabled));
+        if (savedScrollBarMatches) setScrollBarMatchesState(JSON.parse(savedScrollBarMatches));
+        if (savedScrollBarRankings) setScrollBarRankingsState(JSON.parse(savedScrollBarRankings));
+        if (savedScrollBarSkills) setScrollBarSkillsState(JSON.parse(savedScrollBarSkills));
+        if (savedScrollBarTeams) setScrollBarTeamsState(JSON.parse(savedScrollBarTeams));
+        if (savedScrollBarWorldSkills) setScrollBarWorldSkillsState(JSON.parse(savedScrollBarWorldSkills));
+        if (savedScrollBarEventLookup) setScrollBarEventLookupState(JSON.parse(savedScrollBarEventLookup));
+        if (savedScrollBarTeamBrowser) setScrollBarTeamBrowserState(JSON.parse(savedScrollBarTeamBrowser));
         if (savedStoredDeveloperCode) setStoredDeveloperCodeState(savedStoredDeveloperCode);
+        if (savedProgramColorOverrides) setProgramColorOverridesState(JSON.parse(savedProgramColorOverrides));
       } catch (error) {
         console.error('Failed to load settings:', error);
       }
@@ -325,6 +482,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   useEffect(() => {
     robotEventsAPI.setSelectedProgram(selectedProgram);
   }, [selectedProgram]);
+
+  // Update game manual service when bundled setting changes
+  useEffect(() => {
+    setGameManualServiceBundled(useBundledGameManuals);
+  }, [useBundledGameManuals]);
 
   const setSelectedProgram = async (program: ProgramType) => {
     // Check if program is dev-only and whether it's allowed
@@ -463,6 +625,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     await storage.setItem(STORAGE_KEYS.teamBrowserEnabled, JSON.stringify(enabled));
   };
 
+  const setUseBundledGameManuals = async (enabled: boolean) => {
+    setUseBundledGameManualsState(enabled);
+    await storage.setItem(STORAGE_KEYS.useBundledGameManuals, JSON.stringify(enabled));
+  };
+
   const setCompactViewAll = async (enabled: boolean) => {
     setCompactViewAllState(enabled);
     await storage.setItem(STORAGE_KEYS.compactViewAll, JSON.stringify(enabled));
@@ -513,9 +680,138 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     await storage.setItem(STORAGE_KEYS.compactViewAll, JSON.stringify(allEnabled));
   };
 
+  const setSortDashboardByNextMatch = async (enabled: boolean) => {
+    setSortDashboardByNextMatchState(enabled);
+    await storage.setItem(STORAGE_KEYS.sortDashboardByNextMatch, JSON.stringify(enabled));
+  };
+
+  // Scroll Bar Settings Functions
+  const setScrollBarEnabled = async (enabled: boolean) => {
+    setScrollBarEnabledState(enabled);
+    await storage.setItem(STORAGE_KEYS.scrollBarEnabled, JSON.stringify(enabled));
+    setScrollBarMatchesState(enabled);
+    setScrollBarRankingsState(enabled);
+    setScrollBarSkillsState(enabled);
+    setScrollBarTeamsState(enabled);
+    setScrollBarWorldSkillsState(enabled);
+    setScrollBarEventLookupState(enabled);
+    setScrollBarTeamBrowserState(enabled);
+    await storage.setItem(STORAGE_KEYS.scrollBarMatches, JSON.stringify(enabled));
+    await storage.setItem(STORAGE_KEYS.scrollBarRankings, JSON.stringify(enabled));
+    await storage.setItem(STORAGE_KEYS.scrollBarSkills, JSON.stringify(enabled));
+    await storage.setItem(STORAGE_KEYS.scrollBarTeams, JSON.stringify(enabled));
+    await storage.setItem(STORAGE_KEYS.scrollBarWorldSkills, JSON.stringify(enabled));
+    await storage.setItem(STORAGE_KEYS.scrollBarEventLookup, JSON.stringify(enabled));
+    await storage.setItem(STORAGE_KEYS.scrollBarTeamBrowser, JSON.stringify(enabled));
+  };
+
+  const setScrollBarMatches = async (enabled: boolean) => {
+    setScrollBarMatchesState(enabled);
+    await storage.setItem(STORAGE_KEYS.scrollBarMatches, JSON.stringify(enabled));
+    updateScrollBarAll();
+  };
+
+  const setScrollBarRankings = async (enabled: boolean) => {
+    setScrollBarRankingsState(enabled);
+    await storage.setItem(STORAGE_KEYS.scrollBarRankings, JSON.stringify(enabled));
+    updateScrollBarAll();
+  };
+
+  const setScrollBarSkills = async (enabled: boolean) => {
+    setScrollBarSkillsState(enabled);
+    await storage.setItem(STORAGE_KEYS.scrollBarSkills, JSON.stringify(enabled));
+    updateScrollBarAll();
+  };
+
+  const setScrollBarTeams = async (enabled: boolean) => {
+    setScrollBarTeamsState(enabled);
+    await storage.setItem(STORAGE_KEYS.scrollBarTeams, JSON.stringify(enabled));
+    updateScrollBarAll();
+  };
+
+  const setScrollBarWorldSkills = async (enabled: boolean) => {
+    setScrollBarWorldSkillsState(enabled);
+    await storage.setItem(STORAGE_KEYS.scrollBarWorldSkills, JSON.stringify(enabled));
+    updateScrollBarAll();
+  };
+
+  const setScrollBarEventLookup = async (enabled: boolean) => {
+    setScrollBarEventLookupState(enabled);
+    await storage.setItem(STORAGE_KEYS.scrollBarEventLookup, JSON.stringify(enabled));
+    updateScrollBarAll();
+  };
+
+  const setScrollBarTeamBrowser = async (enabled: boolean) => {
+    setScrollBarTeamBrowserState(enabled);
+    await storage.setItem(STORAGE_KEYS.scrollBarTeamBrowser, JSON.stringify(enabled));
+    updateScrollBarAll();
+  };
+
+  const updateScrollBarAll = async () => {
+    const matches = await storage.getItem(STORAGE_KEYS.scrollBarMatches);
+    const rankings = await storage.getItem(STORAGE_KEYS.scrollBarRankings);
+    const skills = await storage.getItem(STORAGE_KEYS.scrollBarSkills);
+    const teams = await storage.getItem(STORAGE_KEYS.scrollBarTeams);
+    const worldSkills = await storage.getItem(STORAGE_KEYS.scrollBarWorldSkills);
+    const eventLookup = await storage.getItem(STORAGE_KEYS.scrollBarEventLookup);
+    const teamBrowser = await storage.getItem(STORAGE_KEYS.scrollBarTeamBrowser);
+
+    const allEnabled = matches === 'true' && rankings === 'true' && skills === 'true' &&
+                      teams === 'true' && worldSkills === 'true' && eventLookup === 'true' &&
+                      teamBrowser === 'true';
+    setScrollBarEnabledState(allEnabled);
+    await storage.setItem(STORAGE_KEYS.scrollBarEnabled, JSON.stringify(allEnabled));
+  };
+
   const setStoredDeveloperCode = async (code: string) => {
     setStoredDeveloperCodeState(code);
     await storage.setItem(STORAGE_KEYS.storedDeveloperCode, code);
+  };
+
+  const setProgramColorOverrides = async (overrides: ProgramColorOverrides) => {
+    setProgramColorOverridesState(overrides);
+    await storage.setItem(STORAGE_KEYS.programColorOverrides, JSON.stringify(overrides));
+  };
+
+  const resetProgramColorOverrides = async (programs: ProgramType[], properties?: ColorProperty[]) => {
+    console.log('[SettingsContext] resetProgramColorOverrides called');
+    console.log('[SettingsContext] Programs:', programs);
+    console.log('[SettingsContext] Properties to remove:', properties);
+    console.log('[SettingsContext] Current overrides:', JSON.stringify(programColorOverrides));
+
+    const newOverrides = { ...programColorOverrides };
+    programs.forEach(program => {
+      if (properties && properties.length > 0) {
+        // Remove specific properties only
+        console.log('[SettingsContext] Removing specific properties for:', program);
+        if (newOverrides[program]) {
+          const beforeLength = newOverrides[program]!.length;
+          newOverrides[program] = newOverrides[program]!.filter(
+            override => !properties.includes(override.property)
+          );
+          const afterLength = newOverrides[program]!.length;
+          console.log('[SettingsContext] Filtered overrides:', beforeLength, '->', afterLength);
+
+          // If no overrides left, remove the program entry entirely
+          if (newOverrides[program]!.length === 0) {
+            console.log('[SettingsContext] No overrides left, removing program entry');
+            delete newOverrides[program];
+          }
+        }
+      } else {
+        // Remove all overrides for this program
+        console.log('[SettingsContext] Removing ALL overrides for:', program);
+        delete newOverrides[program];
+      }
+    });
+
+    console.log('[SettingsContext] New overrides:', JSON.stringify(newOverrides));
+    console.log('[SettingsContext] Calling setProgramColorOverridesState');
+    setProgramColorOverridesState(newOverrides);
+
+    console.log('[SettingsContext] Saving to storage');
+    await storage.setItem(STORAGE_KEYS.programColorOverrides, JSON.stringify(newOverrides));
+    console.log('[SettingsContext] Save complete');
   };
 
   const updateGlobalSeason = async (season: string) => {
@@ -584,18 +880,40 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     devOnlyProgramsEnabled,
     scoringCalculatorsEnabled,
     teamBrowserEnabled,
+    useBundledGameManuals,
     compactViewAll,
     compactViewMatches,
     compactViewRankings,
     compactViewSkills,
     compactViewTeams,
+    sortDashboardByNextMatch,
+    scrollBarEnabled,
+    scrollBarMatches,
+    scrollBarRankings,
+    scrollBarSkills,
+    scrollBarTeams,
+    scrollBarWorldSkills,
+    scrollBarEventLookup,
+    scrollBarTeamBrowser,
     storedDeveloperCode,
     setStoredDeveloperCode,
+    programColorOverrides,
+    setProgramColorOverrides,
+    resetProgramColorOverrides,
     setCompactViewAll,
     setCompactViewMatches,
     setCompactViewRankings,
     setCompactViewSkills,
     setCompactViewTeams,
+    setSortDashboardByNextMatch,
+    setScrollBarEnabled,
+    setScrollBarMatches,
+    setScrollBarRankings,
+    setScrollBarSkills,
+    setScrollBarTeams,
+    setScrollBarWorldSkills,
+    setScrollBarEventLookup,
+    setScrollBarTeamBrowser,
     availablePrograms,
     colorScheme,
     backgroundColor,
@@ -625,6 +943,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     setDevOnlyProgramsEnabled,
     setScoringCalculatorsEnabled,
     setTeamBrowserEnabled,
+    setUseBundledGameManuals,
     updateGlobalSeason,
     validateDeveloperCode,
     enableDeveloperModeWithCode,

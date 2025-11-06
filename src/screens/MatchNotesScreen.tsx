@@ -345,7 +345,7 @@ const TeamNotes: React.FC<TeamNotesProps> = ({
               </View>
             )}
           </View>
-          <Text style={styles.teamName} numberOfLines={1}>
+          <Text style={styles.teamName}>
             {team.team_name || 'Unknown Team'}
           </Text>
           {matchScore && (
@@ -468,10 +468,11 @@ const MatchNotesScreen = ({ route, navigation }: Props) => {
       // Process red teams
       match.red_teams.forEach((teamNumber: string, index: number) => {
         const teamId = parseInt(teamNumber) || index + 1000;
+        const teamName = teamsMap[teamNumber] || teamNumber;
         const team: Team = {
           id: teamId,
           number: teamNumber,
-          team_name: teamsMap[teamId.toString()] || '',
+          team_name: teamName,
           robot_name: '',
           organization: '',
           location: { city: '', region: '', country: '' },
@@ -485,10 +486,11 @@ const MatchNotesScreen = ({ route, navigation }: Props) => {
       // Process blue teams
       match.blue_teams.forEach((teamNumber: string, index: number) => {
         const teamId = parseInt(teamNumber) || index + 2000;
+        const teamName = teamsMap[teamNumber] || teamNumber;
         const team: Team = {
           id: teamId,
           number: teamNumber,
-          team_name: teamsMap[teamId.toString()] || '',
+          team_name: teamName,
           robot_name: '',
           organization: '',
           location: { city: '', region: '', country: '' },
@@ -503,11 +505,13 @@ const MatchNotesScreen = ({ route, navigation }: Props) => {
     else if (match.alliances) {
       match.alliances.forEach((alliance: any) => {
         alliance.teams.forEach((teamData: any) => {
-          const teamNumber = teamsMap[teamData.team.id.toString()] || teamData.team.id.toString();
+          // teamData.team is an IdInfo where 'name' is actually the team number
+          const teamNumber = teamsMap[teamData.team.id.toString()] || teamData.team.name || teamData.team.id.toString();
+          const teamName = teamsMap[teamNumber] || teamNumber;
           const team: Team = {
             id: teamData.team.id,
             number: teamNumber,
-            team_name: teamData.team.name || teamNumber,
+            team_name: teamName,
             robot_name: '',
             organization: '',
             location: { city: '', region: '', country: '' },
@@ -531,7 +535,7 @@ const MatchNotesScreen = ({ route, navigation }: Props) => {
   const { redTeams, blueTeams } = getTeamsFromMatch();
 
   const handleShowStats = (team: Team) => {
-    navigation.navigate('EventTeamView', {
+    navigation.navigate('EventTeamInfo', {
       event: event,
       teamNumber: team.number,
       teamData: null,

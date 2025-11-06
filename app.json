@@ -59,7 +59,8 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.skylerclagg.adc_hub",
-      "versionCode": 25,
+      "versionCode": 28,
+      "targetSdkVersion": 35,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION"

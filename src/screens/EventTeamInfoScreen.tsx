@@ -1,22 +1,12 @@
 /**
- * Event Team View Screen
+ * Event Team Info Screen
  *
  * Description:
- * Comprehensive team detail screen showing all information for a specific team
- * at a VEX robotics event. Features tabbed interface with team information,
- * matches, rankings, and notes with favorites management capabilities.
+ * Team detail screen showing all information for a specific team
+ * at an event. 
  *
  * Navigation:
- * Accessed from team listings, search results, or match screens when users
- * want detailed information about a specific team at an event.
- *
- * Key Features:
- * - Tabbed interface for team information, matches, and performance data
- * - Team favorites management with add/remove functionality
- * - Match history and upcoming matches display
- * - Team ranking and statistical performance tracking
- * - Notes integration for team scouting and analysis
- * - Comprehensive team profile with organization and location details
+ * Accessed from Event team list, Match list, or Rankings
  */
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
@@ -47,25 +37,25 @@ import EventTeamMatchesScreen from './EventTeamMatchesScreen';
 import EventCard from '../components/EventCard';
 import TeamInfoCard from '../components/TeamInfoCard';
 import DropdownPicker from '../components/DropdownPicker';
-import { getProgramId } from '../utils/programMappings';
+import { getProgramId, getProgramConfig } from '../utils/programMappings';
 
-type EventTeamViewScreenRouteProp = RouteProp<
+type EventTeamInfoScreenRouteProp = RouteProp<
   {
-    EventTeamView: {
+    EventTeamInfo: {
       event: Event;
       teamNumber: string;
       teamData?: Team;
       division?: Division;
     };
   },
-  'EventTeamView'
+  'EventTeamInfo'
 >;
 
-type EventTeamViewScreenNavigationProp = StackNavigationProp<any>;
+type EventTeamInfoScreenNavigationProp = StackNavigationProp<any>;
 
 interface Props {
-  route: EventTeamViewScreenRouteProp;
-  navigation: EventTeamViewScreenNavigationProp;
+  route: EventTeamInfoScreenRouteProp;
+  navigation: EventTeamInfoScreenNavigationProp;
 }
 
 interface WorldSkillsData {
@@ -125,7 +115,7 @@ const tabs = [
   },
 ];
 
-const EventTeamViewScreen = ({ route, navigation }: Props) => {
+const EventTeamInfoScreen = ({ route, navigation }: Props) => {
   const { event, teamNumber, teamData, division } = route.params;
   const settings = useSettings();
   const {
@@ -142,6 +132,8 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
   const { addTeam, removeTeam, isTeamFavorited } = useFavorites();
   const { getNotesByTeam, createOrUpdateNote, deleteNote } = useNotes();
   const {
+    getWorldSkills,
+    preloadWorldSkills,
     forceRefreshSeasons,
     forceRefreshTeamEvents,
     forceRefreshTeamAwards,
@@ -220,7 +212,7 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
     }
   }, [eventsState.events.length, seasons.length, hasAutoExpanded]);
 
-  // Refresh awards and world skills when selected season changes
+  // Refresh awards, world skills, and match record when selected season changes
   useEffect(() => {
     const currentTeam = team || teamData;
     if (currentTeam?.id && selectedSeason && selectedSeason !== '') {
@@ -228,6 +220,7 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
       const seasonId = parseInt(selectedSeason);
       fetchAwardCounts(currentTeam.id, seasonId);
       fetchWorldSkillsData(currentTeam.id, seasonId);
+      fetchMatchRecord(currentTeam.id);
     }
   }, [selectedSeason, team?.id, teamData?.id]);
 
@@ -262,9 +255,12 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
   const fetchTeamInfo = async () => {
     setTeamLoading(true);
     try {
+      let currentTeam = team || teamData;
+
       // Use provided team data or fetch it
       if (!team && teamData) {
         setTeam(teamData);
+        currentTeam = teamData;
       } else if (!team) {
         const fetchedTeam = await robotEventsAPI.getTeamByNumber(teamNumber);
         if (fetchedTeam) {
@@ -279,15 +275,16 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
             },
           };
           setTeam(uiTeam);
+          currentTeam = uiTeam;
         } else {
           Alert.alert('Error', `Team ${teamNumber} not found`);
+          currentTeam = undefined;
         }
       }
 
       setTeamFetched(true);
 
       // Fetch additional data if we have a team
-      const currentTeam = team || teamData;
       if (currentTeam) {
         await fetchWorldSkillsData(currentTeam.id);
         await fetchAwardCounts(currentTeam.id);
@@ -322,18 +319,43 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
       }
       console.log('Target season ID:', targetSeasonId);
 
-      // Get grade level for the skills API
-      const gradeLevel = team.grade;
-      console.log('Team grade level:', gradeLevel);
+      // Search for team by ID across ALL grade caches for this program/season
+      const programId = getProgramId(selectedProgram);
+      console.log('[EventTeamInfo] Searching for team ID', teamId, 'in World Skills caches');
 
-      // Fetch all world skills rankings for this grade level and season
-      const allSkillsRankings = await robotEventsAPI.getWorldSkillsRankings(targetSeasonId, gradeLevel);
-      console.log('Total skills rankings returned:', allSkillsRankings.length);
+      let teamSkillsData = null;
+      const programConfig = getProgramConfig(selectedProgram);
+      const allGradeCaches: any[] = []; // Collect all grade data for total count
 
-      // Find this team in the rankings
-      const teamSkillsData = allSkillsRankings.find((ranking: any) =>
-        ranking.team && ranking.team.id === teamId
-      );
+      // Try each available grade for this program
+      for (const grade of programConfig.availableGrades) {
+        let gradeCache = getWorldSkills(targetSeasonId, programId, grade);
+
+        // If cache is empty, try to preload it and use returned data
+        if (gradeCache.length === 0) {
+          console.log(`[EventTeamInfo] Cache empty for ${grade}, preloading...`);
+          gradeCache = await preloadWorldSkills(targetSeasonId, programId, grade);
+        }
+
+        // Collect this grade's data for total count
+        allGradeCaches.push(...gradeCache);
+
+        // Search for team by ID in this grade's cache
+        if (gradeCache.length > 0) {
+          teamSkillsData = gradeCache.find((ranking: any) =>
+            ranking.team && ranking.team.id === teamId
+          );
+
+          if (teamSkillsData) {
+            console.log(`[EventTeamInfo] ✓ Found team in ${grade} World Skills rankings`);
+            break;
+          }
+        }
+      }
+
+      // Calculate total teams from collected caches
+      const totalTeams = allGradeCaches.length;
+      console.log('[EventTeamInfo] Total teams across all grades:', totalTeams);
 
       if (teamSkillsData) {
         console.log('Found team in world skills rankings:', teamSkillsData);
@@ -344,7 +366,7 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
           programming: teamSkillsData.scores?.programming || 0,
           highestDriver: teamSkillsData.scores?.maxDriver || 0,
           highestProgramming: teamSkillsData.scores?.maxProgramming || 0,
-          totalTeams: allSkillsRankings.length,
+          totalTeams,
         });
       } else {
         console.log('Team not found in world skills rankings');
@@ -355,7 +377,7 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
           programming: 0,
           highestDriver: 0,
           highestProgramming: 0,
-          totalTeams: allSkillsRankings.length,
+          totalTeams,
         });
       }
     } catch (error) {
@@ -519,7 +541,7 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
     try {
       console.log('Fetching overall match record for team:', teamId);
 
-      // Get season ID to fetch matches for
+      // Get season ID to fetch rankings for
       let seasonId: number;
       if (selectedSeason && selectedSeason !== '') {
         seasonId = parseInt(selectedSeason);
@@ -527,88 +549,32 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
         seasonId = await robotEventsAPI.getCurrentSeasonId(selectedProgram);
       }
 
-      console.log('Fetching matches for season:', seasonId);
+      console.log('Fetching rankings for season:', seasonId);
 
-      // Fetch team matches for the selected season
-      const matchesResponse = await robotEventsAPI.getTeamMatches(teamId, { season: [seasonId] });
-      console.log('Matches returned:', matchesResponse.data.length);
+      // Fetch team rankings for the selected season
+      // Rankings contain the official match record (wins/losses/ties) for each event
+      const teamRankings = await robotEventsAPI.getTeamRankings(teamId, { season: [seasonId] });
+      console.log('Rankings returned:', teamRankings.data.length);
 
-      // Calculate win/loss/tie record
-      let wins = 0;
-      let losses = 0;
-      let ties = 0;
+      let totalWins = 0;
+      let totalLosses = 0;
+      let totalTies = 0;
 
-      matchesResponse.data.forEach((match: any, index: number) => {
-        // Debug: Log the full match structure for first match
-        if (index === 0) {
-          console.log('Full match object structure:', JSON.stringify(match, null, 2));
-        }
-
-        const blueAlliance = match.alliances?.find((a: any) => a.color === 'blue');
-        const redAlliance = match.alliances?.find((a: any) => a.color === 'red');
-
-        console.log(`Processing match ${index + 1}:`, {
-          matchName: match.name,
-          scored: match.scored,
-          blueTeams: blueAlliance?.teams?.map((t: any) => t.team?.id),
-          redTeams: redAlliance?.teams?.map((t: any) => t.team?.id),
-          blueScore: blueAlliance?.score,
-          redScore: redAlliance?.score
-        });
-
-        // The API returns alliances as an array, not an object
-        if (!match.alliances || !Array.isArray(match.alliances) || match.alliances.length !== 2) {
-          console.log('Invalid alliance data structure');
-          return;
-        }
-
-        const isBlueAlliance = blueAlliance?.teams?.some((allianceTeam: any) =>
-          allianceTeam.team?.id === teamId
-        );
-        const isRedAlliance = redAlliance?.teams?.some((allianceTeam: any) =>
-          allianceTeam.team?.id === teamId
-        );
-
-        console.log(`Team ${teamId} is on:`, { isRedAlliance, isBlueAlliance });
-
-        // Check if we have valid scores (matches can have scores even if not officially "scored")
-        if (blueAlliance?.score !== undefined && redAlliance?.score !== undefined && (isBlueAlliance || isRedAlliance)) {
-          const blueScore = blueAlliance.score;
-          const redScore = redAlliance.score;
-
-          console.log(`Match scores: Red ${redScore} - Blue ${blueScore}`);
-
-          // Skip 0-0 matches as they are considered unplayed
-          if (redScore === 0 && blueScore === 0) {
-            console.log('Result: UNPLAYED (0-0 match, not counted in statistics)');
-          } else if (redScore === blueScore) {
-            ties++;
-            console.log('Result: TIE');
-          } else if (isRedAlliance && redScore > blueScore) {
-            wins++;
-            console.log('Result: WIN (Red Alliance)');
-          } else if (isBlueAlliance && blueScore > redScore) {
-            wins++;
-            console.log('Result: WIN (Blue Alliance)');
-          } else if (isRedAlliance || isBlueAlliance) {
-            losses++;
-            console.log('Result: LOSS');
-          } else {
-            console.log('Result: Team not found in match');
-          }
-        } else {
-          console.log('Match missing score data or team not in match');
-        }
+      // Sum up wins/losses/ties from all events in the season
+      teamRankings.data.forEach((ranking: any) => {
+        totalWins += ranking.wins || 0;
+        totalLosses += ranking.losses || 0;
+        totalTies += ranking.ties || 0;
       });
 
       const record: MatchRecord = {
-        wins,
-        losses,
-        ties,
-        totalMatches: wins + losses + ties
+        wins: totalWins,
+        losses: totalLosses,
+        ties: totalTies,
+        totalMatches: totalWins + totalLosses + totalTies
       };
 
-      console.log('Processed overall match record:', record);
+      console.log('Processed overall match record from rankings:', record);
       setMatchRecord(record);
     } catch (error) {
       console.error('Failed to fetch overall match record:', error);
@@ -743,7 +709,7 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
 
   const handleRefresh = useCallback(async () => {
     if (isRefreshing) {
-      console.log('[EventTeamViewScreen] Already refreshing, skipping duplicate call to prevent API exhaustion');
+      console.log('[EventTeamInfoScreen] Already refreshing, skipping duplicate call to prevent API exhaustion');
       return;
     }
 
@@ -753,7 +719,7 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
     setIsRefreshing(true);
 
     try {
-      console.log('[EventTeamViewScreen] Starting pull-to-refresh...');
+      console.log('[EventTeamInfoScreen] Starting pull-to-refresh...');
 
       // Get program and season info for refresh
       const programId = getProgramId(selectedProgram);
@@ -792,9 +758,9 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
       await fetchMatchRecord(currentTeam.id);
       await fetchEventMatchRecord(currentTeam.id, event.id);
 
-      console.log('[EventTeamViewScreen] Pull-to-refresh completed successfully');
+      console.log('[EventTeamInfoScreen] Pull-to-refresh completed successfully');
     } catch (error) {
-      console.error('[EventTeamViewScreen] Pull-to-refresh failed:', error);
+      console.error('[EventTeamInfoScreen] Pull-to-refresh failed:', error);
       Alert.alert('Refresh Failed', 'Unable to refresh data. Please try again.');
     } finally {
       setIsRefreshing(false);
@@ -816,20 +782,27 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
     fetchEventMatchRecord
   ]);
 
-  // Auto-refresh data when screen comes into focus
-  // TODO: Add smarter conditions to prevent unnecessary API calls
-  // Currently commented out to prevent infinite loops and API exhaustion
-  /*
   useFocusEffect(
     useCallback(() => {
       const currentTeam = team || teamData;
-      if (currentTeam?.id) {
-        console.log('[EventTeamViewScreen] Screen focused, triggering auto-refresh...');
-        handleRefresh();
+      if (!currentTeam?.id || !currentTeam?.grade || !selectedSeason) return;
+
+      const programId = getProgramId(selectedProgram);
+      let seasonId: number;
+
+      if (selectedSeason.includes('-')) {
+        return;
+      } else {
+        seasonId = parseInt(selectedSeason);
       }
-    }, [handleRefresh, team, teamData])
+
+      const cacheData = getWorldSkills(seasonId, programId, currentTeam.grade);
+      if (!cacheData || cacheData.length === 0) {
+        console.log(`[EventTeamInfoScreen] Cache empty for ${currentTeam.grade} on focus, pre-loading...`);
+        preloadWorldSkills(seasonId, programId, currentTeam.grade);
+      }
+    }, [team?.id, team?.grade, teamData?.id, teamData?.grade, selectedSeason, selectedProgram, getWorldSkills, preloadWorldSkills])
   );
-  */
 
   const getDynamicLabel = (defaultLabel: string) => {
     if (selectedProgram === 'Aerial Drone Competition') {
@@ -910,7 +883,7 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
 
 
   const openEventDetails = (eventItem: ExtendedEvent) => {
-    navigation.navigate('EventDetail', {
+    navigation.navigate('EventMainView', {
       event: eventItem,
       team: team || teamData
     });
@@ -1094,7 +1067,6 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
       backgroundColor: backgroundColor,
     },
     headerButton: {
-      marginRight: 16,
       padding: 4,
     },
     // Notes tab styles
@@ -1986,4 +1958,4 @@ const EventTeamViewScreen = ({ route, navigation }: Props) => {
 };
 
 
-export default EventTeamViewScreen;
+export default EventTeamInfoScreen;

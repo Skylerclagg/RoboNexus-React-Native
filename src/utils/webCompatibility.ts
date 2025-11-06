@@ -477,3 +477,234 @@ export const mapComponents = {
     }
   }
 };
+
+/**
+ * Alerts - Cross-platform alert/dialog utilities
+ * Uses window.alert/confirm on web, Alert.alert on mobile
+ */
+export const alerts = {
+  /**
+   * Show a simple alert message
+   * Uses window.alert on web, Alert.alert on mobile
+   */
+  showAlert: (title: string, message?: string): void => {
+    if (isWeb) {
+      // Web: Use native browser alert
+      const displayMessage = message ? `${title}\n\n${message}` : title;
+      window.alert(displayMessage);
+    } else {
+      // Mobile: Use Alert.alert
+      const { Alert } = require('react-native');
+      Alert.alert(title, message);
+    }
+  },
+
+  /**
+   * Show a confirmation dialog
+   * Uses window.confirm on web, Alert.alert on mobile
+   */
+  showConfirm: (
+    title: string,
+    message: string,
+    confirmText: string = 'OK',
+    cancelText: string = 'Cancel'
+  ): Promise<boolean> => {
+    if (isWeb) {
+      // Web: Use native browser confirm
+      return Promise.resolve(window.confirm(`${title}\n\n${message}`));
+    } else {
+      // Mobile: Use Alert.alert with buttons
+      return new Promise((resolve) => {
+        const { Alert } = require('react-native');
+        Alert.alert(
+          title,
+          message,
+          [
+            {
+              text: cancelText,
+              style: 'cancel',
+              onPress: () => resolve(false),
+            },
+            {
+              text: confirmText,
+              style: 'default',
+              onPress: () => resolve(true),
+            },
+          ]
+        );
+      });
+    }
+  },
+
+  /**
+   * Show a destructive confirmation dialog (for delete operations)
+   * Uses window.confirm on web, Alert.alert with destructive button on mobile
+   */
+  showDestructiveConfirm: (
+    title: string,
+    message: string,
+    confirmText: string = 'Delete',
+    cancelText: string = 'Cancel'
+  ): Promise<boolean> => {
+    if (isWeb) {
+      // Web: Use native browser confirm
+      return Promise.resolve(window.confirm(`${title}\n\n${message}`));
+    } else {
+      // Mobile: Use Alert.alert with destructive style
+      return new Promise((resolve) => {
+        const { Alert } = require('react-native');
+        Alert.alert(
+          title,
+          message,
+          [
+            {
+              text: cancelText,
+              style: 'cancel',
+              onPress: () => resolve(false),
+            },
+            {
+              text: confirmText,
+              style: 'destructive',
+              onPress: () => resolve(true),
+            },
+          ]
+        );
+      });
+    }
+  },
+
+  /**
+   * Show alert with custom buttons
+   * Uses window.confirm on web (limited to OK/Cancel), Alert.alert on mobile
+   *
+   * @param title - Alert title
+   * @param message - Alert message
+   * @param buttons - Array of button configurations
+   * @returns Promise that resolves to the index of the pressed button
+   */
+  showAlertWithButtons: (
+    title: string,
+    message: string,
+    buttons: Array<{ text: string; onPress?: () => void; style?: 'default' | 'cancel' | 'destructive' }>
+  ): Promise<number> => {
+    if (isWeb) {
+      // Web: Limited to confirm dialog
+      // If there are only 2 buttons, use confirm
+      if (buttons.length <= 2) {
+        const result = window.confirm(`${title}\n\n${message}`);
+        const pressedIndex = result ? (buttons.length - 1) : 0;
+        if (buttons[pressedIndex]?.onPress) {
+          buttons[pressedIndex].onPress!();
+        }
+        return Promise.resolve(pressedIndex);
+      } else {
+        // For more than 2 buttons, show alert and return -1
+        window.alert(`${title}\n\n${message}`);
+        return Promise.resolve(-1);
+      }
+    } else {
+      // Mobile: Use Alert.alert with all buttons
+      return new Promise((resolve) => {
+        const { Alert } = require('react-native');
+        Alert.alert(
+          title,
+          message,
+          buttons.map((button, index) => ({
+            text: button.text,
+            style: button.style || 'default',
+            onPress: () => {
+              if (button.onPress) button.onPress();
+              resolve(index);
+            },
+          }))
+        );
+      });
+    }
+  },
+
+  /**
+   * Show a text input prompt dialog
+   * Uses window.prompt on web, Alert.prompt on iOS, custom dialog on Android/web
+   *
+   * @param title - Prompt title
+   * @param message - Prompt message
+   * @param defaultValue - Default input value
+   * @param placeholder - Input placeholder text
+   * @param type - Input type ('default', 'plain-text', 'secure-text', 'numeric', 'email', 'phone-pad')
+   * @returns Promise that resolves to the entered text, or null if cancelled
+   */
+  showPrompt: (
+    title: string,
+    message?: string,
+    defaultValue?: string,
+    placeholder?: string,
+    type: 'default' | 'plain-text' | 'secure-text' | 'numeric' | 'email-address' | 'phone-pad' = 'default'
+  ): Promise<string | null> => {
+    if (isWeb) {
+      // Web: Use native browser prompt
+      const promptMessage = message ? `${title}\n\n${message}` : title;
+      const result = window.prompt(promptMessage, defaultValue || '');
+      return Promise.resolve(result);
+    } else {
+      // Mobile: Use Alert.prompt (iOS) or fallback
+      return new Promise((resolve) => {
+        const { Alert, Platform } = require('react-native');
+
+        if (Platform.OS === 'ios') {
+          // iOS: Use Alert.prompt
+          Alert.prompt(
+            title,
+            message,
+            [
+              {
+                text: 'Cancel',
+                style: 'cancel',
+                onPress: () => resolve(null),
+              },
+              {
+                text: 'OK',
+                onPress: (text?: string) => resolve(text || null),
+              },
+            ],
+            type,
+            defaultValue,
+            placeholder ? undefined : undefined // Alert.prompt doesn't support placeholder directly
+          );
+        } else {
+          // Android: Alert.prompt doesn't exist, so we need a fallback
+          // For now, just show an alert explaining that text input is not supported
+          // In a real app, you'd want to create a custom modal for this
+          Alert.alert(
+            'Not Supported',
+            'Text input prompts are not supported on Android. Please use iOS or web.',
+            [{ text: 'OK', onPress: () => resolve(null) }]
+          );
+        }
+      });
+    }
+  },
+
+  /**
+   * Show a secure text input prompt (for passwords)
+   * Convenience wrapper around showPrompt with secure-text type
+   */
+  showSecurePrompt: (
+    title: string,
+    message?: string,
+    defaultValue?: string
+  ): Promise<string | null> => {
+    return alerts.showPrompt(title, message, defaultValue, undefined, 'secure-text');
+  },
+
+  /**
+   * Show a numeric input prompt
+   * Convenience wrapper around showPrompt with numeric type
+   */
+  showNumericPrompt: (
+    title: string,
+    message?: string,
+    defaultValue?: string
+  ): Promise<string | null> => {
+    return alerts.showPrompt(title, message, defaultValue, undefined, 'numeric');
+  }
+};

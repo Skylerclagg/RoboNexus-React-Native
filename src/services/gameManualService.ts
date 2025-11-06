@@ -9,6 +9,14 @@ import { storage } from '../utils/webCompatibility';
 import { GameManual, Rule, FavoriteRuleStorage } from '../types/gameManual';
 import { getProgramShortName } from '../utils/programMappings';
 
+// Flag to check if we should use bundled data only (set by settings)
+let USE_BUNDLED_ONLY = false;
+
+export const setUseBundledGameManuals = (value: boolean) => {
+  USE_BUNDLED_ONLY = value;
+  console.log(`[GameManualService] Use bundled manuals only: ${value}`);
+};
+
 // Import bundled game manual data as fallback
 import V5RC_2025_2026 from '../data/gameManuals/v5rc-2025-2026.json';
 import VURC_2025_2026 from '../data/gameManuals/vurc-2025-2026.json';
@@ -31,8 +39,20 @@ class GameManualService {
   private favoritesCache: FavoriteRuleStorage | null = null;
 
   /**
+   * Compare versions - returns true if version1 is newer than version2
+   */
+  private isNewerVersion(version1: string | undefined, version2: string | undefined): boolean {
+    if (!version1 && !version2) return false;
+    if (!version2) return true;  // If no comparison version, consider new version as newer
+    if (!version1) return false;  // If no new version, consider old version as newer
+
+    // Version format is YYYYMMDD, so simple string comparison works
+    return version1 > version2;
+  }
+
+  /**
    * Get game manual for a specific program and season
-   * Tries GitHub first, then cache, then bundled JSON
+   * Prefers bundled data, only uses GitHub/cache if newer
    */
   public async getManual(
     program: string,
@@ -46,12 +66,29 @@ class GameManualService {
       return this.manualsCache.get(cacheKey)!;
     }
 
-    // Check if cached version is still valid
+    // Load bundled manual first as baseline
+    const bundledManual = this.loadLocalManual(program, season);
+    const bundledVersion = bundledManual?.version;
+
+    console.log(`[GameManualService] Bundled manual version for ${program} ${season}: ${bundledVersion || 'unknown'}`);
+
+    // If bundled-only mode is enabled, use bundled data immediately
+    if (USE_BUNDLED_ONLY) {
+      console.log(`[GameManualService] Bundled-only mode enabled - using bundled data`);
+      if (bundledManual) {
+        this.manualsCache.set(cacheKey, bundledManual);
+      }
+      return bundledManual;
+    }
+
+    // Check cached version
     const cachedManual = await this.getCachedManual(program, season);
     const cacheValid = await this.isCacheValid(program, season);
+    const cachedVersion = cachedManual?.version;
 
-    if (cachedManual && cacheValid) {
-      console.log(`[GameManualService] Using cached manual for ${program} ${season}`);
+    // If cached is valid and newer than bundled, use cached
+    if (cachedManual && cacheValid && this.isNewerVersion(cachedVersion, bundledVersion)) {
+      console.log(`[GameManualService] Using cached manual (v${cachedVersion}) - newer than bundled (v${bundledVersion})`);
       this.manualsCache.set(cacheKey, cachedManual);
       return cachedManual;
     }
@@ -59,27 +96,24 @@ class GameManualService {
     // Try to fetch from GitHub
     try {
       const githubManual = await this.fetchFromGitHub(program, season);
-      if (githubManual) {
-        console.log(`[GameManualService] Fetched manual from GitHub for ${program} ${season}`);
+      const githubVersion = githubManual?.version;
+
+      // Only use GitHub version if it's newer than bundled
+      if (githubManual && this.isNewerVersion(githubVersion, bundledVersion)) {
+        console.log(`[GameManualService] Using GitHub manual (v${githubVersion}) - newer than bundled (v${bundledVersion})`);
         await this.cacheManual(program, season, githubManual);
         this.manualsCache.set(cacheKey, githubManual);
         return githubManual;
+      } else if (githubManual) {
+        console.log(`[GameManualService] GitHub manual (v${githubVersion}) not newer than bundled (v${bundledVersion}) - using bundled`);
       }
     } catch (error) {
       console.warn(`[GameManualService] Failed to fetch from GitHub:`, error);
     }
 
-    // Fall back to cached manual (even if expired)
-    if (cachedManual) {
-      console.log(`[GameManualService] Using expired cache for ${program} ${season}`);
-      this.manualsCache.set(cacheKey, cachedManual);
-      return cachedManual;
-    }
-
-    // Final fallback to bundled data
-    const bundledManual = this.loadLocalManual(program, season);
+    // Use bundled data (either no GitHub data, or bundled is newer/same)
     if (bundledManual) {
-      console.log(`[GameManualService] Using bundled data for ${program} ${season}`);
+      console.log(`[GameManualService] Using bundled data (v${bundledVersion})`);
       this.manualsCache.set(cacheKey, bundledManual);
     }
 

@@ -18,7 +18,7 @@
  * - Refresh functionality for live match updates
  * - Navigation to individual match details and team information
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -37,6 +37,8 @@ import { useNotes } from '../contexts/NotesContext';
 import { robotEventsAPI } from '../services/apiRouter';
 import { Event, Division } from '../types';
 import { is2v0Format, getCompetitionType, useThemedScoreColors } from '../utils/programMappings';
+import AnimatedScrollBar from '../components/AnimatedScrollBar';
+import MatchCardSkeleton from '../components/MatchCardSkeleton';
 
 type EventDivisionMatchesScreenRouteProp = RouteProp<any, any>;
 
@@ -426,6 +428,10 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
   const [matches, setMatches] = useState<MatchListItem[]>([]);
   const [showLoading, setShowLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const flatListRef = useRef<any>(null);
 
   useEffect(() => {
     navigation.setOptions({
@@ -524,13 +530,17 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
         const redAlliance = match.alliances.find((alliance: any) => alliance.color === 'red');
         const blueAlliance = match.alliances.find((alliance: any) => alliance.color === 'blue');
 
-        const redTeams = redAlliance?.teams?.map((t: any) =>
-          teamsMap[t.team.id.toString()] || t.team.name || t.team.id.toString()
-        ) || [];
+        const redTeams = redAlliance?.teams?.map((t: any) => {
+          const teamId = t.team.id;
+          const teamNumber = teamsMap[teamId.toString()] || t.team.name || teamId.toString();
+          return teamNumber;
+        }) || [];
 
-        const blueTeams = blueAlliance?.teams?.map((t: any) =>
-          teamsMap[t.team.id.toString()] || t.team.name || t.team.id.toString()
-        ) || [];
+        const blueTeams = blueAlliance?.teams?.map((t: any) => {
+          const teamId = t.team.id;
+          const teamNumber = teamsMap[teamId.toString()] || t.team.name || teamId.toString();
+          return teamNumber;
+        }) || [];
 
         const scheduledDate = match.scheduled ? new Date(match.scheduled) : undefined;
         const startedDate = match.started ? new Date(match.started) : undefined;
@@ -556,9 +566,7 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
         };
       });
 
-      // Sort by time (convert string to date for comparison)
       matchListItems.sort((a, b) => {
-        // Convert time strings to dates for comparison
         const timeA = a.time ? new Date(a.time).getTime() : 0;
         const timeB = b.time ? new Date(b.time).getTime() : 0;
 
@@ -569,7 +577,6 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
         if (timeA && !timeB) return -1;
         if (!timeA && timeB) return 1;
 
-        // Final fallback: match ID
         return a.id - b.id;
       });
 
@@ -664,7 +671,7 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
                 key={`red-${index}`}
                 style={styles.compactTeamButton}
                 onPress={() => {
-                  navigation.navigate('EventTeamView', {
+                  navigation.navigate('EventTeamInfo', {
                     event: event,
                     teamNumber: team,
                     teamData: null,
@@ -710,7 +717,7 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
                 key={`blue-${index}`}
                 style={styles.compactTeamButton}
                 onPress={() => {
-                  navigation.navigate('EventTeamView', {
+                  navigation.navigate('EventTeamInfo', {
                     event: event,
                     teamNumber: team,
                     teamData: null,
@@ -794,7 +801,7 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
                       key={`red-${index}`}
                       style={styles.teamButton}
                       onPress={() => {
-                        navigation.navigate('EventTeamView', {
+                        navigation.navigate('EventTeamInfo', {
                           event: event,
                           teamNumber: team,
                           teamData: null,
@@ -827,7 +834,7 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
                       key={`blue-${index}`}
                       style={styles.teamButton}
                       onPress={() => {
-                        navigation.navigate('EventTeamView', {
+                        navigation.navigate('EventTeamInfo', {
                           event: event,
                           teamNumber: team,
                           teamData: null,
@@ -893,7 +900,7 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
                     key={index}
                     style={styles.teamButton}
                     onPress={() => {
-                      navigation.navigate('EventTeamView', {
+                      navigation.navigate('EventTeamInfo', {
                         event: event,
                         teamNumber: team,
                         teamData: null,
@@ -926,7 +933,7 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
                     key={index}
                     style={styles.teamButton}
                     onPress={() => {
-                      navigation.navigate('EventTeamView', {
+                      navigation.navigate('EventTeamInfo', {
                         event: event,
                         teamNumber: team,
                         teamData: null,
@@ -966,32 +973,54 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
     </View>
   );
 
-  if (showLoading) {
+  if (showLoading && matches.length === 0) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor }]}>
-        <ActivityIndicator size="large" color={buttonColor} />
-        <Text style={styles.loadingText}>Loading matches...</Text>
+      <View style={styles.container}>
+        <FlatList
+          data={Array(8).fill(null)}
+          renderItem={() => <MatchCardSkeleton compact={settings.compactViewMatches} />}
+          keyExtractor={(_, index) => `skeleton-${index}`}
+          contentContainerStyle={{ paddingVertical: 8 }}
+        />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={matches}
-        renderItem={settings.compactViewMatches ? renderCompactMatchItem : renderMatchItem}
-        keyExtractor={(item) => item.id.toString()}
-        ListEmptyComponent={renderEmptyComponent}
-        contentContainerStyle={matches.length === 0 ? styles.emptyList : undefined}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={buttonColor}
-          />
-        }
-      />
+      <View style={{ flex: 1 }}>
+        <FlatList
+          ref={flatListRef}
+          data={matches}
+          renderItem={settings.compactViewMatches ? renderCompactMatchItem : renderMatchItem}
+          keyExtractor={(item) => item.id.toString()}
+          ListEmptyComponent={renderEmptyComponent}
+          contentContainerStyle={matches.length === 0 ? styles.emptyList : undefined}
+          showsVerticalScrollIndicator={settings.scrollBarEnabled && settings.scrollBarMatches ? false : false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={buttonColor}
+            />
+          }
+          onScroll={(event) => {
+            const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+            setScrollY(contentOffset.y);
+            setContentHeight(contentSize.height);
+            setViewportHeight(layoutMeasurement.height);
+          }}
+          scrollEventThrottle={16}
+        />
+        <AnimatedScrollBar
+          scrollY={scrollY}
+          contentHeight={contentHeight}
+          viewportHeight={viewportHeight}
+          color={buttonColor}
+          enabled={settings.scrollBarEnabled && settings.scrollBarMatches}
+          scrollViewRef={flatListRef}
+        />
+      </View>
     </View>
   );
 };

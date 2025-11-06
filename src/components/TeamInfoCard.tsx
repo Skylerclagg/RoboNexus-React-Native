@@ -55,7 +55,7 @@ interface TeamInfoCardProps {
   matchRecord?: MatchRecord | null;
   matchRecordLoading?: boolean;
 
-  // Event-specific match record (only for EventTeamViewScreen)
+  // Event-specific match record (only for EventTeamInfoScreen)
   eventMatchRecord?: EventMatchRecord | null;
   eventMatchRecordLoading?: boolean;
 
@@ -67,7 +67,7 @@ interface TeamInfoCardProps {
   awardCounts?: AwardCounts;
   awardCountsLoading?: boolean;
 
-  // Event Skills data (for EventTeamViewScreen)
+  // Event Skills data (for EventTeamInfoScreen)
   eventSkillsRanking?: any | null;
   eventSkillsLoading?: boolean;
 
@@ -196,7 +196,7 @@ const TeamInfoCard: React.FC<TeamInfoCardProps> = ({
           </>
         )}
 
-        {/* Event Match Record Section (EventTeamViewScreen only) */}
+        {/* Event Match Record Section (EventTeamInfoScreen only) */}
         {eventMatchRecord !== undefined && (
           <View style={styles.skillsSection}>
             <View style={styles.modernInfoRow}>
@@ -234,7 +234,7 @@ const TeamInfoCard: React.FC<TeamInfoCardProps> = ({
           </View>
         )}
 
-        {/* Event Skills Section (only shown on EventTeamViewScreen) */}
+        {/* Event Skills Section (only shown on EventTeamInfoScreen) */}
         {eventSkillsRanking !== undefined && (
           <View style={styles.skillsSection}>
             <View style={styles.modernInfoRow}>

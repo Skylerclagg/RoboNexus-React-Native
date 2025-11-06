@@ -290,7 +290,7 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
           hasLocation: !!eventForNavigation.location,
           hasDivisions: eventForNavigation.divisions?.length > 0
         });
-        navigation.navigate('EventDetail', { event: eventForNavigation });
+        navigation.navigate('EventMainView', { event: eventForNavigation });
       } else {
         console.error('[Awards] No event found for ID:', eventId || 'Unknown', 'using navigation helper');
         console.log('[Awards] The event with ID', eventId || 'Unknown', 'may no longer exist or may be from a different season');
@@ -404,7 +404,7 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={[styles.teamNumber, { color: settings.textColor }]}>
               {teamData.teamNumber}
             </Text>
-            <Text style={[styles.teamName, { color: settings.textColor }]} numberOfLines={1}>
+            <Text style={[styles.teamName, { color: settings.textColor }]}>
               {teamData.teamName}
             </Text>
           </View>

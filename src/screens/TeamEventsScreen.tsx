@@ -264,7 +264,7 @@ const TeamEventsScreen: React.FC<any> = ({ route, navigation }) => {
   };
 
   const openEventDetails = (event: Event) => {
-    navigation.navigate('EventDetail', {
+    navigation.navigate('EventMainView', {
       event: event,
       team: team
     });

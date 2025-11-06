@@ -152,7 +152,9 @@ const NotesManagementModal: React.FC<Props> = ({ visible, onClose }) => {
           onPress: async () => {
             try {
               await deleteNote(noteId);
-              await loadNotes(); // Refresh notes
+              // Immediately update the local state by filtering out the deleted note
+              const updatedNotes = notes.filter(note => note.id !== noteId);
+              setNotes(updatedNotes);
             } catch (error) {
               console.error('Failed to delete note:', error);
               Alert.alert('Error', 'Failed to delete note');
@@ -179,16 +181,28 @@ const NotesManagementModal: React.FC<Props> = ({ visible, onClose }) => {
           style: 'destructive',
           onPress: async () => {
             try {
+              let teamId: number | undefined;
+              let eventId: number | undefined;
+
               if (isTeamSection) {
                 // Extract team ID from section key (team-123)
-                const teamId = parseInt(section.id.replace('team-', ''));
+                teamId = parseInt(section.id.replace('team-', ''));
                 await deleteAllNotesForTeam(teamId);
               } else {
                 // Extract event ID from section key (event-123)
-                const eventId = parseInt(section.id.replace('event-', ''));
+                eventId = parseInt(section.id.replace('event-', ''));
                 await deleteAllNotesForEvent(eventId);
               }
-              await loadNotes(); // Refresh notes
+
+              // Immediately update the local state by filtering out the deleted notes
+              const updatedNotes = notes.filter(note => {
+                if (isTeamSection) {
+                  return note.teamId !== teamId;
+                } else {
+                  return note.eventId !== eventId;
+                }
+              });
+              setNotes(updatedNotes);
             } catch (error) {
               console.error('Failed to delete notes:', error);
               Alert.alert('Error', 'Failed to delete notes');
@@ -304,7 +318,12 @@ const NotesManagementModal: React.FC<Props> = ({ visible, onClose }) => {
   };
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
       <View style={[styles.container, { backgroundColor: settings.backgroundColor }]}>
         {/* Header */}
         <View style={[styles.header, {
@@ -417,8 +436,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    paddingTop: 60, // Account for status bar
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 16,
     borderBottomWidth: 1,
   },
   headerTitle: {

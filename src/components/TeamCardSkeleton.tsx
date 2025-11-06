@@ -2,13 +2,18 @@
  * Team Card Skeleton Loader
  *
  * Shows animated skeleton placeholder while team data is loading
+ * Used in team lists throughout the app (not dashboard)
  */
 
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import { useSettings } from '../contexts/SettingsContext';
 
-const TeamCardSkeleton: React.FC = () => {
+interface TeamCardSkeletonProps {
+  compact?: boolean;
+}
+
+const TeamCardSkeleton: React.FC<TeamCardSkeletonProps> = ({ compact = false }) => {
   const settings = useSettings();
   const shimmerAnim = useRef(new Animated.Value(0)).current;
 
@@ -40,141 +45,135 @@ const TeamCardSkeleton: React.FC = () => {
   const baseColor = settings.colorScheme === 'dark' ? '#2C2C2E' : '#E5E5E7';
   const shimmerColor = settings.colorScheme === 'dark' ? '#3A3A3C' : '#F2F2F7';
 
+  const SkeletonBox = ({ width, height, style }: { width: number | string; height: number; style?: any }) => (
+    <Animated.View
+      style={[
+        {
+          width,
+          height,
+          backgroundColor: baseColor,
+          borderRadius: 4,
+          overflow: 'hidden',
+        },
+        style,
+      ]}
+    >
+      <Animated.View
+        style={[
+          styles.shimmer,
+          {
+            backgroundColor: shimmerColor,
+            transform: [{ translateX: shimmerTranslate }],
+          },
+        ]}
+      />
+    </Animated.View>
+  );
+
+  if (compact) {
+    // Compact View Layout
+    return (
+      <View style={[styles.compactTeamItem, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
+        {/* First row: Team Number, Dash, Team Name */}
+        <View style={styles.compactTeamRow}>
+          <SkeletonBox width={60} height={16} />
+          <SkeletonBox width={8} height={14} />
+          <SkeletonBox width={150} height={16} style={{ flex: 1, maxWidth: 200 }} />
+        </View>
+        {/* Second row: Location */}
+        <View style={styles.compactTeamInfoRow}>
+          <SkeletonBox width={12} height={12} style={{ borderRadius: 6 }} />
+          <SkeletonBox width={180} height={12} />
+        </View>
+      </View>
+    );
+  }
+
+  // Normal View Layout
   return (
-    <View style={[styles.card, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
-      <View style={styles.header}>
-        <View style={styles.leftSection}>
-          {/* Team number skeleton */}
-          <View style={[styles.teamNumber, { backgroundColor: baseColor }]}>
-            <Animated.View
-              style={[
-                styles.shimmer,
-                {
-                  backgroundColor: shimmerColor,
-                  transform: [{ translateX: shimmerTranslate }],
-                },
-              ]}
-            />
+    <View style={[styles.teamItem, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
+      {/* Team Header */}
+      <View style={styles.teamHeader}>
+        <View style={styles.teamHeaderLeft}>
+          {/* Team Number Badge */}
+          <View style={[styles.teamNumberBadge, { backgroundColor: settings.buttonColor + '15', borderColor: settings.buttonColor + '30' }]}>
+            <SkeletonBox width={60} height={20} />
           </View>
-
-          {/* Team name skeleton */}
-          <View style={[styles.teamName, { backgroundColor: baseColor }]}>
-            <Animated.View
-              style={[
-                styles.shimmer,
-                {
-                  backgroundColor: shimmerColor,
-                  transform: [{ translateX: shimmerTranslate }],
-                },
-              ]}
-            />
-          </View>
-
-          {/* Location skeleton */}
-          <View style={[styles.location, { backgroundColor: baseColor }]}>
-            <Animated.View
-              style={[
-                styles.shimmer,
-                {
-                  backgroundColor: shimmerColor,
-                  transform: [{ translateX: shimmerTranslate }],
-                },
-              ]}
-            />
-          </View>
+          {/* Team Name */}
+          <SkeletonBox width={150} height={18} style={{ marginLeft: 12 }} />
+        </View>
+        {/* Actions (heart icon + chevron) */}
+        <View style={styles.teamActions}>
+          <SkeletonBox width={22} height={22} style={{ borderRadius: 11, marginRight: 12 }} />
+          <SkeletonBox width={20} height={20} style={{ borderRadius: 10 }} />
         </View>
       </View>
 
-      {/* Stats skeleton */}
-      <View style={styles.stats}>
-        {[1, 2, 3].map((i) => (
-          <View key={i} style={styles.statItem}>
-            <View style={[styles.statLabel, { backgroundColor: baseColor }]}>
-              <Animated.View
-                style={[
-                  styles.shimmer,
-                  {
-                    backgroundColor: shimmerColor,
-                    transform: [{ translateX: shimmerTranslate }],
-                  },
-                ]}
-              />
-            </View>
-            <View style={[styles.statValue, { backgroundColor: baseColor }]}>
-              <Animated.View
-                style={[
-                  styles.shimmer,
-                  {
-                    backgroundColor: shimmerColor,
-                    transform: [{ translateX: shimmerTranslate }],
-                  },
-                ]}
-              />
-            </View>
-          </View>
-        ))}
+      {/* Location Row */}
+      <View style={styles.locationRow}>
+        <SkeletonBox width={14} height={14} style={{ borderRadius: 7, marginRight: 8 }} />
+        <SkeletonBox width={200} height={14} />
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: 12,
+  // Normal Team Card Styles
+  teamItem: {
+    marginHorizontal: 16,
+    marginVertical: 6,
+    borderRadius: 16,
+    padding: 18,
     borderWidth: 1,
-    padding: 16,
+  },
+  teamHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 12,
-    overflow: 'hidden',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  leftSection: {
+  teamHeaderLeft: {
     flex: 1,
-  },
-  teamNumber: {
-    width: 100,
-    height: 24,
-    borderRadius: 4,
-    marginBottom: 8,
-    overflow: 'hidden',
-  },
-  teamName: {
-    width: '80%',
-    height: 20,
-    borderRadius: 4,
-    marginBottom: 6,
-    overflow: 'hidden',
-  },
-  location: {
-    width: '60%',
-    height: 16,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  stats: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  statItem: {
-    flex: 1,
     alignItems: 'center',
   },
-  statLabel: {
-    width: '80%',
-    height: 14,
-    borderRadius: 4,
-    marginBottom: 6,
-    overflow: 'hidden',
+  teamNumberBadge: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
   },
-  statValue: {
-    width: '60%',
-    height: 18,
-    borderRadius: 4,
-    overflow: 'hidden',
+  teamActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  // Compact Team Card Styles
+  compactTeamItem: {
+    borderRadius: 8,
+    padding: 10,
+    marginHorizontal: 16,
+    marginVertical: 4,
+    borderWidth: 1,
+  },
+  compactTeamRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  compactTeamInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+
+  // Shimmer Effect
   shimmer: {
     width: '100%',
     height: '100%',

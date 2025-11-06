@@ -13,7 +13,7 @@
  * - Event filtering and sorting capabilities
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -37,17 +37,11 @@ import DropdownPicker from './DropdownPicker';
 import EventFiltersModal from './EventFiltersModal';
 import EventsMapView from './EventsMapView';
 import EventCardSkeleton from './EventCardSkeleton';
+import AnimatedScrollBar from './AnimatedScrollBar';
 import { getProgramId, getProgramShortName } from '../utils/programMappings';
+import { getEventStatus as getEventStatusUtil, formatEventDate as formatEventDateUtil, ExtendedEvent } from '../utils/eventUtils';
 
-// Extended Event interface for league sessions
-interface ExtendedEvent extends Event {
-  originalEventId?: number;
-  originalSku?: string;
-  isLeagueSession?: boolean;
-  sessionNumber?: number;
-  totalSessions?: number;
-  uiId?: string; // Internal UI identifier for React keys
-}
+// Note: ExtendedEvent interface is now imported from eventUtils for consistency
 
 interface EventLookupProps {
   navigation?: any;
@@ -101,6 +95,12 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
   const [isSearching, setIsSearching] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Scroll tracking for AnimatedScrollBar
+  const [scrollY, setScrollY] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const flatListRef = useRef<any>(null);
+
   // Cache management - use program short name for cache keys
   const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
   const getCacheKey = (program: string, seasonId: string) => {
@@ -148,9 +148,9 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
     }
   }, [eventFilters.season, seasons]);
 
-  // Load events when season changes or filters change
   useEffect(() => {
     if (seasons.length > 0 && eventFilters.season) {
+      setAllEvents([]);
       loadAllEvents();
     }
   }, [seasons, eventFilters.season, selectedProgram]);
@@ -197,11 +197,15 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
     };
   }, []);
 
-  // Handle screen focus - refresh cache if older than 1 hour
   useFocusEffect(
     useCallback(() => {
       const checkAndRefreshCache = async () => {
         if (!eventFilters.season || !selectedProgram) return;
+
+        if (allEvents.length > 0) {
+          console.log('[EventLookup] Data already loaded, skipping reload');
+          return;
+        }
 
         try {
           const timestampKey = getCacheTimestampKey(selectedProgram, eventFilters.season);
@@ -221,9 +225,7 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
             }
           } else {
             console.log('[EventLookup] No cache found, loading events...');
-            if (allEvents.length === 0) {
-              loadAllEvents();
-            }
+            loadAllEvents();
           }
         } catch (error) {
           console.error('[EventLookup] Error checking cache:', error);
@@ -795,56 +797,9 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
     setFilteredEvents(filtered);
   };
 
-  const formatEventDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
-    } catch {
-      return 'Date TBD';
-    }
-  };
-
-  const getEventStatus = (event: ExtendedEvent) => {
-    // Check if event is cancelled first (highest priority)
-    const eventNameLower = event.name.toLowerCase();
-    if (eventNameLower.includes('canceled') || eventNameLower.includes('cancelled')) {
-      return { status: 'cancelled', color: '#FF3B30' }; // Red for cancelled
-    }
-
-    const now = new Date();
-    const startDate = new Date(event.start);
-    const endDate = new Date(event.end);
-
-    if (event.isLeagueSession) {
-      const sessionDateString = now.toISOString().split('T')[0];
-      const eventDateString = startDate.toISOString().split('T')[0];
-
-      if (sessionDateString === eventDateString) {
-        return { status: 'live', color: '#34C759' }; // Green for session day
-      } else if (now < startDate) {
-        return { status: 'upcoming', color: '#007AFF' }; // Blue before session
-      } else {
-        return { status: 'completed', color: '#8E8E93' }; // Gray after session
-      }
-    } else {
-      // Regular tournament event logic with improved date handling
-      // Extend end date to end of day to handle events that run until end of day
-      const adjustedEndDate = new Date(endDate);
-      adjustedEndDate.setHours(23, 59, 59, 999);
-
-      if (now < startDate) {
-        return { status: 'upcoming', color: '#007AFF' };
-      } else if (now >= startDate && now <= adjustedEndDate) {
-        return { status: 'live', color: '#34C759' };
-      } else {
-        return { status: 'completed', color: '#8E8E93' };
-      }
-    }
-  };
+  // Use centralized utility functions for consistency across the app
+  const formatEventDate = formatEventDateUtil;
+  const getEventStatus = getEventStatusUtil;
 
   const openEventPage = (event: ExtendedEvent) => {
     // SKU is now preserved as the original for all events including league sessions
@@ -865,7 +820,7 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
         }
       } : event;
 
-      navigation.navigate('EventDetail', { event: eventToPass });
+      navigation.navigate('EventMainView', { event: eventToPass });
     }
   };
 
@@ -906,9 +861,8 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
               style={styles.favoriteButton}
               onPress={async () => {
                 try {
-                  // Use uiId for league sessions (unique per session), otherwise use event ID
                   const identifier = item.uiId || item.id.toString();
-                  const eventForFavorites = item;
+                  const eventForFavorites = item as Event;
 
                   if (isEventFavorited(identifier)) {
                     await removeEvent(identifier);
@@ -1004,6 +958,18 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
             returnKeyType="search"
             autoCorrect={false}
           />
+          {eventQuery.length > 0 && !isSearching && (
+            <TouchableOpacity
+              onPress={() => {
+                setEventQuery('');
+                debouncedSearch('');
+              }}
+              style={styles.clearButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="close-circle" size={20} color={settings.secondaryTextColor} />
+            </TouchableOpacity>
+          )}
           {isSearching && (
             <ActivityIndicator
               size="small"
@@ -1024,15 +990,15 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
           </ScrollView>
         ) : filteredEvents.length > 0 ? (
           viewMode === 'map' ? (
-            // Map View
             <EventsMapView
-              events={filteredEvents}
+              events={filteredEvents as Event[]}
               onEventPress={navigateToEventDetail}
             />
           ) : (
             // List View
             <View style={styles.eventsContainer}>
               <FlatList
+                ref={flatListRef}
                 data={filteredEvents}
                 keyExtractor={(item) => item.uiId || item.id.toString()}
                 renderItem={renderEventCard}
@@ -1058,6 +1024,21 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
                 ItemSeparatorComponent={() => <View style={styles.cardSeparator} />}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.listContentContainer}
+                onScroll={(event) => {
+                  const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+                  setScrollY(contentOffset.y);
+                  setContentHeight(contentSize.height);
+                  setViewportHeight(layoutMeasurement.height);
+                }}
+                scrollEventThrottle={16}
+              />
+              <AnimatedScrollBar
+                scrollY={scrollY}
+                contentHeight={contentHeight}
+                viewportHeight={viewportHeight}
+                color={settings.buttonColor}
+                enabled={settings.scrollBarEnabled && settings.scrollBarEventLookup}
+                scrollViewRef={flatListRef}
               />
             </View>
           )
@@ -1148,6 +1129,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     paddingVertical: 8,
+  },
+  clearButton: {
+    marginLeft: 8,
+    padding: 2,
   },
   searchLoadingIndicator: {
     marginLeft: 8,

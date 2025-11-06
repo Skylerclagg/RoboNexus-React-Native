@@ -27,6 +27,7 @@ import {
   ActivityIndicator,
   Alert,
   TouchableOpacity,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { robotEventsAPI } from '../services/apiRouter';
@@ -34,6 +35,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { Event, Team } from '../types';
 import { is2v0Format, useThemedScoreColors } from '../utils/programMappings';
+import MatchCardSkeleton from '../components/MatchCardSkeleton';
 
 interface Props {
   route: {
@@ -94,6 +96,7 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
   const { favoriteTeams } = useFavorites();
   const [matches, setMatches] = useState<MatchListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     navigation.setOptions({
@@ -362,10 +365,10 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
       fontWeight: '500',
     },
     compactRedTeam: {
-      color: '#FF3B30',
+      color: redScoreColor,
     },
     compactBlueTeam: {
-      color: '#007AFF',
+      color: blueScoreColor,
     },
     compactWinnerTeam: {
       textDecorationLine: 'underline',
@@ -380,12 +383,12 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
       backgroundColor: settings.cardBackgroundColor,
     },
     compactHighlightedRedTeamButton: {
-      backgroundColor: '#FF3B30',
-      borderColor: '#FF3B30',
+      backgroundColor: redScoreColor,
+      borderColor: redScoreColor,
     },
     compactHighlightedBlueTeamButton: {
-      backgroundColor: '#007AFF',
-      borderColor: '#007AFF',
+      backgroundColor: blueScoreColor,
+      borderColor: blueScoreColor,
     },
     compactTeamNumberText: {
       fontSize: 13,
@@ -405,10 +408,10 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
       fontWeight: '700',
     },
     compactRedScoreText: {
-      color: '#FF3B30',
+      color: redScoreColor,
     },
     compactBlueScoreText: {
-      color: '#007AFF',
+      color: blueScoreColor,
     },
     compactWinnerScore: {
       fontSize: 18,
@@ -626,7 +629,13 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
       Alert.alert('Error', 'Failed to load matches. Please try again.');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchFavoriteTeamsMatches();
   };
 
   const renderCompactMatchItem = ({ item }: { item: MatchListItem }) => {
@@ -647,7 +656,7 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
 
     // Check if any favorite team is in this match
     const favoriteTeamInMatch = [...item.redTeams, ...item.blueTeams].find(team =>
-      favoriteTeams.some(fav => fav.number === team)
+      favoriteTeams.includes(team)
     );
 
     return (
@@ -701,7 +710,7 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
                   team === favoriteTeamInMatch && styles.compactHighlightedRedTeamButton,
                 ]}
                 onPress={() => {
-                  navigation.navigate('EventTeamView', {
+                  navigation.navigate('EventTeamInfo', {
                     event: event,
                     teamNumber: team,
                     teamData: null,
@@ -751,7 +760,7 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
                   team === favoriteTeamInMatch && styles.compactHighlightedBlueTeamButton,
                 ]}
                 onPress={() => {
-                  navigation.navigate('EventTeamView', {
+                  navigation.navigate('EventTeamInfo', {
                     event: event,
                     teamNumber: team,
                     teamData: null,
@@ -824,7 +833,7 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
                       key={`red-${index}`}
                       style={[styles.teamButton, isFavorite && styles.favoriteRedTeamButton]}
                       onPress={() => {
-                        navigation.navigate('EventTeamView', {
+                        navigation.navigate('EventTeamInfo', {
                           event: event,
                           teamNumber: team,
                           teamData: null,
@@ -858,7 +867,7 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
                       key={`blue-${index}`}
                       style={[styles.teamButton, isFavorite && styles.favoriteBlueTeamButton]}
                       onPress={() => {
-                        navigation.navigate('EventTeamView', {
+                        navigation.navigate('EventTeamInfo', {
                           event: event,
                           teamNumber: team,
                           teamData: null,
@@ -927,7 +936,7 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
                       key={index}
                       style={[styles.teamButton, isFavorite && styles.favoriteRedTeamButton]}
                       onPress={() => {
-                        navigation.navigate('EventTeamView', {
+                        navigation.navigate('EventTeamInfo', {
                           event: event,
                           teamNumber: team,
                           teamData: null,
@@ -963,7 +972,7 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
                       key={index}
                       style={[styles.teamButton, isFavorite && styles.favoriteBlueTeamButton]}
                       onPress={() => {
-                        navigation.navigate('EventTeamView', {
+                        navigation.navigate('EventTeamInfo', {
                           event: event,
                           teamNumber: team,
                           teamData: null,
@@ -1005,9 +1014,13 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={buttonColor} />
-        <Text style={styles.loadingText}>Loading matches...</Text>
+      <View style={styles.container}>
+        <FlatList
+          data={Array(8).fill(null)}
+          renderItem={() => <MatchCardSkeleton />}
+          keyExtractor={(_, index) => `skeleton-${index}`}
+          contentContainerStyle={{ paddingVertical: 8 }}
+        />
       </View>
     );
   }
@@ -1032,6 +1045,13 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
         ListEmptyComponent={renderEmptyComponent}
         contentContainerStyle={matches.length === 0 ? { flexGrow: 1 } : { paddingBottom: 16 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={settings.buttonColor}
+          />
+        }
       />
     </View>
   );

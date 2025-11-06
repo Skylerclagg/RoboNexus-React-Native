@@ -28,11 +28,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { robotEventsAPI } from '../services/apiRouter';
 import { useSettings } from '../contexts/SettingsContext';
+import { useDataCache } from '../contexts/DataCacheContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { Team } from '../types';
 import TeamInfoCard from './TeamInfoCard';
 import DropdownPicker from './DropdownPicker';
-import { getProgramId } from '../utils/programMappings';
+import { getProgramId, getProgramConfig } from '../utils/programMappings';
 
 interface TeamInfo {
   property: string;
@@ -68,10 +69,12 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
   const settings = useSettings();
   const { selectedProgram, globalSeasonEnabled, selectedSeason: globalSeason, updateGlobalSeason } = settings;
   const { addTeam, removeTeam, isTeamFavorited } = useFavorites();
+  const { getWorldSkills, preloadWorldSkills } = useDataCache();
 
   // Teams State
   const [selectedSeason, setSelectedSeason] = useState<string>('');
   const [seasons, setSeasons] = useState<{label: string, value: string}[]>([]);
+  const [currentSeasonId, setCurrentSeasonId] = useState<string>(''); // Track the actual current/active season ID
   const [teamNumber, setTeamNumber] = useState('');
   const [teamData, setTeamData] = useState<Team | null>(null);
   const [teamLoading, setTeamLoading] = useState(false);
@@ -85,6 +88,10 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
   const [isWorldSkillsLoading, setIsWorldSkillsLoading] = useState<boolean>(false);
   const [matchRecord, setMatchRecord] = useState<MatchRecord | null>(null);
   const [matchRecordLoading, setMatchRecordLoading] = useState<boolean>(false);
+
+  // Track registration status for teams (for past seasons, we check event registrations)
+  const [teamRegistrationStatus, setTeamRegistrationStatus] = useState<{[teamId: string]: boolean}>({});
+  const [checkingRegistrations, setCheckingRegistrations] = useState(false);
 
   // Debounced search state
   const [isSearching, setIsSearching] = useState(false);
@@ -109,11 +116,26 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
       Promise.all([
         fetchWorldSkillsData(teamData),
         fetchTeamAwards(teamData),
+        fetchMatchRecord(teamData),
       ]).catch(error => {
         console.error('Failed to refetch team data for new season:', error);
       });
     }
   }, [selectedSeason, teamData?.id]);
+
+  // Check registrations when search results change (only for past seasons)
+  useEffect(() => {
+    // Only check event registrations for past seasons, not current season
+    const isPastSeason = selectedSeason && currentSeasonId && selectedSeason !== currentSeasonId;
+
+    if (isPastSeason && searchResults.length > 0 && showSearchResults) {
+      console.log('Past season detected, checking event registrations for', searchResults.length, 'teams');
+      checkTeamRegistrations(searchResults, selectedSeason);
+    } else if (!isPastSeason) {
+      // For current season, clear the status map (use team.registered instead)
+      setTeamRegistrationStatus({});
+    }
+  }, [searchResults, selectedSeason, currentSeasonId, showSearchResults]);
 
   const loadSeasons = async () => {
     try {
@@ -128,6 +150,12 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
           value: season.id.toString()
         }));
       setSeasons(formattedSeasons);
+
+      // Set the current season ID (first season is the active one after sorting)
+      if (formattedSeasons.length > 0) {
+        setCurrentSeasonId(formattedSeasons[0].value);
+      }
+
       if (formattedSeasons.length > 0 && !selectedSeason) {
         const defaultSeason = formattedSeasons[0].value;
         setSelectedSeason(defaultSeason);
@@ -148,6 +176,48 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
       return defaultLabel.replace('Robot', 'Drone');
     }
     return defaultLabel;
+  };
+
+  // Check if teams have event registrations for past seasons (in parallel)
+  const checkTeamRegistrations = async (teams: Team[], seasonId: string) => {
+    if (!teams.length) return;
+
+    setCheckingRegistrations(true);
+
+    try {
+      // Check all teams in parallel
+      const registrationChecks = teams.map(async (team) => {
+        if (!team.id) return { teamId: team.id?.toString() || '', hasEvents: false };
+
+        try {
+          // Check if team has any events in this season
+          const eventsResponse = await robotEventsAPI.getTeamEvents(team.id, {
+            season: [parseInt(seasonId)],
+          });
+          const hasEvents = eventsResponse.data && eventsResponse.data.length > 0;
+          return { teamId: team.id.toString(), hasEvents };
+        } catch (error) {
+          console.error(`Error checking events for team ${team.number}:`, error);
+          return { teamId: team.id.toString(), hasEvents: false };
+        }
+      });
+
+      const results = await Promise.all(registrationChecks);
+
+      // Update registration status map
+      const statusMap: {[key: string]: boolean} = {};
+      results.forEach(result => {
+        if (result.teamId) {
+          statusMap[result.teamId] = result.hasEvents;
+        }
+      });
+
+      setTeamRegistrationStatus(statusMap);
+    } catch (error) {
+      console.error('Error checking team registrations:', error);
+    } finally {
+      setCheckingRegistrations(false);
+    }
   };
 
   // Debounced search function
@@ -295,18 +365,43 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
         targetSeasonId = await robotEventsAPI.getCurrentSeasonId(selectedProgram);
       }
 
-      // Get grade level for the skills API
-      const gradeLevel = team.grade;
+      // Search for team by ID across ALL grade caches for this program/season
+      const programId = getProgramId(selectedProgram);
+      console.log(`[TeamLookup] Searching for team ID ${team.id} in World Skills caches`);
 
-      console.log(`Fetching skills for team ${team.number}, season ${targetSeasonId}, grade ${gradeLevel}`);
+      let teamSkillsData = null;
+      const programConfig = getProgramConfig(selectedProgram);
+      const allGradeCaches: any[] = []; // Collect all grade data for total count
 
-      console.log('Fetching limited world skills rankings...');
-      const limitedSkillsRankings = await robotEventsAPI.getWorldSkillsRankings(targetSeasonId, gradeLevel);
+      // Try each available grade for this program
+      for (const grade of programConfig.availableGrades) {
+        let gradeCache = getWorldSkills(targetSeasonId, programId, grade);
 
-      // Find this team in the rankings
-      const teamSkillsData = limitedSkillsRankings.find((ranking: any) =>
-        ranking.team && ranking.team.id === team.id
-      );
+        // If cache is empty, try to preload it and use returned data
+        if (gradeCache.length === 0) {
+          console.log(`[TeamLookup] Cache empty for ${grade}, preloading...`);
+          gradeCache = await preloadWorldSkills(targetSeasonId, programId, grade);
+        }
+
+        // Collect this grade's data for total count
+        allGradeCaches.push(...gradeCache);
+
+        // Search for team by ID in this grade's cache
+        if (gradeCache.length > 0) {
+          teamSkillsData = gradeCache.find((ranking: any) =>
+            ranking.team && ranking.team.id === team.id
+          );
+
+          if (teamSkillsData) {
+            console.log(`[TeamLookup] ✓ Found team in ${grade} World Skills rankings`);
+            break;
+          }
+        }
+      }
+
+      // Calculate total teams from collected caches
+      const totalTeams = allGradeCaches.length;
+      console.log('[TeamLookup] Total teams across all grades:', totalTeams);
 
       if (teamSkillsData) {
         console.log('Found team in rankings');
@@ -317,7 +412,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
           programming: teamSkillsData.scores?.programming || 0,
           highestDriver: teamSkillsData.scores?.maxDriver || 0,
           highestProgramming: teamSkillsData.scores?.maxProgramming || 0,
-          totalTeams: limitedSkillsRankings.length || 0,
+          totalTeams,
         });
       } else {
         // Team not found in rankings
@@ -328,7 +423,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
           programming: 0,
           highestDriver: 0,
           highestProgramming: 0,
-          totalTeams: limitedSkillsRankings.length || 0,
+          totalTeams,
         });
       }
       setIsWorldSkillsLoading(false);
@@ -383,7 +478,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
       setMatchRecordLoading(true);
       console.log('Fetching match record for team:', team.number);
 
-      // Get season ID to fetch matches for
+      // Get season ID to fetch rankings for
       let targetSeasonId;
       if (selectedSeason && selectedSeason !== '') {
         targetSeasonId = parseInt(selectedSeason);
@@ -391,47 +486,28 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
         targetSeasonId = await robotEventsAPI.getCurrentSeasonId(selectedProgram);
       }
 
-      // Fetch team matches for the selected season
-      const teamMatches = await robotEventsAPI.getTeamMatches(team.id, { season: [targetSeasonId] });
+      // Fetch team rankings for the selected season
+      // Rankings contain the official match record (wins/losses/ties) for each event
+      const teamRankings = await robotEventsAPI.getTeamRankings(team.id, { season: [targetSeasonId] });
 
-      let wins = 0;
-      let losses = 0;
-      let ties = 0;
+      let totalWins = 0;
+      let totalLosses = 0;
+      let totalTies = 0;
 
-      teamMatches.data.forEach((match: any) => {
-        // Find the alliance with our team
-        const redAlliance = match.alliances?.find((alliance: any) => alliance.color === 'red');
-        const blueAlliance = match.alliances?.find((alliance: any) => alliance.color === 'blue');
-
-        let teamAlliance = null;
-        if (redAlliance?.teams?.some((allianceTeam: any) => allianceTeam.team.id === team.id)) {
-          teamAlliance = 'red';
-        } else if (blueAlliance?.teams?.some((allianceTeam: any) => allianceTeam.team.id === team.id)) {
-          teamAlliance = 'blue';
-        }
-
-        if (teamAlliance && match.scored) {
-          const redScore = redAlliance?.score || 0;
-          const blueScore = blueAlliance?.score || 0;
-
-          if (redScore === blueScore) {
-            ties++;
-          } else if (
-            (teamAlliance === 'red' && redScore > blueScore) ||
-            (teamAlliance === 'blue' && blueScore > redScore)
-          ) {
-            wins++;
-          } else {
-            losses++;
-          }
-        }
+      // Sum up wins/losses/ties from all events in the season
+      teamRankings.data.forEach((ranking: any) => {
+        totalWins += ranking.wins || 0;
+        totalLosses += ranking.losses || 0;
+        totalTies += ranking.ties || 0;
       });
 
-      const totalMatches = wins + losses + ties;
+      const totalMatches = totalWins + totalLosses + totalTies;
+      console.log('Match record from rankings:', { totalWins, totalLosses, totalTies, totalMatches });
+
       setMatchRecord({
-        wins,
-        losses,
-        ties,
+        wins: totalWins,
+        losses: totalLosses,
+        ties: totalTies,
         totalMatches
       });
     } catch (error) {
@@ -604,7 +680,19 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
             autoCorrect={false}
             autoCapitalize="characters"
           />
-          {(isSearching || teamLoading) && (
+          {teamNumber.length > 0 && !isSearching && !teamLoading && (
+            <TouchableOpacity
+              onPress={() => {
+                setTeamNumber('');
+                debouncedSearch('');
+              }}
+              style={styles.clearButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="close-circle" size={20} color={settings.secondaryTextColor} />
+            </TouchableOpacity>
+          )}
+          {(isSearching || teamLoading || checkingRegistrations) && (
             <ActivityIndicator
               size="small"
               color={settings.buttonColor}
@@ -639,18 +727,71 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
       </View>
 
       {/* Search Results - Properly positioned below search card */}
-      {showSearchResults && searchResults.length > 0 && (
-        <View style={styles.compactResultsSection}>
-          <Text style={[styles.compactResultsHeader, { color: settings.textColor }]}>
-            Found {searchResults.length} team{searchResults.length > 1 ? 's' : ''} matching "{teamNumber}"
-          </Text>
-          {searchResults.map((item) => (
-            <View key={item.id.toString()} style={styles.cardContainer}>
-              {renderSearchResultCard({ item })}
-            </View>
-          ))}
-        </View>
-      )}
+      {showSearchResults && searchResults.length > 0 && (() => {
+        const isPastSeason = selectedSeason && currentSeasonId && selectedSeason !== currentSeasonId;
+
+        // Sort teams into registered and not registered based on season type
+        const registeredTeams = searchResults.filter(team => {
+          if (isPastSeason) {
+            // For past seasons, check if team has events (from our parallel check)
+            return teamRegistrationStatus[team.id?.toString() || ''] === true;
+          } else {
+            // For current season, use team.registered property
+            return team.registered;
+          }
+        });
+
+        const unregisteredTeams = searchResults.filter(team => {
+          if (isPastSeason) {
+            // For past seasons, check if team has NO events
+            const hasStatus = team.id?.toString() in teamRegistrationStatus;
+            return hasStatus && teamRegistrationStatus[team.id?.toString() || ''] === false;
+          } else {
+            // For current season, use team.registered property
+            return !team.registered;
+          }
+        });
+
+        return (
+          <View style={styles.compactResultsSection}>
+            <Text style={[styles.compactResultsHeader, { color: settings.textColor }]}>
+              Found {searchResults.length} team{searchResults.length > 1 ? 's' : ''} matching "{teamNumber}"
+            </Text>
+
+            {/* Registered Teams Section */}
+            {registeredTeams.length > 0 && (
+              <View>
+                <View style={[styles.sectionHeader, { backgroundColor: settings.backgroundColor }]}>
+                  <Text style={[styles.sectionHeaderText, { color: settings.textColor }]}>
+                    Registered Teams
+                  </Text>
+                </View>
+                {registeredTeams.map((item) => (
+                  <View key={item.id.toString()} style={styles.cardContainer}>
+                    {renderSearchResultCard({ item })}
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Not Registered Section */}
+            {unregisteredTeams.length > 0 && (
+              <View>
+                <View style={[styles.sectionHeader, { backgroundColor: settings.backgroundColor }]}>
+                  <Text style={[styles.sectionHeaderText, { color: settings.textColor }]}>
+                    Not Registered
+                  </Text>
+                </View>
+                {unregisteredTeams.map((item) => (
+                  <View key={item.id.toString()} style={styles.cardContainer}>
+                    {renderSearchResultCard({ item })}
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        );
+      })()}
 
       {/* Team Information Card */}
       {teamFetched && teamData && (
@@ -759,6 +900,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingVertical: 8,
   },
+  clearButton: {
+    marginLeft: 8,
+    padding: 2,
+  },
   searchLoadingIndicator: {
     marginLeft: 8,
   },
@@ -831,8 +976,21 @@ const styles = StyleSheet.create({
   compactResultsHeader: {
     fontSize: 14,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 16,
     paddingHorizontal: 4,
+  },
+  sectionHeader: {
+    paddingHorizontal: 4,
+    paddingVertical: 12,
+    marginTop: 8,
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(128, 128, 128, 0.2)',
+  },
+  sectionHeaderText: {
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   modernTeamCard: {
     borderRadius: 12,

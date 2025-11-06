@@ -529,6 +529,74 @@ class ComprehensiveRobotEventsAPI {
     return defaults[program] || 173;
   }
 
+  /**
+   * Gets caller information from the stack trace
+   */
+  private getCallerInfo(): string {
+    try {
+      const stack = new Error().stack;
+      if (!stack) return 'Unknown caller';
+
+      const stackLines = stack.split('\n');
+
+      // Debug: Uncomment to see raw stack traces
+      // console.log('[DEBUG] Stack trace:', stackLines);
+
+      // Try to find the first line that contains src/ or src\ (for native/Windows)
+      // or http://localhost for web/Chrome
+      for (let i = 0; i < stackLines.length; i++) {
+        const line = stackLines[i];
+
+        // Skip internal API files
+        if (line.includes('robotEventsApi.ts') ||
+            line.includes('recfEventsAPI.ts') ||
+            line.includes('apiRouter.ts')) {
+          continue;
+        }
+
+        // Chrome format: at functionName (http://localhost:....:lineNumber:columnNumber)
+        // or: at async functionName (http://localhost:....:lineNumber:columnNumber)
+        let match = line.match(/at\s+(?:async\s+)?(\w+)\s+\(.*?:(\d+):\d+\)/);
+        if (match) {
+          const functionName = match[1];
+          const lineNumber = match[2];
+          return `${functionName}():${lineNumber}`;
+        }
+
+        // Web/Chrome format: at functionName (http://localhost:8081/src/path/file.tsx:123:45)
+        match = line.match(/http:\/\/[^/]+\/src\/([\w/]+\.tsx?):(\d+)/);
+        if (match) {
+          const filePath = match[1];
+          const lineNumber = match[2];
+          return `src/${filePath}:${lineNumber}`;
+        }
+
+        // Native format: Look for lines that contain file paths with src
+        if (line.includes('/src/') || line.includes('\\src\\')) {
+          // Handle both Unix and Windows paths
+          match = line.match(/[/\\]src[/\\]([\w/\\]+\.tsx?)(?::(\d+))?/);
+          if (match) {
+            const filePath = match[1].replace(/\\/g, '/');
+            const lineNumber = match[2] || '?';
+            return `src/${filePath}:${lineNumber}`;
+          }
+
+          // Alternative pattern for some stack trace formats
+          match = line.match(/at\s+.*?\(.*?[/\\]src[/\\]([\w/\\]+\.tsx?):(\d+)/);
+          if (match) {
+            const filePath = match[1].replace(/\\/g, '/');
+            const lineNumber = match[2] || '?';
+            return `src/${filePath}:${lineNumber}`;
+          }
+        }
+      }
+
+      return 'Unknown caller';
+    } catch (e) {
+      return 'Error getting caller info';
+    }
+  }
+
   // Core request method with authentication and retry logic
   private async request<T>(endpoint: string, params: Record<string, any> = {}, retryCount: number = 0): Promise<T> {
 
@@ -578,17 +646,11 @@ class ComprehensiveRobotEventsAPI {
       headers['Authorization'] = `Bearer ${currentApiKey}`;
     }
 
-    console.log('[Comprehensive RobotEvents API] Making request to endpoint:', endpoint || 'Unknown');
-    console.log('[Comprehensive RobotEvents API] Full URL:', url.toString());
-    console.log(`[Comprehensive RobotEvents API] Using General Pool - Key #${this.currentKeyIndex + 1}/${this.apiKeys.length}`);
-
     try {
       const response = await fetch(url.toString(), {
         method: 'GET',
         headers,
       });
-
-      console.log('[Comprehensive RobotEvents API] Response status:', response.status);
 
       // Handle rate limiting responses
       if (response.status === 429) {
@@ -621,7 +683,6 @@ class ComprehensiveRobotEventsAPI {
       }
 
       const responseText = await response.text();
-      console.log('[Comprehensive RobotEvents API] Response body length:', responseText.length, 'characters');
 
       try {
         const result = JSON.parse(responseText);

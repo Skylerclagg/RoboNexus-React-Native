@@ -18,7 +18,7 @@
  * - Real-time rankings updates with refresh capability
  * - Navigation to detailed team skills information
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -35,6 +35,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../contexts/SettingsContext';
 import { robotEventsAPI } from '../services/apiRouter';
+import AnimatedScrollBar from '../components/AnimatedScrollBar';
 import { Event, Team } from '../types';
 import {
   getSkillsDisplayInfo,
@@ -62,13 +63,26 @@ interface Props {
   navigation: EventSkillsRankingsScreenNavigationProp;
 }
 
-interface SkillsRanking {
+interface SkillsRankingAPI {
   id: number;
   rank: number;
   team: {
     id: number;
     name: string;
   };
+  combined_score: number;
+  programming_score: number;
+  programming_attempts: number;
+  driver_score: number;
+  driver_attempts: number;
+}
+
+interface SkillsRanking {
+  id: number;
+  rank: number;
+  teamId: number;
+  teamNumber: string;
+  teamName: string;
   combined_score: number;
   programming_score: number;
   programming_attempts: number;
@@ -107,6 +121,10 @@ const EventSkillsRankingsScreen = ({ route, navigation }: Props) => {
   const [teamNumberQuery, setTeamNumberQuery] = useState('');
   const [showLoading, setShowLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const flatListRef = useRef<any>(null);
 
   // Use enhanced format-aware system for skills display
   const skillsDisplayInfo = getSkillsDisplayInfo(selectedProgram);
@@ -382,14 +400,6 @@ const EventSkillsRankingsScreen = ({ route, navigation }: Props) => {
         fontWeight: '500',
         fontSize: 19,
       },
-      headerRight: () => (
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={handleRefresh}
-        >
-          <Ionicons name="refresh" size={24} color={settings.topBarContentColor} />
-        </TouchableOpacity>
-      ),
     });
   }, [settings.topBarColor, settings.topBarContentColor]);
 
@@ -419,10 +429,10 @@ const EventSkillsRankingsScreen = ({ route, navigation }: Props) => {
       // Create a map of team ID to full team data
       const teamsById = new Map(teamsData.map(team => [team.id, team]));
 
-      // Process skills data to create rankings similar to Swift version
-      // Group skills by team and calculate combined scores
       const teamSkillsMap = new Map<number, {
-        team: { id: number; name: string };
+        teamId: number;
+        teamNumber: string;
+        teamName: string;
         programming_score: number;
         programming_attempts: number;
         driver_score: number;
@@ -430,19 +440,21 @@ const EventSkillsRankingsScreen = ({ route, navigation }: Props) => {
         combined_score: number;
       }>();
 
-      // Process each skill entry
       safeSkillsData.forEach((skill: any) => {
         try {
           if (!skill || !skill.team || !skill.team.id) return;
 
           const teamId = skill.team.id;
+          const apiTeamNumber = skill.team.name;
           const fullTeamData = teamsById.get(teamId);
 
+          const teamNumber = teamsMap[teamId.toString()] || fullTeamData?.number || apiTeamNumber || '';
+          const teamName = fullTeamData?.team_name || '';
+
           const existing = teamSkillsMap.get(teamId) || {
-            team: {
-              id: teamId,
-              name: fullTeamData?.team_name || skill.team.name || ''
-            },
+            teamId: teamId,
+            teamNumber: teamNumber,
+            teamName: teamName,
             programming_score: 0,
             programming_attempts: 0,
             driver_score: 0,
@@ -468,11 +480,12 @@ const EventSkillsRankingsScreen = ({ route, navigation }: Props) => {
         }
       });
 
-      // Convert to array and sort by combined score (descending)
-      const rankingsArray = Array.from(teamSkillsMap.entries()).map(([teamId, data]) => ({
+      const rankingsArray: SkillsRanking[] = Array.from(teamSkillsMap.entries()).map(([teamId, data]) => ({
         id: teamId,
         rank: 0, // Will be set after sorting
-        team: data.team,
+        teamId: data.teamId,
+        teamNumber: data.teamNumber,
+        teamName: data.teamName,
         combined_score: data.combined_score,
         programming_score: data.programming_score,
         programming_attempts: data.programming_attempts,
@@ -513,25 +526,24 @@ const EventSkillsRankingsScreen = ({ route, navigation }: Props) => {
       setFilteredRankings(skillsRankings);
     } else {
       const filtered = skillsRankings.filter(ranking => {
-        // Use teamsMap to get team number, similar to Swift version
-        const teamNumber = teamsMap[ranking.team.id.toString()] || ranking.team.name || '';
         const query = teamNumberQuery.toLowerCase();
-        return teamNumber.toLowerCase().includes(query);
+        return ranking.teamNumber.toLowerCase().includes(query) ||
+               ranking.teamName.toLowerCase().includes(query);
       });
       setFilteredRankings(filtered);
     }
-  }, [teamNumberQuery, skillsRankings, teamsMap]);
+  }, [teamNumberQuery, skillsRankings]);
 
   const renderCompactSkillsItem = ({ item }: { item: SkillsRanking }) => {
-    // Get team number from teamsMap
-    const teamNumber = teamsMap[item.team.id.toString()] || 'Unknown';
-    const teamName = item.team.name || '';
+    const teamId = item.teamId;
+    const teamNumber = item.teamNumber;
+    const teamName = item.teamName;
 
     const handleTeamPress = () => {
-      navigation.navigate('EventTeamView', {
+      navigation.navigate('EventTeamInfo', {
         event: event,
         teamNumber: teamNumber,
-        teamData: item.team,
+        teamData: null,
       });
     };
 
@@ -549,9 +561,11 @@ const EventSkillsRankingsScreen = ({ route, navigation }: Props) => {
             #{item.rank}
           </Text>
           <Text style={[styles.compactTeamNumber, { color: settings.textColor }]}>{teamNumber}</Text>
-          <Text style={[styles.compactTeamName, { color: settings.secondaryTextColor }]} numberOfLines={1}>
-            {teamName || 'Unknown Team'}
-          </Text>
+          {teamName && (
+            <Text style={[styles.compactTeamName, { color: settings.secondaryTextColor }]} numberOfLines={1}>
+              {teamName}
+            </Text>
+          )}
           <Text style={[styles.compactTotalScore, { color: settings.buttonColor }]}>
             {item.combined_score}
           </Text>
@@ -574,21 +588,15 @@ const EventSkillsRankingsScreen = ({ route, navigation }: Props) => {
   };
 
   const renderSkillsRankingItem = ({ item }: { item: SkillsRanking }) => {
-    // Get team number from teamsMap
-    const teamNumber = teamsMap[item.team.id.toString()] || 'Unknown';
-    // Team name now comes from the full team data we fetched
-    const teamName = item.team.name || '';
-
-    // Debug logging for first few items
-    if (item.rank <= 3) {
-      console.log(`Rank ${item.rank}: ID=${item.team.id}, Number=${teamNumber}, Name=${teamName}, Raw team:`, item.team);
-    }
+    const teamId = item.teamId;
+    const teamNumber = item.teamNumber;
+    const teamName = item.teamName;
 
     const handleTeamPress = () => {
-      navigation.navigate('EventTeamView', {
+      navigation.navigate('EventTeamInfo', {
         event: event,
         teamNumber: teamNumber,
-        teamData: item.team,
+        teamData: null,
       });
     };
 
@@ -602,11 +610,9 @@ const EventSkillsRankingsScreen = ({ route, navigation }: Props) => {
         <View style={styles.teamHeader}>
           <View style={styles.teamInfo}>
             <Text style={styles.teamNumber}>{teamNumber}</Text>
-            {teamName ? (
-              <Text style={styles.teamName} numberOfLines={1}>
-                {teamName}
-              </Text>
-            ) : null}
+            {teamName && (
+              <Text style={styles.teamName}>{teamName}</Text>
+            )}
           </View>
           <View style={styles.rankBadge}>
             <Text style={styles.rankBadgeText}>#{item.rank}</Text>
@@ -701,21 +707,39 @@ const EventSkillsRankingsScreen = ({ route, navigation }: Props) => {
         </View>
       </View>
 
-      <FlatList
-        data={filteredRankings}
-        renderItem={settings.compactViewSkills ? renderCompactSkillsItem : renderSkillsRankingItem}
-        keyExtractor={(item) => item.id.toString()}
-        ListEmptyComponent={renderEmptyComponent}
-        contentContainerStyle={filteredRankings.length === 0 ? styles.emptyList : { paddingBottom: 16, paddingTop: 8 }}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={settings.buttonColor}
-          />
-        }
-      />
+      <View style={{ flex: 1 }}>
+        <FlatList
+          data={filteredRankings}
+          renderItem={settings.compactViewSkills ? renderCompactSkillsItem : renderSkillsRankingItem}
+          keyExtractor={(item) => item.id.toString()}
+          ListEmptyComponent={renderEmptyComponent}
+          contentContainerStyle={filteredRankings.length === 0 ? styles.emptyList : { paddingBottom: 16, paddingTop: 8 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={settings.buttonColor}
+            />
+          }
+          onScroll={(event) => {
+            const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+            setScrollY(contentOffset.y);
+            setContentHeight(contentSize.height);
+            setViewportHeight(layoutMeasurement.height);
+          }}
+          scrollEventThrottle={16}
+          ref={flatListRef}
+        />
+        <AnimatedScrollBar
+          scrollY={scrollY}
+          contentHeight={contentHeight}
+          viewportHeight={viewportHeight}
+          color={settings.buttonColor}
+          enabled={settings.scrollBarEnabled && settings.scrollBarSkills}
+          scrollViewRef={flatListRef}
+        />
+      </View>
     </View>
   );
 };

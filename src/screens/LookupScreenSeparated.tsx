@@ -28,7 +28,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../contexts/SettingsContext';
 import TeamLookup from '../components/TeamLookup';
 import EventLookup from '../components/EventLookup';
-import TeamsMapContent from '../components/TeamsMapContent';
+import TeamBrowserContent from '../components/TeamBrowserContent';
 
 interface LookupScreenSeparatedProps {
   navigation?: any;
@@ -161,7 +161,7 @@ const LookupScreenSeparated: React.FC<LookupScreenSeparatedProps> = ({ navigatio
       {lookupType === 0 ? (
         <TeamLookup navigation={navigation} />
       ) : lookupType === 1 ? (
-        <TeamsMapContent navigation={navigation} viewMode="list" />
+        <TeamBrowserContent navigation={navigation} viewMode="list" />
       ) : (
         <EventLookup navigation={navigation} viewMode={eventViewMode} />
       )}

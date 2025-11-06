@@ -26,7 +26,6 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   RefreshControl,
   Modal,
   ScrollView,
@@ -37,6 +36,7 @@ import { RouteProp, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../contexts/SettingsContext';
+import { alerts } from '../utils/webCompatibility';
 import { robotEventsAPI } from '../services/apiRouter';
 import { Event, Division, Team } from '../types';
 import {
@@ -253,35 +253,27 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
       disclaimerMessage = 'This is Unofficial and may be inaccurate, and can only possibly be accurate after both Qualification and Skills matches finish. Please keep in mind that there are other factors that no app can calculate – this is solely based on field performance.';
     }
 
-    // Show disclaimer alert
-    Alert.alert(
+    alerts.showConfirm(
       'Disclaimer',
       disclaimerMessage,
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel'
-        },
-        {
-          text: 'I Understand',
-          onPress: () => {
-            setSelectedGradeLevel(gradeLevel);
-            setShowEligibilityModal(true);
-          }
-        }
-      ],
-      { cancelable: true }
-    );
+      'I Understand',
+      'Cancel'
+    ).then((confirmed) => {
+      if (confirmed) {
+        setSelectedGradeLevel(gradeLevel);
+        setShowEligibilityModal(true);
+      }
+    });
   };
 
   const openEligibilityModalForGrade = (gradeLevel: string | null) => {
     if (!currentProgram || !programConfig) {
-      Alert.alert('Error', 'Unable to determine program type for eligibility checking.');
+      alerts.showAlert('Error', 'Unable to determine program type for eligibility checking.');
       return;
     }
 
     if (teamSkills.length === 0) {
-      Alert.alert('No Data', 'No team data available for eligibility checking.');
+      alerts.showAlert('No Data', 'No team data available for eligibility checking.');
       return;
     }
 
@@ -638,12 +630,22 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
       borderBottomColor: borderColor,
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'center',
+      alignItems: 'flex-start',
+    },
+    modalTitleContainer: {
+      flex: 1,
+      marginRight: 12,
     },
     modalTitle: {
       fontSize: 20,
       fontWeight: '600',
       color: textColor,
+    },
+    modalSubtitle: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: secondaryTextColor,
+      marginTop: 4,
     },
     closeButton: {
       padding: 4,
@@ -1019,7 +1021,7 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
 
     } catch (error) {
       console.error('Error loading data:', error);
-      Alert.alert('Error', 'Failed to load event data. Please try again.');
+      alerts.showAlert('Error', 'Failed to load event data. Please try again.');
     } finally {
       setShowLoading(false);
     }
@@ -1058,12 +1060,12 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
 
   const openEligibilityModal = () => {
     if (!currentProgram || !programConfig) {
-      Alert.alert('Error', 'Unable to determine program type for eligibility checking.');
+      alerts.showAlert('Error', 'Unable to determine program type for eligibility checking.');
       return;
     }
 
     if (teamSkills.length === 0) {
-      Alert.alert('No Data', 'No team data available for eligibility checking.');
+      alerts.showAlert('No Data', 'No team data available for eligibility checking.');
       return;
     }
 
@@ -1072,7 +1074,7 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
 
   const openRequirementsModal = () => {
     if (!currentProgram) {
-      Alert.alert('Error', 'Unable to determine program type.');
+      alerts.showAlert('Error', 'Unable to determine program type.');
       return;
     }
 
@@ -1524,9 +1526,16 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
 
           {/* Header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
-              {programConfig.awardName} Eligibility{selectedGradeLevel ? ` (${selectedGradeLevel})` : ''}
-            </Text>
+            <View style={styles.modalTitleContainer}>
+              <Text style={styles.modalTitle}>
+                {programConfig.awardName} Eligibility
+              </Text>
+              {selectedGradeLevel && (
+                <Text style={styles.modalSubtitle}>
+                  {selectedGradeLevel}
+                </Text>
+              )}
+            </View>
             <TouchableOpacity
               style={styles.closeButton}
               onPress={() => {
@@ -1610,7 +1619,7 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
     </Modal>
   );
 
-  if (showLoading) {
+  if (showLoading && awards.length === 0) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={settings.topBarColor} />

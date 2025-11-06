@@ -1,5 +1,5 @@
 /**
- * Event Teams Screen
+ * Event Team List Screen
  *
  * Description:
  * Displays all teams participating in a specific VEX robotics event, with support
@@ -7,7 +7,7 @@
  * details and quick access to individual team information and statistics.
  *
  * Navigation:
- * Accessed from event detail screens or division screens when users want to
+ * Accessed from event Main view or division screens when users want to
  * view all participating teams in a competition.
  *
  * Key Features:
@@ -18,7 +18,7 @@
  * - Export functionality for team data
  * - Navigation to individual team detail screens
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -38,35 +38,37 @@ import { useSettings } from '../contexts/SettingsContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { robotEventsAPI } from '../services/apiRouter';
 import { Event, Team, Division } from '../types';
+import AnimatedScrollBar from '../components/AnimatedScrollBar';
 import { DataExporter } from '../utils/dataExporter';
 import DataExportModal from '../components/DataExportModal';
 import { getProgramId } from '../utils/programMappings';
+import TeamCardSkeleton from '../components/TeamCardSkeleton';
 
-type EventTeamsScreenRouteProp = RouteProp<
+type EventTeamListScreenRouteProp = RouteProp<
   {
-    EventTeams: {
+    EventTeamList: {
       event: Event;
       division?: Division;
     };
   },
-  'EventTeams'
+  'EventTeamList'
 >;
 
-type EventTeamsScreenNavigationProp = StackNavigationProp<any>;
+type EventTeamListScreenNavigationProp = StackNavigationProp<any>;
 
 interface Props {
-  route: EventTeamsScreenRouteProp;
-  navigation: EventTeamsScreenNavigationProp;
+  route: EventTeamListScreenRouteProp;
+  navigation: EventTeamListScreenNavigationProp;
 }
 
 interface TeamListItem {
   id: number;
   number: string;
-  name: string;
+  teamName: string;
   location: string;
 }
 
-const EventTeamsScreen = ({ route, navigation }: Props) => {
+const EventTeamListScreen = ({ route, navigation }: Props) => {
   const { event, division } = route.params;
   const settings = useSettings();
   const { addTeam, removeTeam, isTeamFavorited } = useFavorites();
@@ -74,10 +76,14 @@ const EventTeamsScreen = ({ route, navigation }: Props) => {
   const [teams, setTeams] = useState<TeamListItem[]>([]);
   const [filteredTeams, setFilteredTeams] = useState<TeamListItem[]>([]);
   const [isExporting, setIsExporting] = useState(false);
-  const [exportProgress, setExportProgress] = useState<{ current: number; total: number } | undefined>(undefined);
+  const [exportProgress, setExportProgress] = useState<{ current: number; total: number; startTime?: number } | undefined>(undefined);
   const [fullTeamsData, setFullTeamsData] = useState<Team[]>([]);
   const [teamNumberQuery, setTeamNumberQuery] = useState('');
   const [showLoading, setShowLoading] = useState(true);
+  const [scrollY, setScrollY] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const flatListRef = useRef<any>(null);
   const [showExportModal, setShowExportModal] = useState(false);
 
   const handleExportModalOpen = () => {
@@ -88,9 +94,10 @@ const EventTeamsScreen = ({ route, navigation }: Props) => {
     setShowExportModal(true);
   };
 
-  const handleExport = async (selectedFields: { [key: string]: boolean }, exportScope: 'event' | 'season') => {
+  const handleExport = async (selectedFields: { [key: string]: boolean }, exportScope: 'event' | 'season' | 'season-by-event', eventAwardsScope?: 'event' | 'season') => {
     setIsExporting(true);
-    setExportProgress({ current: 0, total: 0 });
+    const startTime = Date.now();
+    setExportProgress({ current: 0, total: 0, startTime });
 
     try {
       const teamsToExport = fullTeamsData;
@@ -99,9 +106,10 @@ const EventTeamsScreen = ({ route, navigation }: Props) => {
 
       console.log(`[EventTeams] Exporting ${teamsToExport.length} teams from ${exportEventName}`);
       console.log(`[EventTeams] Export scope: ${exportScope}`);
+      console.log(`[EventTeams] Event awards scope: ${eventAwardsScope}`);
 
-      // Initialize progress with total
-      setExportProgress({ current: 0, total: teamsToExport.length });
+      // Initialize progress with total and start time
+      setExportProgress({ current: 0, total: teamsToExport.length, startTime });
 
       const exportData = {
         teams: teamsToExport,
@@ -110,15 +118,16 @@ const EventTeamsScreen = ({ route, navigation }: Props) => {
         divisionName: exportDivisionName,
         eventId: exportScope === 'event' ? event.id : undefined,
         divisionId: division?.id,
-        seasonId: event.season.id
+        seasonId: event.season.id,
+        exportScope: exportScope // Pass the full scope to the exporter
       };
 
       await DataExporter.exportTeamsWithStatsToCSV(
         exportData,
-        { selectedFields },
+        { selectedFields, eventAwardsScope },
         (current, total) => {
           console.log(`[EventTeams] Exporting team ${current} of ${total}`);
-          setExportProgress({ current, total });
+          setExportProgress({ current, total, startTime });
         }
       );
 
@@ -246,7 +255,7 @@ const EventTeamsScreen = ({ route, navigation }: Props) => {
       const teamListItems: TeamListItem[] = teamsToDisplay.map(team => ({
         id: team.id,
         number: team.number,
-        name: team.team_name || '',
+        teamName: team.team_name || '',
         location: generateLocation(team),
       }));
 
@@ -284,7 +293,7 @@ const EventTeamsScreen = ({ route, navigation }: Props) => {
     } else {
       const filtered = teams.filter(team =>
         team.number.toLowerCase().includes(teamNumberQuery.toLowerCase()) ||
-        team.name.toLowerCase().includes(teamNumberQuery.toLowerCase())
+        team.teamName.toLowerCase().includes(teamNumberQuery.toLowerCase())
       );
       setFilteredTeams(filtered);
     }
@@ -295,7 +304,7 @@ const EventTeamsScreen = ({ route, navigation }: Props) => {
     const fullTeam = fullTeamsData.find(team => team.number === teamNumber);
 
     if (fullTeam) {
-      navigation.navigate('EventTeamView', {
+      navigation.navigate('EventTeamInfo', {
         event,
         teamNumber,
         teamData: fullTeam,
@@ -338,7 +347,7 @@ const EventTeamsScreen = ({ route, navigation }: Props) => {
           <Text style={[styles.compactTeamNumber, { color: settings.buttonColor }]}>{item.number}</Text>
           <Text style={[styles.compactDash, { color: settings.secondaryTextColor }]}>-</Text>
           <Text style={[styles.compactTeamName, { color: settings.textColor }]} numberOfLines={1}>
-            {item.name || 'Unknown Team'}
+            {item.teamName || 'Unknown Team'}
           </Text>
           {isFavorite && (
             <Ionicons name="heart" size={16} color="#FF6B6B" />
@@ -375,9 +384,9 @@ const EventTeamsScreen = ({ route, navigation }: Props) => {
           }]}>
             <Text style={[styles.teamNumber, { color: settings.buttonColor }]}>{item.number}</Text>
           </View>
-          {item.name ? (
-            <Text style={[styles.teamName, { color: settings.textColor }]} numberOfLines={1}>
-              {item.name}
+          {item.teamName ? (
+            <Text style={[styles.teamName, { color: settings.textColor }]}>
+              {item.teamName}
             </Text>
           ) : null}
         </View>
@@ -425,9 +434,13 @@ const EventTeamsScreen = ({ route, navigation }: Props) => {
 
   if (showLoading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: settings.backgroundColor }]}>
-        <ActivityIndicator size="large" color={settings.buttonColor} />
-        <Text style={[styles.loadingText, { color: settings.textColor }]}>Loading teams...</Text>
+      <View style={[styles.container, { backgroundColor: settings.backgroundColor }]}>
+        <FlatList
+          data={Array(10).fill(null)}
+          renderItem={() => <TeamCardSkeleton compact={settings.compactViewTeams} />}
+          keyExtractor={(_, index) => `skeleton-${index}`}
+          contentContainerStyle={{ paddingVertical: 8 }}
+        />
       </View>
     );
   }
@@ -456,14 +469,34 @@ const EventTeamsScreen = ({ route, navigation }: Props) => {
         </View>
       </View>
 
-      <FlatList
-        data={filteredTeams}
-        renderItem={settings.compactViewTeams ? renderCompactTeamItem : renderTeamItem}
-        keyExtractor={(item) => item.id.toString()}
-        ListEmptyComponent={renderEmptyComponent}
-        contentContainerStyle={filteredTeams.length === 0 ? styles.emptyList : undefined}
-        showsVerticalScrollIndicator={false}
-      />
+      <View style={{ flex: 1 }}>
+        <FlatList
+          data={filteredTeams}
+          renderItem={settings.compactViewTeams ? renderCompactTeamItem : renderTeamItem}
+          keyExtractor={(item) => item.id.toString()}
+          ListEmptyComponent={renderEmptyComponent}
+          contentContainerStyle={filteredTeams.length === 0 ? styles.emptyList : undefined}
+          showsVerticalScrollIndicator={false}
+          onScroll={(event) => {
+            const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+            setScrollY(contentOffset.y);
+            setContentHeight(contentSize.height);
+            setViewportHeight(layoutMeasurement.height);
+          }}
+          scrollEventThrottle={16}
+          ref={flatListRef}
+          refreshing={showLoading}
+          onRefresh={fetchEventTeams}
+        />
+        <AnimatedScrollBar
+          scrollY={scrollY}
+          contentHeight={contentHeight}
+          viewportHeight={viewportHeight}
+          color={settings.buttonColor}
+          enabled={settings.scrollBarEnabled && settings.scrollBarTeams}
+          scrollViewRef={flatListRef}
+        />
+      </View>
 
       <DataExportModal
         visible={showExportModal}
@@ -660,4 +693,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EventTeamsScreen;
+export default EventTeamListScreen;

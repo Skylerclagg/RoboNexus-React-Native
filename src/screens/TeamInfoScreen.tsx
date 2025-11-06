@@ -21,7 +21,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-// import { useFocusEffect } from '@react-navigation/native'; // Temporarily disabled to prevent infinite loops
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -54,8 +54,8 @@ import EventCard from '../components/EventCard';
 import TeamInfoCard from '../components/TeamInfoCard';
 import DropdownPicker from '../components/DropdownPicker';
 import EventTeamMatchesScreen from './EventTeamMatchesScreen';
-import { expandLeagueEvent, ExtendedEvent } from '../utils/eventUtils';
-import { getProgramId, is2v0Format, useThemedScoreColors } from '../utils/programMappings';
+import { expandLeagueEvent, ExtendedEvent, filterLiveEvents, selectCurrentLiveEvent } from '../utils/eventUtils';
+import { getProgramId, getProgramConfig, is2v0Format, useThemedScoreColors } from '../utils/programMappings';
 
 interface Props {
   route: {
@@ -123,6 +123,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
   const [selectedTab, setSelectedTab] = useState(0); // 0 = Events, 1 = Statistics, 2 = Awards, 3 = Notes, 4 = Matches (if at event), 5 = Developer (if enabled)
   const [selectedSeason, setSelectedSeason] = useState<string>('');
   const [seasons, setSeasons] = useState<{label: string, value: string}[]>([]);
+  const [apiActiveSeason, setApiActiveSeason] = useState<{id: number, name: string} | null>(null);
   const [team, setTeam] = useState<Team | null>(teamData || null);
   const [teamFetched, setTeamFetched] = useState(false);
   const [teamLoading, setTeamLoading] = useState(false);
@@ -135,6 +136,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
   const [isAwardsExpanded, setIsAwardsExpanded] = useState<boolean>(false);
   const [teamAwards, setTeamAwards] = useState<Award[]>([]);
   const [awardsLoading, setAwardsLoading] = useState(false);
+  const [groupedAwards, setGroupedAwards] = useState<{ [seasonName: string]: Award[] }>({});
   const [newNote, setNewNote] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageModalVisible, setImageModalVisible] = useState(false);
@@ -328,6 +330,27 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
     }
   }, [selectedProgram, preloadSeasons, getSeasons, globalSeasonEnabled, globalSeason]);
 
+  // Fetch API active season for the selected program
+  useEffect(() => {
+    const fetchApiActiveSeason = async () => {
+      try {
+        const seasonId = await robotEventsAPI.getCurrentSeasonId(selectedProgram);
+        const seasonData = seasons.find(s => s.value === seasonId.toString());
+        setApiActiveSeason({
+          id: seasonId,
+          name: seasonData?.label || 'Unknown'
+        });
+      } catch (error) {
+        console.error('Failed to fetch API active season:', error);
+        setApiActiveSeason(null);
+      }
+    };
+
+    if (selectedProgram && seasons.length > 0) {
+      fetchApiActiveSeason();
+    }
+  }, [selectedProgram, seasons]);
+
   const formatSeasonOption = (raw: string) => {
     if (!raw) return 'Unknown Season';
 
@@ -342,97 +365,39 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
     try {
       console.log('[TeamInfo] Checking live event status for team', teamNumber);
       const teamEventsResponse = await robotEventsAPI.getTeamEvents(teamData.id);
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-      // Find events happening during their full duration
-      const liveEvents = teamEventsResponse.data.filter(event => {
-        const start = new Date(event.start);
-        const end = new Date(event.end);
-
-        console.log('[TeamInfo] Checking event', event.name, '- Start:', start.toISOString(), 'End:', end.toISOString(), 'Now:', now.toISOString());
-
-        // Developer mode simulation: if enabled, simulate live events by treating recent events as live
-        if (settings.devLiveEventSimulation && settings.isDeveloperMode) {
-          const oneWeekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
-          const oneWeekFromNow = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
-          const isSimulatedLive = start >= oneWeekAgo && start <= oneWeekFromNow;
-          console.log('[TeamInfo] Developer simulation mode - Event', event.name, 'is simulated live:', isSimulatedLive);
-          return isSimulatedLive;
-        }
-
-        // Check if event has specific dates (league events) or just date range (tournaments)
-        if (event.locations) {
-          // League event with specific competition dates
-          const todayString = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-          const eventDates = Object.keys(event.locations);
-          const isLeagueCompetitionDay = eventDates.includes(todayString);
-          console.log('[TeamInfo] League event', event.name, '- Competition dates:', eventDates, '- Today:', todayString, '- Is competition day:', isLeagueCompetitionDay);
-          return isLeagueCompetitionDay;
-        } else {
-          // Regular event with continuous date range
-          const withinDateRange = start <= now && end >= now;
-          console.log('[TeamInfo] Regular event', event.name, 'is within date range:', withinDateRange);
-          return withinDateRange;
-        }
+      // Use centralized utility to find live events
+      const liveEvents = filterLiveEvents(teamEventsResponse.data, {
+        devLiveEventSimulation: settings.devLiveEventSimulation,
+        isDeveloperMode: settings.isDeveloperMode,
+        devTestEventId: settings.devTestEventId
       });
 
       if (liveEvents.length > 0) {
-        // Sort live events by start date (most recent first) to prioritize active competitions
-        liveEvents.sort((a, b) => new Date(b.start).getTime() - new Date(a.start).getTime());
-        const liveEvent = liveEvents[0]; // Take the most recent live event
-
-        // Check if team has any incomplete matches at this event
-        console.log('[TeamInfo] Checking for incomplete matches at event', liveEvent.name, 'for team', teamNumber);
-        try {
-          const teamMatchesResponse = await robotEventsAPI.getTeamMatches(teamData.id, { event: [liveEvent.id] });
-          const teamMatches = teamMatchesResponse.data || [];
-          console.log('[TeamInfo] Found', teamMatches.length, 'matches for team', teamNumber, 'at event', liveEvent.name);
-
-          // Count matches that are happening today or very recently
-          const now = new Date();
-          const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          const tomorrowStart = new Date(todayStart.getTime() + (24 * 60 * 60 * 1000));
-
-          const activeMatches = teamMatches.filter(match => {
-            const matchStarted = match.started;
-            const matchScored = match.scored;
-            const matchScheduled = match.scheduled ? new Date(match.scheduled) : null;
-
-            // Match is incomplete if it hasn't started yet, or started but not scored
-            const isIncomplete = !matchStarted || (matchStarted && !matchScored);
-
-            let isToday = false;
-            if (matchScheduled) {
-              isToday = matchScheduled >= todayStart && matchScheduled < tomorrowStart;
-            }
-
-            // Consider match "active" if it's incomplete AND (scheduled for today OR no schedule info)
-            const isActive = isIncomplete && (isToday || !matchScheduled);
-
-            console.log('[TeamInfo] Match', match.name, '- Started:', matchStarted, 'Scored:', matchScored, 'Scheduled:', matchScheduled?.toISOString(), 'Today:', isToday, 'Active:', isActive);
-            return isActive;
-          });
-
-          console.log('[TeamInfo] Team', teamNumber, 'has', activeMatches.length, 'active matches today at event', liveEvent.name);
-
-          if (activeMatches.length > 0) {
-            console.log('[TeamInfo] Team', teamNumber, 'is actively competing today - has active matches');
-            setIsTeamAtEvent(true);
-            setCurrentLiveEvent(liveEvent);
-            return liveEvent;
-          } else {
-            console.log('[TeamInfo] Team', teamNumber, 'has no active matches today - not showing as live');
-            setIsTeamAtEvent(false);
-            setCurrentLiveEvent(null);
-            return null;
+        // Use centralized utility to select the most relevant live event
+        const liveEvent = await selectCurrentLiveEvent(
+          liveEvents,
+          async (eventId) => {
+            const response = await robotEventsAPI.getTeamMatches(teamData.id, { event: [eventId] });
+            return response.data || [];
+          },
+          {
+            isDeveloperMode: settings.isDeveloperMode,
+            devTestEventId: settings.devTestEventId
           }
-        } catch (matchError) {
-          console.error('[TeamInfo] Failed to fetch matches for team', teamNumber, 'at event', liveEvent.name, ':', matchError);
-          console.log('[TeamInfo] Fallback: showing team as live due to match fetch error');
+        );
+
+        if (liveEvent) {
+          // selectCurrentLiveEvent already handles match checking, so if we got a result, the team is at the event
+          console.log('[TeamInfo] Team', teamNumber, 'is at live event:', liveEvent.name);
           setIsTeamAtEvent(true);
           setCurrentLiveEvent(liveEvent);
           return liveEvent;
+        } else {
+          console.log('[TeamInfo] Team', teamNumber, 'has no active live event');
+          setIsTeamAtEvent(false);
+          setCurrentLiveEvent(null);
+          return null;
         }
       } else {
         console.log('[TeamInfo] Team', teamNumber, 'is not at any live events');
@@ -446,7 +411,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
       setCurrentLiveEvent(null);
       return null;
     }
-  }, [teamNumber, settings.devLiveEventSimulation, settings.isDeveloperMode]);
+  }, [teamNumber, settings.devLiveEventSimulation, settings.isDeveloperMode, settings.devTestEventId]);
 
 
   const fetchTeamInfo = useCallback(async () => {
@@ -541,27 +506,42 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
 
       console.log('Team grade level:', gradeLevel, 'Program ID:', programId);
 
-      // Check cache first
-      console.log('Getting World Skills from cache with params:', {
-        targetSeasonId,
-        programId,
-        gradeLevel
-      });
-      let allSkillsRankings = getWorldSkills(targetSeasonId, programId, gradeLevel);
-      console.log('Total skills rankings (from cache):', allSkillsRankings?.length || 0);
+      // Search for team by ID across ALL grade caches for this program/season
+      // This ensures we find the team even if grade data is wrong or missing
+      console.log('[TeamInfo] Searching for team ID', teamId, 'in World Skills caches for season', targetSeasonId);
 
-      if (allSkillsRankings.length === 0) {
-        console.log('No cached data found, preloading world skills...');
-        // Pre-load world skills data into cache
-        await preloadWorldSkills(targetSeasonId, programId, gradeLevel);
-        allSkillsRankings = getWorldSkills(targetSeasonId, programId, gradeLevel);
-        console.log('Total skills rankings (after preload):', allSkillsRankings?.length || 0);
+      let teamSkillsData = null;
+      const programConfig = getProgramConfig(selectedProgram);
+      const allGradeCaches: any[] = []; // Collect all grade data for total count
+
+      // Try each available grade for this program
+      for (const grade of programConfig.availableGrades) {
+        let gradeCache = getWorldSkills(targetSeasonId, programId, grade);
+
+        // If cache is empty, try to preload it and use returned data
+        if (gradeCache.length === 0) {
+          console.log(`[TeamInfo] Cache empty for ${grade}, preloading...`);
+          gradeCache = await preloadWorldSkills(targetSeasonId, programId, grade);
+        }
+
+        // Collect this grade's data for total count
+        allGradeCaches.push(...gradeCache);
+
+        // Search for team by ID in this grade's cache
+        if (gradeCache.length > 0) {
+          teamSkillsData = gradeCache.find((ranking: any) =>
+            ranking.team && ranking.team.id === teamId
+          );
+
+          if (teamSkillsData) {
+            console.log(`[TeamInfo] ✓ Found team in ${grade} World Skills rankings`);
+            break;
+          }
+        }
       }
 
-      // Find this team in the rankings
-      const teamSkillsData = allSkillsRankings.find((ranking: any) =>
-        ranking.team && ranking.team.id === teamId
-      );
+      const totalTeams = allGradeCaches.length;
+      console.log('[TeamInfo] Total teams across all grades:', totalTeams);
 
       if (teamSkillsData) {
         console.log('Found team in world skills rankings:', teamSkillsData);
@@ -572,7 +552,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
           programming: teamSkillsData.scores?.programming || 0,
           highestDriver: teamSkillsData.scores?.driver || 0,
           highestProgramming: teamSkillsData.scores?.programming || 0,
-          totalTeams: allSkillsRankings.length,
+          totalTeams: totalTeams,
         });
       } else {
         console.log('Team not found in world skills rankings');
@@ -583,7 +563,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
           programming: 0,
           highestDriver: 0,
           highestProgramming: 0,
-          totalTeams: allSkillsRankings.length,
+          totalTeams: totalTeams,
         });
       }
     } catch (error) {
@@ -647,7 +627,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
     try {
       console.log('Fetching match record for team:', teamId);
 
-      // Get season ID to fetch matches for
+      // Get season ID to fetch rankings for
       let seasonId: number;
       if (selectedSeason && selectedSeason !== '') {
         seasonId = parseInt(selectedSeason);
@@ -655,90 +635,32 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
         seasonId = await robotEventsAPI.getCurrentSeasonId(selectedProgram);
       }
 
-      console.log('Fetching matches for season:', seasonId);
+      console.log('Fetching rankings for season:', seasonId);
 
-      // Fetch team matches for the selected season
-      const matchesResponse = await robotEventsAPI.getTeamMatches(teamId, { season: [seasonId] });
-      console.log('Matches returned:', matchesResponse.data.length);
+      // Fetch team rankings for the selected season
+      // Rankings contain the official match record (wins/losses/ties) for each event
+      const teamRankings = await robotEventsAPI.getTeamRankings(teamId, { season: [seasonId] });
+      console.log('Rankings returned:', teamRankings.data.length);
 
-      // Calculate win/loss/tie record
-      let wins = 0;
-      let losses = 0;
-      let ties = 0;
+      let totalWins = 0;
+      let totalLosses = 0;
+      let totalTies = 0;
 
-      matchesResponse.data.forEach((match: any, index: number) => {
-        // Debug: Log the full match structure for first match
-        if (index === 0) {
-          console.log('Full match object structure:', JSON.stringify(match, null, 2));
-        }
-
-        const blueAlliance = match.alliances?.find((a: any) => a.color === 'blue');
-        const redAlliance = match.alliances?.find((a: any) => a.color === 'red');
-
-        console.log(`Processing match ${index + 1}:`, {
-          matchName: match.name,
-          scored: match.scored,
-          blueTeams: blueAlliance?.teams?.map((t: any) => t.team?.id),
-          redTeams: redAlliance?.teams?.map((t: any) => t.team?.id),
-          blueScore: blueAlliance?.score,
-          redScore: redAlliance?.score
-        });
-
-        // The API returns alliances as an array, not an object
-        if (!match.alliances || !Array.isArray(match.alliances) || match.alliances.length !== 2) {
-          console.log('Invalid alliance data structure');
-          return;
-        }
-
-        // Alliance variables are already declared above for debugging
-
-        const isBlueAlliance = blueAlliance?.teams?.some((allianceTeam: any) =>
-          allianceTeam.team?.id === teamId
-        );
-        const isRedAlliance = redAlliance?.teams?.some((allianceTeam: any) =>
-          allianceTeam.team?.id === teamId
-        );
-
-        console.log(`Team ${teamId} is on:`, { isRedAlliance, isBlueAlliance });
-
-        // Check if we have valid scores (matches can have scores even if not officially "scored")
-        if (blueAlliance?.score !== undefined && redAlliance?.score !== undefined && (isBlueAlliance || isRedAlliance)) {
-          const blueScore = blueAlliance.score;
-          const redScore = redAlliance.score;
-
-          console.log(`Match scores: Red ${redScore} - Blue ${blueScore}`);
-
-          // Skip 0-0 matches as they are considered unplayed
-          if (redScore === 0 && blueScore === 0) {
-            console.log('Result: UNPLAYED (0-0 match, not counted in statistics)');
-          } else if (redScore === blueScore) {
-            ties++;
-            console.log('Result: TIE');
-          } else if (isRedAlliance && redScore > blueScore) {
-            wins++;
-            console.log('Result: WIN (Red Alliance)');
-          } else if (isBlueAlliance && blueScore > redScore) {
-            wins++;
-            console.log('Result: WIN (Blue Alliance)');
-          } else if (isRedAlliance || isBlueAlliance) {
-            losses++;
-            console.log('Result: LOSS');
-          } else {
-            console.log('Result: Team not found in match');
-          }
-        } else {
-          console.log('Match missing score data or team not in match');
-        }
+      // Sum up wins/losses/ties from all events in the season
+      teamRankings.data.forEach((ranking: any) => {
+        totalWins += ranking.wins || 0;
+        totalLosses += ranking.losses || 0;
+        totalTies += ranking.ties || 0;
       });
 
       const record: MatchRecord = {
-        wins,
-        losses,
-        ties,
-        totalMatches: wins + losses + ties
+        wins: totalWins,
+        losses: totalLosses,
+        ties: totalTies,
+        totalMatches: totalWins + totalLosses + totalTies
       };
 
-      console.log('Processed match record:', record);
+      console.log('Processed match record from rankings:', record);
       setMatchRecord(record);
     } catch (error) {
       console.error('Failed to fetch match record:', error);
@@ -944,7 +866,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
   };
 
   const openEventDetails = (event: Event) => {
-    navigation.navigate('EventDetail', {
+    navigation.navigate('EventMainView', {
       event: event,
       team: team
     });
@@ -1018,32 +940,72 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
     return eventsBySeason;
   }, [eventsState.events, seasons]);
 
-  const groupAwardsBySeason = useCallback(() => {
+  const groupAwardsBySeason = useCallback(async () => {
+    if (teamAwards.length === 0) {
+      setGroupedAwards({});
+      return;
+    }
+
     const awardsBySeason: { [seasonName: string]: Award[] } = {};
+    const eventCache = new Map<number, Event>();
 
     console.log('Grouping awards by season. Total awards:', teamAwards.length);
-    console.log('Available seasons:', seasons.map(s => s.label));
+    console.log('Available events loaded:', eventsState.events.length);
 
-    teamAwards.forEach(award => {
-      console.log('Processing award:', award.title, 'Event:', award.event);
-      let seasonName: string = 'Awards'; // Default fallback
+    // First, cache all loaded events by ID for quick lookup
+    eventsState.events.forEach(event => {
+      eventCache.set(event.id, event);
+    });
 
-      // Try to match the award's event with events we have loaded
-      const matchedEvent = eventsState.events.find(event => event.id === award.event.id);
+    // Process each award and fetch missing event data if needed
+    for (const award of teamAwards) {
+      let matchedEvent = eventCache.get(award.event.id);
+
+      // If event not in cache, fetch it from the API
+      if (!matchedEvent) {
+        try {
+          console.log(`Fetching event ${award.event.id} for award "${award.title}"`);
+          const eventResponse = await robotEventsAPI.getEventById(award.event.id);
+          if (eventResponse) {
+            // Transform API event to match our Event type (same transformation as in DataCacheContext)
+            const transformedEvent: Event = {
+              ...eventResponse,
+              program: {
+                id: eventResponse.program.id,
+                name: eventResponse.program.name,
+                code: eventResponse.program.code || 'UNKNOWN',
+              },
+              season: eventResponse.season ? {
+                id: eventResponse.season.id,
+                name: eventResponse.season.name,
+                program: {
+                  id: eventResponse.program.id,
+                  name: eventResponse.program.name,
+                  code: eventResponse.program.code || 'UNKNOWN',
+                },
+              } : { id: 0, name: 'Unknown', program: { id: 0, name: 'Unknown', code: 'UNKNOWN' } },
+            };
+            matchedEvent = transformedEvent;
+            eventCache.set(award.event.id, transformedEvent);
+          }
+        } catch (error) {
+          console.error(`Failed to fetch event ${award.event.id}:`, error);
+        }
+      }
+
+      // Determine season name from the matched event
+      let seasonName: string = 'Unknown Season';
       if (matchedEvent && matchedEvent.season && matchedEvent.season.name) {
         seasonName = matchedEvent.season.name;
       } else {
-        // Use the most recent season as default
-        if (seasons.length > 0) {
-          seasonName = seasons[0].label;
-        }
+        console.warn(`Could not determine season for award "${award.title}" (Event ID: ${award.event.id})`);
       }
 
       if (!awardsBySeason[seasonName]) {
         awardsBySeason[seasonName] = [];
       }
       awardsBySeason[seasonName].push(award);
-    });
+    }
 
     // Sort awards within each season by event order (or title)
     Object.keys(awardsBySeason).forEach(season => {
@@ -1053,8 +1015,8 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
     console.log('Grouped awards by season:', Object.keys(awardsBySeason).map(season =>
       `${season}: ${awardsBySeason[season].length} awards`));
 
-    return awardsBySeason;
-  }, [teamAwards, seasons, eventsState.events]);
+    setGroupedAwards(awardsBySeason);
+  }, [teamAwards, eventsState.events]);
 
   // Detect Triple Crowns for the current season
   const tripleCrownData = useMemo(() => {
@@ -1157,6 +1119,11 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
     return { hasWorldsQual, hasRegionalQual };
   }, [selectedSeason, teamAwards, seasons, eventsState.events]);
 
+  // Group awards by season when awards or events change
+  useEffect(() => {
+    groupAwardsBySeason();
+  }, [groupAwardsBySeason]);
+
   // Use effects that depend on functions - placed after function declarations
   useEffect(() => {
     loadSeasons();
@@ -1206,19 +1173,30 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
     }
   }, [eventsState.events.length, seasons.length, hasAutoExpanded, groupEventsBySeason]);
 
-  // Auto-refresh data when screen comes into focus
-  // TODO: Add smarter conditions to prevent unnecessary API calls
-  // Currently commented out to prevent infinite loops and API exhaustion
-  /*
+  // Cache validation on screen focus
   useFocusEffect(
     useCallback(() => {
-      if (team?.id) {
-        console.log('[TeamInfoScreen] Screen focused, triggering auto-refresh...');
-        handleRefresh();
+      if (!team?.id || !team?.grade || !selectedSeason) return;
+
+      const programId = getProgramId(selectedProgram);
+      let seasonId: number;
+
+      // Parse season ID
+      if (selectedSeason.includes('-')) {
+        // Season name, would need to resolve - skip for now
+        return;
+      } else {
+        seasonId = parseInt(selectedSeason);
       }
-    }, [team?.id, handleRefresh])
+
+      // Check if World Skills cache is empty and pre-load if needed
+      const cacheData = getWorldSkills(seasonId, programId, team.grade);
+      if (!cacheData || cacheData.length === 0) {
+        console.log(`[TeamInfoScreen] Cache empty for ${team.grade} on focus, pre-loading...`);
+        preloadWorldSkills(seasonId, programId, team.grade);
+      }
+    }, [team?.id, team?.grade, selectedSeason, selectedProgram, getWorldSkills, preloadWorldSkills])
   );
-  */
 
   const toggleSeasonExpansion = (season: string) => {
     console.log('Toggling season:', season);
@@ -1527,8 +1505,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
       );
     }
 
-    const awardsBySeason = groupAwardsBySeason();
-    const seasonNames = Object.keys(awardsBySeason);
+    const seasonNames = Object.keys(groupedAwards);
 
     console.log('Sorting award seasons:', seasonNames);
     console.log('Available season data for sorting:', seasons.map(s => ({ label: s.label, value: s.value })));
@@ -1569,7 +1546,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
         }
       >
         {sortedSeasonNames.map(seasonName => {
-          const awards = awardsBySeason[seasonName];
+          const awards = groupedAwards[seasonName];
           const isExpanded = expandedSeasons.has(seasonName);
 
           return (
@@ -1673,7 +1650,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
                                   // Navigate to event detail - find matching event in our loaded events
                                   const matchedEvent = eventsState.events.find(event => event.id === eventId);
                                   if (matchedEvent) {
-                                    navigation.navigate('EventDetail', {
+                                    navigation.navigate('EventMainView', {
                                       event: matchedEvent,
                                       team: team
                                     });
@@ -2084,24 +2061,34 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
           </>
         )}
 
-        {/* API Information */}
+        {/* Team Data Status */}
         <Text style={[styles.sectionTitle, { color: settings.textColor, marginTop: 24, marginBottom: 16 }]}>
-          API Debug Information
+          Team Data Status
         </Text>
-        {renderTeamInfo('Current Season', selectedSeason || 'N/A')}
-        {renderTeamInfo('Global Season Enabled', globalSeasonEnabled ? 'Yes' : 'No')}
-        {renderTeamInfo('Developer Mode', settings.isDeveloperMode ? 'Yes' : 'No')}
-        {renderTeamInfo('Live Event Simulation', settings.devLiveEventSimulation ? 'Yes' : 'No')}
         {renderTeamInfo('Team Fetched', teamFetched ? 'Yes' : 'No')}
         {renderTeamInfo('Team Loading', teamLoading ? 'Yes' : 'No')}
         {renderTeamInfo('Events Count', eventsState.events.length.toString())}
         {renderTeamInfo('Events Loading', eventsState.loading ? 'Yes' : 'No')}
 
-        {/* World Skills Debug */}
+        {/* Season Information */}
+        <Text style={[styles.sectionTitle, { color: settings.textColor, marginTop: 24, marginBottom: 16 }]}>
+          Season Information
+        </Text>
+        {!globalSeasonEnabled && selectedSeason && (() => {
+          const seasonData = seasons.find(s => s.value === selectedSeason);
+          return (
+            <>
+              {renderTeamInfo('Selected Season', seasonData?.label || 'N/A')}
+              {renderTeamInfo('Selected Season ID', selectedSeason || 'N/A')}
+            </>
+          );
+        })()}
+
+        {/* World Skills Data */}
         {worldSkillsData && (
           <>
             <Text style={[styles.sectionTitle, { color: settings.textColor, marginTop: 24, marginBottom: 16 }]}>
-              World Skills Debug
+              World Skills Data
             </Text>
             {renderTeamInfo('Ranking', worldSkillsData.ranking?.toString() || 'N/A')}
             {renderTeamInfo('Combined Score', worldSkillsData.combined?.toString() || 'N/A')}
@@ -2113,13 +2100,64 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
           </>
         )}
 
-        {/* Warning */}
-        <View style={[styles.warningContainer, { backgroundColor: settings.colorScheme === 'dark' ? '#2C1810' : '#FFF8E1', borderColor: '#FF9800' }]}>
-          <Text style={[styles.warningText, { color: '#FF9800' }]}>
-            ⚠️ This tab contains technical information for debugging purposes.
-            Some data may be sensitive and should not be shared publicly.
-          </Text>
-        </View>
+        {/* Match Record Data */}
+        {matchRecord && (
+          <>
+            <Text style={[styles.sectionTitle, { color: settings.textColor, marginTop: 24, marginBottom: 16 }]}>
+              Match Record Data
+            </Text>
+            {renderTeamInfo('Wins', matchRecord.wins.toString())}
+            {renderTeamInfo('Losses', matchRecord.losses.toString())}
+            {renderTeamInfo('Ties', matchRecord.ties.toString())}
+            {renderTeamInfo('Total Matches', matchRecord.totalMatches.toString())}
+          </>
+        )}
+
+        {/* Award Counts Data */}
+        {awardCounts && Object.keys(awardCounts).length > 0 && (
+          <>
+            <Text style={[styles.sectionTitle, { color: settings.textColor, marginTop: 24, marginBottom: 16 }]}>
+              Award Counts Data
+            </Text>
+            {Object.entries(awardCounts)
+              .sort(([, a], [, b]) => b - a)
+              .map(([awardTitle, count]) => (
+                renderTeamInfo(awardTitle, count.toString())
+              ))}
+          </>
+        )}
+
+        {/* Raw Team API Response */}
+        {team && (
+          <>
+            <Text style={[styles.sectionTitle, { color: settings.textColor, marginTop: 24, marginBottom: 16 }]}>
+              Raw Team API Data
+            </Text>
+            <View style={[styles.jsonContainer, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+                <Text style={[styles.jsonText, { color: settings.textColor }]}>
+                  {JSON.stringify(team, null, 2)}
+                </Text>
+              </ScrollView>
+            </View>
+          </>
+        )}
+
+        {/* Raw World Skills API Response */}
+        {worldSkillsData && (
+          <>
+            <Text style={[styles.sectionTitle, { color: settings.textColor, marginTop: 24, marginBottom: 16 }]}>
+              Raw World Skills API Data
+            </Text>
+            <View style={[styles.jsonContainer, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+                <Text style={[styles.jsonText, { color: settings.textColor }]}>
+                  {JSON.stringify(worldSkillsData, null, 2)}
+                </Text>
+              </ScrollView>
+            </View>
+          </>
+        )}
       </View>
     </ScrollView>
   );
@@ -3307,6 +3345,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 20,
+  },
+  jsonContainer: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    maxHeight: 400,
+  },
+  jsonText: {
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    fontSize: 12,
+    lineHeight: 18,
   },
 });
 

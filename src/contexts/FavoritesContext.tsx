@@ -23,6 +23,7 @@ interface FavoritesContextType {
   favoriteTeams: string[]; // Array of team numbers
   favoriteEvents: string[]; // Array of event SKUs
   favorites: FavoriteItem[]; // All favorite items for the favorites screen
+  favoritesLoading: boolean; // Whether favorites are currently loading from storage
   addTeam: (team: Team, eventId?: number) => Promise<void>;
   removeTeam: (teamNumber: string) => Promise<void>;
   addEvent: (event: Event) => Promise<void>;
@@ -58,6 +59,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>([]);
   const [favoriteEvents, setFavoriteEvents] = useState<string[]>([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(true);
 
   useEffect(() => {
     loadFavorites();
@@ -66,13 +68,23 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
   // Filter favorites when the selected program changes
   useEffect(() => {
     filterFavoritesByProgram();
+
+    // After filtering completes, if we were loading, mark as done
+    if (favoritesLoading) {
+      console.log('[FavoritesContext] Filtering complete, setting favoritesLoading to false');
+      setFavoritesLoading(false);
+    }
   }, [settings.selectedProgram, allFavorites]);
 
   const filterFavoritesByProgram = () => {
+    console.log('[FavoritesContext] Filtering favorites for program:', settings.selectedProgram);
+    console.log('[FavoritesContext] Total favorites:', allFavorites.length);
+
     const programFavorites = allFavorites.filter(
       item => item.program === settings.selectedProgram
     );
 
+    console.log('[FavoritesContext] Program favorites:', programFavorites.length);
     setFavorites(programFavorites);
 
     // Extract team numbers and event SKUs for quick lookup (program-specific)
@@ -86,15 +98,19 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
       .map(item => item.sku!)
       .filter(Boolean);
 
+    console.log('[FavoritesContext] Filtered teams:', teams.length, ', events:', events.length);
     setFavoriteTeams(teams);
     setFavoriteEvents(events);
   };
 
   const loadFavorites = async () => {
     try {
+      console.log('[FavoritesContext] Loading favorites from storage...');
+      setFavoritesLoading(true);
       const savedFavorites = await storage.getItem('favorites');
       if (savedFavorites) {
         const parsedFavorites: FavoriteItem[] = JSON.parse(savedFavorites);
+        console.log('[FavoritesContext] Loaded', parsedFavorites.length, 'favorites from storage');
 
         // Migrate old favorites without program field to current program
         const migratedFavorites = parsedFavorites.map(item => {
@@ -109,6 +125,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
         });
 
         setAllFavorites(migratedFavorites);
+        console.log('[FavoritesContext] Set allFavorites with', migratedFavorites.length, 'items');
 
         // Save migrated favorites back to storage if there were any changes
         const needsSave = migratedFavorites.some((item, index) => {
@@ -119,10 +136,16 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
         if (needsSave) {
           await storage.setItem('favorites', JSON.stringify(migratedFavorites));
         }
+      } else {
+        console.log('[FavoritesContext] No saved favorites found in storage');
+        // No favorites to filter, safe to set loading to false immediately
+        setFavoritesLoading(false);
       }
     } catch (error) {
-      console.error('Failed to load favorites:', error);
+      console.error('[FavoritesContext] Failed to load favorites:', error);
+      setFavoritesLoading(false);
     }
+    // Don't set favoritesLoading to false here - let the filter useEffect do it after filtering completes
   };
 
   const saveFavorites = async (newAllFavorites: FavoriteItem[]) => {
@@ -362,6 +385,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
     favoriteTeams,
     favoriteEvents,
     favorites,
+    favoritesLoading,
     addTeam,
     removeTeam,
     addEvent,

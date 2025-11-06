@@ -18,7 +18,7 @@
  * - Team navigation and detailed team performance access
  * - Real-time ranking updates with refresh capability
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -37,7 +37,9 @@ import { useSettings } from '../contexts/SettingsContext';
 import { robotEventsAPI } from '../services/apiRouter';
 import { Event, Team, Division } from '../types';
 import { getMatchDisplayConfig } from '../utils/matchDisplay';
-import { getCompetitionType, is2v0Format } from '../utils/programMappings';
+import { getCompetitionType, is2v0Format, getProgramConfig } from '../utils/programMappings';
+import AnimatedScrollBar from '../components/AnimatedScrollBar';
+import RankingCardSkeleton from '../components/RankingCardSkeleton';
 
 type EventDivisionRankingsScreenRouteProp = RouteProp<any, any>;
 
@@ -55,9 +57,10 @@ interface TeamRanking {
   wins: number;
   losses: number;
   ties: number;
-  wp: number; // Win Points
-  ap: number; // Autonomous Points
-  sp: number; // Strength Points
+  wp: number;
+  ap: number;
+  sp: number;
+  high_score: number;
   total_points: number;
   average_points: number;
 }
@@ -81,14 +84,34 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
   const [teamNumberQuery, setTeamNumberQuery] = useState('');
   const [showLoading, setShowLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const flatListRef = useRef<any>(null);
+  const [showFinalistRankings, setShowFinalistRankings] = useState(false);
+  const [hasFinalistRankings, setHasFinalistRankings] = useState(false);
 
   // Use format-aware logic instead of hardcoded program checks
   const matchDisplayConfig = getMatchDisplayConfig(selectedProgram || 'VEX V5 Robotics Competition');
   const competitionType = getCompetitionType(selectedProgram || 'VEX V5 Robotics Competition');
   const isCooperative = is2v0Format(selectedProgram || 'VEX V5 Robotics Competition');
+  const programConfig = getProgramConfig(selectedProgram || 'VEX V5 Robotics Competition');
+  const programSupportsFinalistRankings = programConfig.hasFinalistRankings;
 
   // Programs with individual/cooperative formats get simplified display
   const showSimplifiedStats = isCooperative || competitionType === 'drone';
+
+  // For rankings, we want different labels than match displays
+  // Finalist rankings show high score, qualification rankings show average score
+  const getRankingsScoreLabel = () => {
+    if (showFinalistRankings) {
+      return 'High Score';
+    }
+    if (isCooperative || competitionType === 'drone') {
+      return 'Avg Score';
+    }
+    return matchDisplayConfig.scoreLabel;
+  };
 
   useEffect(() => {
     navigation.setOptions({
@@ -105,11 +128,14 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
     });
   }, [division.name, settings.topBarColor, settings.topBarContentColor]);
 
-  const displayRounded = (number: number): string => {
+  const displayRounded = (number: number | null | undefined): string => {
+    if (number === null || number === undefined) {
+      return '0.0';
+    }
     return number.toFixed(1);
   };
 
-  const fetchRankings = async () => {
+  const fetchRankings = async (fetchFinalist: boolean = false) => {
     try {
       if (!event?.id || !division?.id) {
         console.error('Missing event ID or division ID for rankings');
@@ -118,51 +144,85 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
         return;
       }
 
-      console.log('Fetching division rankings for event:', event.id, 'division:', division.id);
+      console.log(`Fetching division ${fetchFinalist ? 'finalist' : 'qualification'} rankings for event:`, event.id, 'division:', division.id);
 
-      // Fetch real rankings data from API
-      const rankingsResponse = await robotEventsAPI.getEventDivisionRankings(event.id, division.id);
+      // Fetch rankings data from API (qualification or finalist)
+      const rankingsResponse = fetchFinalist
+        ? await robotEventsAPI.getEventDivisionFinalistRankings(event.id, division.id)
+        : await robotEventsAPI.getEventDivisionRankings(event.id, division.id);
 
       // Ensure rankingsData is an array and handle undefined/null cases
       const safeRankingsData = Array.isArray(rankingsResponse.data) ? rankingsResponse.data : [];
-      console.log('Rankings data received:', safeRankingsData.length, 'rankings');
+      console.log(`[Rankings] ${fetchFinalist ? 'Finalist' : 'Qualification'} rankings data received:`, safeRankingsData.length, 'rankings');
 
-      // Debug: Log the first ranking to see the team data structure
       if (safeRankingsData.length > 0) {
-        console.log('Sample ranking team data:', JSON.stringify(safeRankingsData[0].team, null, 2));
+        console.log('[Rankings] First ranking sample:', JSON.stringify(safeRankingsData[0], null, 2));
       }
 
+
       // Create a lookup map from eventTeams for full team information
-      const eventTeamsMap = Array.isArray(eventTeams) ? eventTeams.reduce((acc, team) => {
+      let eventTeamsMap = Array.isArray(eventTeams) ? eventTeams.reduce((acc, team) => {
         if (team && team.id) {
           acc[team.id.toString()] = team;
         }
         return acc;
       }, {} as { [key: string]: Team }) : {};
 
+      try {
+        // Fetch ALL event teams with pagination
+        let allEventTeams: Team[] = [];
+        let page = 1;
+        let hasMorePages = true;
+
+        while (hasMorePages) {
+          const teamsResponse = await robotEventsAPI.getEventTeams(event.id, { page, per_page: 250 });
+          const pageTeams = Array.isArray(teamsResponse.data) ? teamsResponse.data : [];
+
+          allEventTeams = allEventTeams.concat(pageTeams as Team[]);
+
+          // Check if there are more pages
+          if (pageTeams.length < 250) {
+            hasMorePages = false;
+          } else {
+            page++;
+          }
+        }
+
+        eventTeamsMap = allEventTeams.reduce((acc, team) => {
+          if (team && team.id) {
+            acc[team.id.toString()] = team;
+          }
+          return acc;
+        }, {} as { [key: string]: Team });
+      } catch (error) {
+        console.error('Failed to fetch event teams:', error);
+      }
+
       // Transform API rankings to UI rankings (convert team IdInfo to Team)
+      // Note: Finalist rankings may have null id, so we check for team.id instead
       const transformedRankings: TeamRanking[] = safeRankingsData.filter(ranking =>
         ranking && ranking.team && ranking.team.id
       ).map(ranking => {
         try {
-          // Get full team data from eventTeams if available
-          const fullTeamData = eventTeamsMap[ranking.team.id.toString()];
+          const teamId = ranking.team.id;
+          const fullTeamData = eventTeamsMap[teamId.toString()];
 
-          // Get team number from teamsMap or full team data
-          const teamNumber = teamsMap[ranking.team.id.toString()] || fullTeamData?.number || '';
+          const teamNumber = teamsMap[teamId.toString()]
+            || fullTeamData?.number
+            || ranking.team.name
+            || '';
 
-          // Get team name from full team data (proper team_name field)
           const teamName = fullTeamData?.team_name || '';
-
-          console.log(`Team ID ${ranking.team.id}: number="${teamNumber}", name="${teamName}"`);
 
           return {
             ...ranking,
+            // Finalist rankings have null id, so we generate a unique one
+            id: ranking.id || parseInt(`${event.id}${division.id}${ranking.rank}${teamId}`, 10),
             team: fullTeamData ? {
               ...fullTeamData,
-              number: teamNumber, // Ensure number is from teamsMap if available
+              number: teamNumber,
             } : {
-              id: ranking.team.id,
+              id: teamId,
               number: teamNumber,
               team_name: teamName,
               organization: '',
@@ -187,10 +247,47 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
       }).filter(Boolean) as TeamRanking[];
 
       // Sort rankings by rank in ascending order (1, 2, 3, etc.)
-      const sortedRankings = transformedRankings.sort((a, b) => a.rank - b.rank);
+      // Filter out any null/undefined items as a safety check
+      const sortedRankings = transformedRankings
+        .filter(r => r && r.team && r.rank)
+        .sort((a, b) => a.rank - b.rank);
+
+      console.log(`[Rankings] After transformation: ${sortedRankings.length} rankings ready to display`);
+
+      // Debug: Log first few transformed rankings to verify structure
+      if (sortedRankings.length > 0) {
+        console.log('[Rankings] First transformed ranking:', JSON.stringify({
+          id: sortedRankings[0].id,
+          rank: sortedRankings[0].rank,
+          teamId: sortedRankings[0].team?.id,
+          teamNumber: sortedRankings[0].team?.number,
+          teamName: sortedRankings[0].team?.team_name,
+          wins: sortedRankings[0].wins,
+          losses: sortedRankings[0].losses,
+          ties: sortedRankings[0].ties,
+          wp: sortedRankings[0].wp,
+          ap: sortedRankings[0].ap,
+          sp: sortedRankings[0].sp,
+          high_score: sortedRankings[0].high_score,
+          average_points: sortedRankings[0].average_points,
+          total_points: sortedRankings[0].total_points,
+        }, null, 2));
+      }
 
       setRankings(sortedRankings);
       setFilteredRankings(sortedRankings);
+
+      // Check if finalist rankings exist (only if program supports them and we're fetching qualification rankings)
+      if (programSupportsFinalistRankings && !fetchFinalist) {
+        try {
+          const finalistResponse = await robotEventsAPI.getEventDivisionFinalistRankings(event.id, division.id);
+          const finalistData = Array.isArray(finalistResponse.data) ? finalistResponse.data : [];
+          setHasFinalistRankings(finalistData.length > 0);
+        } catch (error) {
+          console.log('No finalist rankings available or error fetching:', error);
+          setHasFinalistRankings(false);
+        }
+      }
     } catch (error) {
       console.error('Failed to fetch division rankings:', error);
       Alert.alert('Error', 'Failed to load division rankings. Please try again.');
@@ -202,18 +299,24 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchRankings();
+    await fetchRankings(showFinalistRankings);
+  };
+
+  const handleToggleRankingsType = async () => {
+    setShowLoading(true);
+    setShowFinalistRankings(!showFinalistRankings);
+    await fetchRankings(!showFinalistRankings);
   };
 
   useEffect(() => {
-    fetchRankings();
+    fetchRankings(showFinalistRankings);
   }, [event.id, division.id]);
 
   // Refresh data when tab becomes focused
   useFocusEffect(
     React.useCallback(() => {
-      fetchRankings();
-    }, [event.id, division.id])
+      fetchRankings(showFinalistRankings);
+    }, [event.id, division.id, showFinalistRankings])
   );
 
   useEffect(() => {
@@ -231,126 +334,136 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
     }
   }, [teamNumberQuery, rankings, teamsMap]);
 
-  const navigateToTeamMatches = (teamNumber: string, teamId: number) => {
-    navigation.navigate('EventTeamMatches', {
+  const navigateToTeamView = (teamNumber: string) => {
+    navigation.navigate('EventTeamInfo', {
       event,
       teamNumber,
-      teamId,
+      teamData: null,
       division,
     });
   };
 
   const renderCompactRankingItem = ({ item }: { item: TeamRanking }) => {
-    const teamNumber = teamsMap[item.team.id.toString()] || item.team.number || '';
-    const teamName = item.team.team_name || '';
+    try {
+      const teamNumber = teamsMap[item.team.id.toString()] || item.team.number || '';
+      const teamName = item.team.team_name || '';
 
-    return (
-      <TouchableOpacity
-        style={[styles.compactRankingItem, {
-          backgroundColor: settings.cardBackgroundColor,
-          borderColor: settings.borderColor,
-        }]}
-        onPress={() => navigateToTeamMatches(teamNumber, item.team.id)}
-      >
-        <View style={styles.compactRankingRow}>
-          <Text style={[styles.compactRankNumber, { color: settings.buttonColor }]}>#{item.rank}</Text>
-          <Text style={[styles.compactTeamNumber, { color: settings.textColor }]}>{teamNumber}</Text>
-          <Text style={[styles.compactTeamName, { color: settings.secondaryTextColor }]} numberOfLines={1}>
-            {teamName || 'Unknown Team'}
-          </Text>
-        </View>
-        <View style={styles.compactStatsRow}>
-          {showSimplifiedStats ? (
-            <>
-              <Text style={[styles.compactStat, { color: settings.textColor }]}>
-                {matchDisplayConfig.scoreLabel}: {displayRounded(item.average_points)}
-              </Text>
-            </>
-          ) : (
-            <>
-              <Text style={[styles.compactStat, { color: settings.textColor }]}>
-                {item.wins}-{item.losses}-{item.ties}
-              </Text>
-              <Text style={[styles.compactStat, { color: settings.textColor }]}>WP:{item.wp}</Text>
-              <Text style={[styles.compactStat, { color: settings.textColor }]}>AP:{item.ap}</Text>
-              <Text style={[styles.compactStat, { color: settings.textColor }]}>SP:{item.sp}</Text>
-            </>
-          )}
-        </View>
-      </TouchableOpacity>
-    );
+      return (
+        <TouchableOpacity
+          style={[styles.compactRankingItem, {
+            backgroundColor: settings.cardBackgroundColor,
+            borderColor: settings.borderColor,
+          }]}
+          onPress={() => navigateToTeamView(teamNumber)}
+        >
+          <View style={styles.compactRankingRow}>
+            <Text style={[styles.compactRankNumber, { color: settings.buttonColor }]}>#{item.rank}</Text>
+            <Text style={[styles.compactTeamNumber, { color: settings.textColor }]}>{teamNumber}</Text>
+            <Text style={[styles.compactTeamName, { color: settings.secondaryTextColor }]} numberOfLines={1}>
+              {teamName || 'Unknown Team'}
+            </Text>
+          </View>
+          <View style={styles.compactStatsRow}>
+            {showSimplifiedStats ? (
+              <>
+                <Text style={[styles.compactStat, { color: settings.textColor }]}>
+                  {getRankingsScoreLabel()}: {showFinalistRankings ? (item.high_score || 0) : displayRounded(item.average_points)}
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text style={[styles.compactStat, { color: settings.textColor }]}>
+                  {item.wins || 0}-{item.losses || 0}-{item.ties || 0}
+                </Text>
+                <Text style={[styles.compactStat, { color: settings.textColor }]}>WP:{item.wp || 0}</Text>
+                <Text style={[styles.compactStat, { color: settings.textColor }]}>AP:{item.ap || 0}</Text>
+                <Text style={[styles.compactStat, { color: settings.textColor }]}>SP:{item.sp || 0}</Text>
+              </>
+            )}
+          </View>
+        </TouchableOpacity>
+      );
+    } catch (error) {
+      console.error('[Rankings] Error rendering compact ranking item:', item, error);
+      return null;
+    }
   };
 
   const renderTeamRankingRow = ({ item }: { item: TeamRanking }) => {
-    const teamNumber = teamsMap[item.team.id.toString()] || item.team.number || '';
-    const teamName = item.team.team_name || '';
-    const isFavorite = false;
+    try {
+      const teamNumber = teamsMap[item.team.id.toString()] || item.team.number || '';
+      const teamName = item.team.team_name || '';
+      const isFavorite = false;
 
-    return (
-      <TouchableOpacity
-        style={[styles.rankingItem, {
-          backgroundColor: settings.cardBackgroundColor,
-          borderColor: settings.borderColor,
-          shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000'
-        }]}
-        onPress={() => navigateToTeamMatches(teamNumber, item.team.id)}
-      >
-        {/* Team Header */}
-        <View style={styles.teamHeader}>
-          <View style={styles.teamInfo}>
-            <Text style={[styles.teamNumber, { color: settings.textColor }]}>{teamNumber}</Text>
-            {teamName ? (
-              <Text style={[styles.teamName, { color: settings.secondaryTextColor }]} numberOfLines={1}>
-                {teamName}
-              </Text>
-            ) : null}
-            {isFavorite && (
-              <Ionicons name="star" size={16} color="#FFD700" style={styles.starIcon} />
-            )}
+      return (
+        <TouchableOpacity
+          style={[styles.rankingItem, {
+            backgroundColor: settings.cardBackgroundColor,
+            borderColor: settings.borderColor,
+            shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000'
+          }]}
+          onPress={() => navigateToTeamView(teamNumber)}
+        >
+          {/* Team Header */}
+          <View style={styles.teamHeader}>
+            <View style={styles.teamInfo}>
+              <Text style={[styles.teamNumber, { color: settings.textColor }]}>{teamNumber}</Text>
+              {teamName ? (
+                <Text style={[styles.teamName, { color: settings.secondaryTextColor }]}>
+                  {teamName}
+                </Text>
+              ) : null}
+              {isFavorite && (
+                <Ionicons name="star" size={16} color="#FFD700" style={styles.starIcon} />
+              )}
+            </View>
+            <View style={[styles.rankBadge, { backgroundColor: settings.buttonColor, shadowColor: settings.buttonColor }]}>
+              <Text style={styles.rankBadgeText}>#{item.rank}</Text>
+            </View>
           </View>
-          <View style={[styles.rankBadge, { backgroundColor: settings.buttonColor, shadowColor: settings.buttonColor }]}>
-            <Text style={styles.rankBadgeText}>#{item.rank}</Text>
-          </View>
-        </View>
 
-        {/* Stats Section */}
-        {showSimplifiedStats ? (
-          // Simplified view for cooperative/individual formats
-          <View style={[styles.statsContainer, { borderTopColor: settings.borderColor }]}>
-            <View style={styles.statCard}>
-              <Text style={[styles.statLabel, { color: settings.secondaryTextColor }]}>
-                {matchDisplayConfig.scoreLabel}
-              </Text>
-              <Text style={[styles.statValue, { color: settings.buttonColor }]}>
-                {displayRounded(item.average_points)}
-              </Text>
+          {/* Stats Section */}
+          {showSimplifiedStats ? (
+            // Simplified view for cooperative/individual formats
+            <View style={[styles.statsContainer, { borderTopColor: settings.borderColor }]}>
+              <View style={styles.statCard}>
+                <Text style={[styles.statLabel, { color: settings.secondaryTextColor }]}>
+                  {getRankingsScoreLabel()}
+                </Text>
+                <Text style={[styles.statValue, { color: settings.buttonColor }]}>
+                  {showFinalistRankings ? (item.high_score || 0) : displayRounded(item.average_points)}
+                </Text>
+              </View>
             </View>
-          </View>
-        ) : (
-          // Full stats for competitive formats (2v2, 1v1)
-          <View style={[styles.statsContainer, { borderTopColor: settings.borderColor }]}>
-            <View style={styles.statCard}>
-              <Text style={[styles.statLabel, { color: settings.secondaryTextColor }]}>Record</Text>
-              <Text style={[styles.statValue, { color: settings.textColor }]}>
-                {item.wins}-{item.losses}-{item.ties}
-              </Text>
-            </View>
-            <View style={[styles.statCard, styles.statCardWithBorder, { borderLeftColor: settings.borderColor }]}>
-              <Text style={[styles.statLabel, { color: settings.secondaryTextColor }]}>WP / AP / SP</Text>
-              <Text style={[styles.statValue, { color: settings.buttonColor }]}>
-                {item.wp} / {item.ap} / {item.sp}
-              </Text>
-            </View>
+          ) : (
+            // Full stats for competitive formats (2v2, 1v1)
+            <View style={[styles.statsContainer, { borderTopColor: settings.borderColor }]}>
+              <View style={styles.statCard}>
+                <Text style={[styles.statLabel, { color: settings.secondaryTextColor }]}>Record</Text>
+                <Text style={[styles.statValue, { color: settings.textColor }]}>
+                  {item.wins || 0}-{item.losses || 0}-{item.ties || 0}
+                </Text>
+              </View>
+              <View style={[styles.statCard, styles.statCardWithBorder, { borderLeftColor: settings.borderColor }]}>
+                <Text style={[styles.statLabel, { color: settings.secondaryTextColor }]}>WP / AP / SP</Text>
+                <Text style={[styles.statValue, { color: settings.buttonColor }]}>
+                  {item.wp || 0} / {item.ap || 0} / {item.sp || 0}
+                </Text>
+              </View>
             <View style={[styles.statCard, styles.statCardWithBorder, { borderLeftColor: settings.borderColor }]}>
               <Text style={[styles.statLabel, { color: settings.secondaryTextColor }]}>Avg / Total</Text>
               <Text style={[styles.statValue, { color: settings.textColor }]}>
-                {displayRounded(item.average_points)} / {item.total_points}
+                {displayRounded(item.average_points)} / {item.total_points || 0}
               </Text>
             </View>
           </View>
         )}
-      </TouchableOpacity>
-    );
+        </TouchableOpacity>
+      );
+    } catch (error) {
+      console.error('[Rankings] Error rendering ranking item:', item, error);
+      return null;
+    }
   };
 
   const renderEmptyComponent = () => (
@@ -365,11 +478,15 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
     </View>
   );
 
-  if (showLoading) {
+  if (showLoading && rankings.length === 0) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: settings.backgroundColor }]}>
-        <ActivityIndicator size="large" color={settings.buttonColor} />
-        <Text style={[styles.loadingText, { color: settings.textColor }]}>Loading rankings...</Text>
+      <View style={[styles.container, { backgroundColor: settings.backgroundColor }]}>
+        <FlatList
+          data={Array(10).fill(null)}
+          renderItem={() => <RankingCardSkeleton compact={settings.compactViewRankings} />}
+          keyExtractor={(_, index) => `skeleton-${index}`}
+          contentContainerStyle={{ paddingVertical: 8 }}
+        />
       </View>
     );
   }
@@ -396,23 +513,63 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
             </TouchableOpacity>
           )}
         </View>
+
+        {/* Finalist Rankings Toggle - Only show if program supports it AND finalist rankings exist */}
+        {programSupportsFinalistRankings && hasFinalistRankings && (
+          <TouchableOpacity
+            style={[styles.toggleButton, {
+              backgroundColor: showFinalistRankings ? settings.buttonColor : settings.cardBackgroundColor,
+              borderColor: settings.borderColor,
+            }]}
+            onPress={handleToggleRankingsType}
+          >
+            <Ionicons
+              name={showFinalistRankings ? "trophy" : "trophy-outline"}
+              size={18}
+              color={showFinalistRankings ? '#FFFFFF' : settings.textColor}
+            />
+            <Text style={[styles.toggleButtonText, {
+              color: showFinalistRankings ? '#FFFFFF' : settings.textColor
+            }]}>
+              {showFinalistRankings ? 'Finals' : 'Quals'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      <FlatList
-        data={filteredRankings}
-        renderItem={settings.compactViewRankings ? renderCompactRankingItem : renderTeamRankingRow}
-        keyExtractor={(item) => item.id.toString()}
-        ListEmptyComponent={renderEmptyComponent}
-        contentContainerStyle={filteredRankings.length === 0 ? styles.emptyList : undefined}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={settings.buttonColor}
-          />
-        }
-      />
+      <View style={{ flex: 1 }}>
+        <FlatList
+          ref={flatListRef}
+          data={filteredRankings}
+          renderItem={settings.compactViewRankings ? renderCompactRankingItem : renderTeamRankingRow}
+          keyExtractor={(item) => item?.id?.toString() || `rank-${item.rank}`}
+          ListEmptyComponent={renderEmptyComponent}
+          contentContainerStyle={filteredRankings.length === 0 ? styles.emptyList : undefined}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={settings.buttonColor}
+            />
+          }
+          onScroll={(event) => {
+            const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+            setScrollY(contentOffset.y);
+            setContentHeight(contentSize.height);
+            setViewportHeight(layoutMeasurement.height);
+          }}
+          scrollEventThrottle={16}
+        />
+        <AnimatedScrollBar
+          scrollY={scrollY}
+          contentHeight={contentHeight}
+          viewportHeight={viewportHeight}
+          color={settings.buttonColor}
+          enabled={settings.scrollBarEnabled && settings.scrollBarRankings}
+          scrollViewRef={flatListRef}
+        />
+      </View>
     </View>
   );
 };
@@ -446,8 +603,12 @@ const styles = StyleSheet.create({
   searchContainer: {
     padding: 16,
     paddingBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   searchInputContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 12,
@@ -461,6 +622,26 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
+  },
+  toggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  toggleButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   searchIcon: {
     marginRight: 8,

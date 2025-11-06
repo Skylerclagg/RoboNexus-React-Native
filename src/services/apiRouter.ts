@@ -51,11 +51,99 @@ class APIRouter {
   private lastCachedProgram: string = '';
   private cacheHits: number = 0;
   private cacheMisses: number = 0;
+  private enableDetailedLogging: boolean = true; // Set to true to enable detailed API call logging
 
   constructor() {
     console.log('[API Router] Initialized with default program: VEX V5 Robotics Competition');
     // Initialize the cached API service for the default program
     this.updateCachedAPIService();
+  }
+
+  /**
+   * Gets caller information from the stack trace
+   */
+  private getCallerInfo(): string {
+    try {
+      const stack = new Error().stack;
+      if (!stack) return 'Unknown caller';
+
+      const stackLines = stack.split('\n');
+      // Skip the first 3 lines: Error, getCallerInfo, and the logAPICall method
+      for (let i = 3; i < Math.min(stackLines.length, 8); i++) {
+        const line = stackLines[i];
+
+        // Look for lines that contain file paths (not node_modules or native code)
+        if (line.includes('/src/') || line.includes('\\src\\')) {
+          // Extract file name and line number
+          const match = line.match(/\/([\w\/]+\.tsx?)(?::(\d+))?/);
+          if (match) {
+            const filePath = match[1];
+            const lineNumber = match[2] || '?';
+            return `${filePath}:${lineNumber}`;
+          }
+        }
+      }
+
+      return 'Unknown caller';
+    } catch (e) {
+      return 'Error getting caller info';
+    }
+  }
+
+  /**
+   * Logs detailed API call information when there's an error or unexpected response
+   */
+  private logAPIError(method: string, params?: any, error?: any, response?: any): void {
+    const caller = this.getCallerInfo();
+    const apiType = this.shouldUseRECFAPI() ? 'RECFEvents' : 'RobotEvents';
+    const statusCode = response?.status || error?.response?.status || error?.status || 'Unknown';
+
+    console.error('═══════════════════════════════════════════════════════════');
+    console.error(`[API ERROR - Status ${statusCode}] ${method}`);
+    console.error(`  HTTP Status Code: ${statusCode}`);
+    console.error(`  API Type: ${apiType}`);
+    console.error(`  Program: ${this.selectedProgram}`);
+    console.error(`  Called from: ${caller}`);
+    if (params) {
+      console.error(`  Parameters:`, JSON.stringify(params, null, 2));
+    }
+    if (error) {
+      console.error(`  Error:`, error);
+    }
+    if (response) {
+      console.error(`  Response Data:`, response.data || response);
+    }
+    console.error('═══════════════════════════════════════════════════════════');
+  }
+
+  /**
+   * Wraps API calls with error logging
+   */
+  private async wrapAPICall<T>(method: string, params: any, apiCall: () => Promise<T>): Promise<T> {
+    try {
+      const result = await apiCall();
+
+      // Check if result is unexpectedly empty or malformed (status 200 but bad data)
+      if (result === null || result === undefined) {
+        this.logAPIError(method, params, null, { status: 200, data: result });
+      } else if (typeof result === 'object' && 'data' in result) {
+        // Check for paginated responses with empty data
+        const resultAny = result as any;
+        if (Array.isArray(resultAny.data) && resultAny.data.length === 0 && resultAny.meta?.total > 0) {
+          this.logAPIError(method, params, null, {
+            status: 200,
+            data: 'Empty data array despite meta.total > 0',
+            meta: resultAny.meta
+          });
+        }
+      }
+
+      return result;
+    } catch (error: any) {
+      // Log the error with full context
+      this.logAPIError(method, params, error, error.response);
+      throw error; // Re-throw so normal error handling continues
+    }
   }
 
   // =============================================================================
@@ -204,13 +292,17 @@ class APIRouter {
   // =============================================================================
 
   public async getPrograms(filters?: ProgramFilters): Promise<ProgramsResponse> {
-    const service = this.getAPIService();
-    return service.getPrograms(filters);
+    return this.wrapAPICall('getPrograms', filters, async () => {
+      const service = this.getAPIService();
+      return service.getPrograms(filters);
+    });
   }
 
   public async getProgramById(programId: number): Promise<Program | null> {
-    const service = this.getAPIService();
-    return service.getProgramById(programId);
+    return this.wrapAPICall('getProgramById', { programId }, async () => {
+      const service = this.getAPIService();
+      return service.getProgramById(programId);
+    });
   }
 
   // =============================================================================
@@ -218,23 +310,31 @@ class APIRouter {
   // =============================================================================
 
   public async getSeasons(filters?: SeasonFilters): Promise<SeasonsResponse> {
-    const service = this.getAPIService();
-    return service.getSeasons(filters);
+    return this.wrapAPICall('getSeasons', filters, async () => {
+      const service = this.getAPIService();
+      return service.getSeasons(filters);
+    });
   }
 
   public async getSeasonById(seasonId: number): Promise<Season | null> {
-    const service = this.getAPIService();
-    return service.getSeasonById(seasonId);
+    return this.wrapAPICall('getSeasonById', { seasonId }, async () => {
+      const service = this.getAPIService();
+      return service.getSeasonById(seasonId);
+    });
   }
 
   public async getSeasonEvents(seasonId: number, filters?: EventFilters): Promise<EventsResponse> {
-    const service = this.getAPIService();
-    return service.getSeasonEvents(seasonId, filters);
+    return this.wrapAPICall('getSeasonEvents', { seasonId, ...filters }, async () => {
+      const service = this.getAPIService();
+      return service.getSeasonEvents(seasonId, filters);
+    });
   }
 
   public async getCurrentSeasonId(program?: string): Promise<number> {
-    const service = this.getAPIService(program);
-    return service.getCurrentSeasonId(program);
+    return this.wrapAPICall('getCurrentSeasonId', { program }, async () => {
+      const service = this.getAPIService(program);
+      return service.getCurrentSeasonId(program);
+    });
   }
 
   // =============================================================================
@@ -242,43 +342,59 @@ class APIRouter {
   // =============================================================================
 
   public async getEvents(filters?: EventFilters): Promise<EventsResponse> {
-    const service = this.getAPIService();
-    return service.getEvents(filters);
+    return this.wrapAPICall('getEvents', filters, async () => {
+      const service = this.getAPIService();
+      return service.getEvents(filters);
+    });
   }
 
   public async getEventById(eventId: number): Promise<Event | null> {
-    const service = this.getAPIService();
-    return service.getEventById(eventId);
+    return this.wrapAPICall('getEventById', { eventId }, async () => {
+      const service = this.getAPIService();
+      return service.getEventById(eventId);
+    });
   }
 
   public async getEventTeams(eventId: number, filters?: EventTeamFilters): Promise<TeamsResponse> {
-    const service = this.getAPIService();
-    return service.getEventTeams(eventId, filters);
+    return this.wrapAPICall('getEventTeams', { eventId, ...filters }, async () => {
+      const service = this.getAPIService();
+      return service.getEventTeams(eventId, filters);
+    });
   }
 
   public async getEventSkills(eventId: number, filters?: SkillFilters): Promise<SkillsResponse> {
-    const service = this.getAPIService();
-    return service.getEventSkills(eventId, filters);
+    return this.wrapAPICall('getEventSkills', { eventId, ...filters }, async () => {
+      const service = this.getAPIService();
+      return service.getEventSkills(eventId, filters);
+    });
   }
 
   public async getEventAwards(eventId: number, filters?: AwardFilters): Promise<AwardsResponse> {
-    const service = this.getAPIService();
-    return service.getEventAwards(eventId, filters);
+    return this.wrapAPICall('getEventAwards', { eventId, ...filters }, async () => {
+      const service = this.getAPIService();
+      return service.getEventAwards(eventId, filters);
+    });
   }
 
   public async getEventDivisionMatches(eventId: number, divisionId: number, filters?: MatchFilters): Promise<MatchesResponse> {
-    const service = this.getAPIService();
-    return service.getEventDivisionMatches(eventId, divisionId, filters);
+    return this.wrapAPICall('getEventDivisionMatches', { eventId, divisionId, ...filters }, async () => {
+      const service = this.getAPIService();
+      return service.getEventDivisionMatches(eventId, divisionId, filters);
+    });
   }
 
   public async getEventDivisionRankings(eventId: number, divisionId: number, filters?: RankingFilters): Promise<RankingsResponse> {
-    const service = this.getAPIService();
-    return service.getEventDivisionRankings(eventId, divisionId, filters);
+    return this.wrapAPICall('getEventDivisionRankings', { eventId, divisionId, ...filters }, async () => {
+      const service = this.getAPIService();
+      return service.getEventDivisionRankings(eventId, divisionId, filters);
+    });
   }
 
   public async getEventDivisionFinalistRankings(eventId: number, divisionId: number, filters?: RankingFilters): Promise<RankingsResponse> {
-    const service = this.getAPIService();
-    return service.getEventDivisionFinalistRankings(eventId, divisionId, filters);
+    return this.wrapAPICall('getEventDivisionFinalistRankings', { eventId, divisionId, ...filters }, async () => {
+      const service = this.getAPIService();
+      return service.getEventDivisionFinalistRankings(eventId, divisionId, filters);
+    });
   }
 
   // =============================================================================
@@ -286,33 +402,45 @@ class APIRouter {
   // =============================================================================
 
   public async getTeams(filters?: TeamFilters): Promise<TeamsResponse> {
-    const service = this.getAPIService();
-    return service.getTeams(filters);
+    return this.wrapAPICall('getTeams', filters, async () => {
+      const service = this.getAPIService();
+      return service.getTeams(filters);
+    });
   }
 
   public async getTeamById(teamId: number): Promise<Team | null> {
-    const service = this.getAPIService();
-    return service.getTeamById(teamId);
+    return this.wrapAPICall('getTeamById', { teamId }, async () => {
+      const service = this.getAPIService();
+      return service.getTeamById(teamId);
+    });
   }
 
   public async getTeamByNumber(teamNumber: string, program?: string): Promise<Team | null> {
-    const service = this.getAPIService(program);
-    return service.getTeamByNumber(teamNumber, program);
+    return this.wrapAPICall('getTeamByNumber', { teamNumber, program }, async () => {
+      const service = this.getAPIService(program);
+      return service.getTeamByNumber(teamNumber, program);
+    });
   }
 
   public async getTeamEvents(teamId: number, filters?: EventFilters): Promise<EventsResponse> {
-    const service = this.getAPIService();
-    return service.getTeamEvents(teamId, filters);
+    return this.wrapAPICall('getTeamEvents', { teamId, ...filters }, async () => {
+      const service = this.getAPIService();
+      return service.getTeamEvents(teamId, filters);
+    });
   }
 
   public async getTeamMatches(teamId: number, filters?: MatchFilters): Promise<MatchesResponse> {
-    const service = this.getAPIService();
-    return service.getTeamMatches(teamId, filters);
+    return this.wrapAPICall('getTeamMatches', { teamId, ...filters }, async () => {
+      const service = this.getAPIService();
+      return service.getTeamMatches(teamId, filters);
+    });
   }
 
   public async getTeamRankings(teamId: number, filters?: RankingFilters): Promise<RankingsResponse> {
-    const service = this.getAPIService();
-    return service.getTeamRankings(teamId, filters);
+    return this.wrapAPICall('getTeamRankings', { teamId, ...filters }, async () => {
+      const service = this.getAPIService();
+      return service.getTeamRankings(teamId, filters);
+    });
   }
 
   public async getTeamSkills(teamId: number, filters?: SkillFilters): Promise<SkillsResponse> {

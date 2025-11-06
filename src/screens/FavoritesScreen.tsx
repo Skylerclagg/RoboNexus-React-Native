@@ -114,7 +114,7 @@ const FavoritesScreen: React.FC<Props> = ({ navigation }) => {
 
         // Navigate with the found event
         if (eventToNavigate) {
-          navigation.navigate('EventDetail', { event: eventToNavigate });
+          navigation.navigate('EventMainView', { event: eventToNavigate });
         } else {
           // Final fallback: create a minimal event object
           console.log('Creating fallback event object');
@@ -130,7 +130,7 @@ const FavoritesScreen: React.FC<Props> = ({ navigation }) => {
             start: '',
             end: '',
           };
-          navigation.navigate('EventDetail', { event });
+          navigation.navigate('EventMainView', { event });
         }
       } catch (error) {
         console.error('Failed to fetch event:', error);

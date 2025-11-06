@@ -125,6 +125,11 @@ const GameManualScreen: React.FC<Props> = ({ navigation }) => {
     setUsesFallback(false);
   }, [selectedProgram]);
 
+  const manual = getManualData();
+
+  // Check if this program supports Quick Reference (flipbook type doesn't)
+  const supportsQuickRef = manual.type !== 'flipbook';
+
   // Set up navigation header with buttons
   useEffect(() => {
     navigation.setOptions({
@@ -135,44 +140,42 @@ const GameManualScreen: React.FC<Props> = ({ navigation }) => {
         </TouchableOpacity>
       ) : undefined,
       headerRight: () => (
-        <TouchableOpacity onPress={handleRefresh} style={{ marginRight: 16 }}>
-          <Ionicons name="refresh" size={24} color={settings.topBarContentColor || '#007AFF'} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 16 }}>
+          <TouchableOpacity onPress={handleRefresh} style={{ marginRight: 16 }}>
+            <Ionicons name="refresh" size={24} color={settings.topBarContentColor || '#007AFF'} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+            <Ionicons name="settings-outline" size={24} color={settings.topBarContentColor || '#007AFF'} />
+          </TouchableOpacity>
+        </View>
       ),
     });
-  }, [navigation, settings.topBarContentColor, activeTab]);
+  }, [navigation, settings.topBarContentColor, activeTab, supportsQuickRef]);
 
 
   const handleRefresh = () => {
-    if (activeTab === 'quickref') {
-      // Refresh the quick reference data
+    // Always refresh the quick reference data if available
+    if (supportsQuickRef) {
       quickRefRef.current?.refresh();
-    } else if (activeTab === 'pdf') {
-      // Refresh the PDF WebView
-      if (isWeb) {
-        // On web, reload the current page
-        window.location.reload();
-      } else if (webViewRef.current) {
-        // On native, reload the WebView
-        webViewRef.current.reload();
-      }
+    }
+
+    // Always refresh the PDF/WebView
+    if (isWeb) {
+      // On web, reload the current page
+      window.location.reload();
+    } else if (webViewRef.current) {
+      // On native, reload the WebView
+      webViewRef.current.reload();
     }
   };
 
 
   const openInExternalBrowser = () => {
-    const manual = getManualData();
     Linking.openURL(manual.url).catch(err => {
       console.error('Failed to open manual:', err);
       Alert.alert('Error', 'Failed to open the game manual. Please check your internet connection.');
     });
   };
-
-
-  const manual = getManualData();
-
-  // Check if this program supports Quick Reference (flipbook type doesn't)
-  const supportsQuickRef = manual.type !== 'flipbook';
 
   return (
     <View style={[styles.container, { backgroundColor: settings.backgroundColor }]}>
@@ -204,7 +207,16 @@ const GameManualScreen: React.FC<Props> = ({ navigation }) => {
               styles.tab,
               activeTab === 'pdf' && [styles.activeTab, { borderBottomColor: settings.buttonColor }]
             ]}
-            onPress={() => setActiveTab('pdf')}
+            onPress={() => {
+              if (isWeb) {
+                // On web, open PDF in new tab instead of iframe
+                const manual = getManualData();
+                window.open(manual.url, '_blank');
+              } else {
+                // On native, switch to PDF tab
+                setActiveTab('pdf');
+              }
+            }}
           >
             <Ionicons
               name="document-text"
@@ -303,6 +315,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 12,
     gap: 6,
+    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
   },
   activeTab: {
     borderBottomWidth: 3,

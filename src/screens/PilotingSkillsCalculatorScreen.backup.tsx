@@ -220,223 +220,216 @@ const PilotingSkillsCalculatorScreen: React.FC<PilotingSkillsCalculatorScreenPro
           </View>
         </View>
 
-        {/* Two Column Layout */}
-        <View style={styles.twoColumnContainer}>
-          {/* Left Column: Phase 1 and Phase 3 */}
-          <View style={[styles.column, styles.leftColumn]}>
-            {/* Phase 1 Section */}
-            <View style={[styles.phaseCard, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
-              <Text style={[styles.phaseTitleCentered, { color: '#32CD32' }]}>Phase 1</Text>
-              <Text style={[styles.phasePointsCentered, { color: settings.secondaryTextColor }]}>5 points per completion</Text>
-              <View style={styles.phaseCounterRowCentered}>
-                <Text style={[styles.phaseCountText, { color: settings.textColor }]}>{phase1Count}</Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (phase1Count > 0) {
-                      setPhase1Count(phase1Count - 1);
-                      triggerHapticsIfEnabled();
-                    }
-                  }}
-                  disabled={phase1Count <= 0}
-                >
-                  <Ionicons name="remove-circle" size={24} color={phase1Count <= 0 ? settings.secondaryTextColor : '#FF4444'} />
-                </TouchableOpacity>
-              </View>
-              <CheckboxItem
-                label="Fly under Red Arch Gate"
-                checked={phase1RedArch}
-                onToggle={() => {
-                  setPhase1RedArch(!phase1RedArch);
-                  triggerHapticsIfEnabled();
+        {/* Phase 1 and 2 Row */}
+        <View style={styles.phaseRow}>
+          {/* Phase 1 Section */}
+          <View style={[styles.phaseCard, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
+            <Text style={[styles.phaseTitleCentered, { color: '#32CD32' }]}>Phase 1</Text>
+            <Text style={[styles.phasePointsCentered, { color: settings.secondaryTextColor }]}>5 points per completion</Text>
+            <View style={styles.phaseCounterRowCentered}>
+              <Text style={[styles.phaseCountText, { color: settings.textColor }]}>{phase1Count}</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  if (phase1Count > 0) {
+                    setPhase1Count(phase1Count - 1);
+                    triggerHapticsIfEnabled();
+                  }
                 }}
-                color="#32CD32"
-                settings={settings}
-              />
-              <CheckboxItem
-                label="Fly through Green Keyhole"
-                checked={phase1GreenKeyhole}
-                onToggle={() => {
-                  setPhase1GreenKeyhole(!phase1GreenKeyhole);
-                  triggerHapticsIfEnabled();
-                }}
-                color="#32CD32"
-                settings={settings}
-              />
+                disabled={phase1Count <= 0}
+              >
+                <Ionicons name="remove-circle" size={24} color={phase1Count <= 0 ? settings.secondaryTextColor : '#FF4444'} />
+              </TouchableOpacity>
             </View>
+            <CheckboxItem
+              label="Fly under Red Arch Gate"
+              checked={phase1RedArch}
+              onToggle={() => {
+                setPhase1RedArch(!phase1RedArch);
+                triggerHapticsIfEnabled();
+              }}
+              color="#32CD32"
+              settings={settings}
+            />
+            <CheckboxItem
+              label="Fly through Green Keyhole"
+              checked={phase1GreenKeyhole}
+              onToggle={() => {
+                setPhase1GreenKeyhole(!phase1GreenKeyhole);
+                triggerHapticsIfEnabled();
+              }}
+              color="#32CD32"
+              settings={settings}
+            />
+          </View>
 
-            {/* Phase 3 Section */}
-            <View style={[styles.phaseCard, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
-              <Text style={[styles.phaseTitleCentered, { color: '#9370DB' }]}>Phase 3</Text>
-              <Text style={[styles.phasePointsCentered, { color: settings.secondaryTextColor }]}>15 points per completion</Text>
-              <View style={styles.phaseCounterRowCentered}>
-                <Text style={[styles.phaseCountText, { color: settings.textColor }]}>{phase3Count}</Text>
+          {/* Phase 2 Section */}
+          <View style={[styles.phaseCard, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
+            <Text style={[styles.phaseTitleCentered, { color: '#1E90FF' }]}>Phase 2</Text>
+            <Text style={[styles.phasePointsCentered, { color: settings.secondaryTextColor }]}>10 points per completion</Text>
+            <View style={styles.phaseCounterRowCentered}>
+              <Text style={[styles.phaseCountText, { color: settings.textColor }]}>{phase2Count}</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  if (phase2Count > 0) {
+                    setPhase2Count(phase2Count - 1);
+                    triggerHapticsIfEnabled();
+                  }
+                }}
+                disabled={phase2Count <= 0}
+              >
+                <Ionicons name="remove-circle" size={24} color={phase2Count <= 0 ? settings.secondaryTextColor : '#FF4444'} />
+              </TouchableOpacity>
+            </View>
+            <CheckboxItem
+              label="Fly through the Fly Through Panel"
+              checked={phase2FlyThrough}
+              onToggle={() => {
+                setPhase2FlyThrough(!phase2FlyThrough);
+                triggerHapticsIfEnabled();
+              }}
+              color="#1E90FF"
+              settings={settings}
+            />
+
+            {/* Small Hole Bonus nested under Phase 2 */}
+            <View style={styles.bonusSection}>
+              <Text style={[styles.bonusTitleCentered, { color: '#FF6347' }]}>Small Hole Bonus</Text>
+              <Text style={[styles.bonusPointsCentered, { color: settings.secondaryTextColor }]}>10 points per completion</Text>
+              <View style={styles.bonusCounterRowCentered}>
+                <Text style={[styles.bonusCountText, { color: settings.textColor }]}>{smallHoleBonusCount}</Text>
                 <TouchableOpacity
                   onPress={() => {
-                    if (phase3Count > 0) {
-                      setPhase3Count(phase3Count - 1);
+                    if (smallHoleBonusCount > 0) {
+                      setSmallHoleBonusCount(smallHoleBonusCount - 1);
                       triggerHapticsIfEnabled();
                     }
                   }}
-                  disabled={phase3Count <= 0}
+                  disabled={smallHoleBonusCount <= 0}
                 >
-                  <Ionicons name="remove-circle" size={24} color={phase3Count <= 0 ? settings.secondaryTextColor : '#FF4444'} />
+                  <Ionicons name="remove-circle" size={20} color={smallHoleBonusCount <= 0 ? settings.secondaryTextColor : '#FF4444'} />
                 </TouchableOpacity>
               </View>
               <CheckboxItem
-                label="Fly through Tunnel"
-                checked={phase3Tunnel}
+                label="Enter through small hole (front)"
+                checked={phase2SmallHoleIn}
                 onToggle={() => {
-                  setPhase3Tunnel(!phase3Tunnel);
+                  setPhase2SmallHoleIn(!phase2SmallHoleIn);
                   triggerHapticsIfEnabled();
                 }}
-                color="#9370DB"
+                color="#FF6347"
                 settings={settings}
               />
               <CheckboxItem
-                label="Fly through Yellow Keyhole Gate"
-                checked={phase3YellowKeyhole}
+                label="Exit through small hole (side)"
+                checked={phase2SmallHoleOut}
                 onToggle={() => {
-                  setPhase3YellowKeyhole(!phase3YellowKeyhole);
+                  setPhase2SmallHoleOut(!phase2SmallHoleOut);
                   triggerHapticsIfEnabled();
                 }}
-                color="#9370DB"
-                settings={settings}
-              />
-              <CheckboxItem
-                label="Fly through Blue Arch Gate"
-                checked={phase3BlueArch}
-                onToggle={() => {
-                  setPhase3BlueArch(!phase3BlueArch);
-                  triggerHapticsIfEnabled();
-                }}
-                color="#9370DB"
+                color="#FF6347"
                 settings={settings}
               />
             </View>
           </View>
+        </View>
 
-          {/* Right Column: Phase 2 and Landing */}
-          <View style={[styles.column, styles.rightColumn]}>
-            {/* Phase 2 Section */}
-            <View style={[styles.phaseCard, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
-              <Text style={[styles.phaseTitleCentered, { color: '#1E90FF' }]}>Phase 2</Text>
-              <Text style={[styles.phasePointsCentered, { color: settings.secondaryTextColor }]}>10 points per completion</Text>
-              <View style={styles.phaseCounterRowCentered}>
-                <Text style={[styles.phaseCountText, { color: settings.textColor }]}>{phase2Count}</Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (phase2Count > 0) {
-                      setPhase2Count(phase2Count - 1);
-                      triggerHapticsIfEnabled();
-                    }
-                  }}
-                  disabled={phase2Count <= 0}
-                >
-                  <Ionicons name="remove-circle" size={24} color={phase2Count <= 0 ? settings.secondaryTextColor : '#FF4444'} />
-                </TouchableOpacity>
-              </View>
-              <CheckboxItem
-                label="Fly through the Fly Through Panel"
-                checked={phase2FlyThrough}
-                onToggle={() => {
-                  setPhase2FlyThrough(!phase2FlyThrough);
+        {/* Phase 3 Section */}
+        <View style={[styles.section, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
+          <Text style={[styles.phaseTitleCentered, { color: '#9370DB' }]}>Phase 3</Text>
+          <Text style={[styles.phasePointsCentered, { color: settings.secondaryTextColor }]}>15 points per completion</Text>
+          <View style={styles.phaseCounterRowCentered}>
+            <Text style={[styles.phaseCountText, { color: settings.textColor }]}>{phase3Count}</Text>
+            <TouchableOpacity
+              onPress={() => {
+                if (phase3Count > 0) {
+                  setPhase3Count(phase3Count - 1);
                   triggerHapticsIfEnabled();
-                }}
-                color="#1E90FF"
-                settings={settings}
-              />
+                }
+              }}
+              disabled={phase3Count <= 0}
+            >
+              <Ionicons name="remove-circle" size={24} color={phase3Count <= 0 ? settings.secondaryTextColor : '#FF4444'} />
+            </TouchableOpacity>
+          </View>
+          <CheckboxItem
+            label="Fly through Tunnel"
+            checked={phase3Tunnel}
+            onToggle={() => {
+              setPhase3Tunnel(!phase3Tunnel);
+              triggerHapticsIfEnabled();
+            }}
+            color="#9370DB"
+            settings={settings}
+          />
+          <CheckboxItem
+            label="Fly through Yellow Keyhole Gate"
+            checked={phase3YellowKeyhole}
+            onToggle={() => {
+              setPhase3YellowKeyhole(!phase3YellowKeyhole);
+              triggerHapticsIfEnabled();
+            }}
+            color="#9370DB"
+            settings={settings}
+          />
+          <CheckboxItem
+            label="Fly through Blue Arch Gate"
+            checked={phase3BlueArch}
+            onToggle={() => {
+              setPhase3BlueArch(!phase3BlueArch);
+              triggerHapticsIfEnabled();
+            }}
+            color="#9370DB"
+            settings={settings}
+          />
+        </View>
 
-              {/* Small Hole Bonus nested under Phase 2 */}
-              <View style={styles.bonusSection}>
-                <Text style={[styles.bonusTitleCentered, { color: '#FF6347' }]}>Small Hole Bonus</Text>
-                <Text style={[styles.bonusPointsCentered, { color: settings.secondaryTextColor }]}>10 points per completion</Text>
-                <View style={styles.bonusCounterRowCentered}>
-                  <Text style={[styles.bonusCountText, { color: settings.textColor }]}>{smallHoleBonusCount}</Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (smallHoleBonusCount > 0) {
-                        setSmallHoleBonusCount(smallHoleBonusCount - 1);
-                        triggerHapticsIfEnabled();
-                      }
-                    }}
-                    disabled={smallHoleBonusCount <= 0}
-                  >
-                    <Ionicons name="remove-circle" size={20} color={smallHoleBonusCount <= 0 ? settings.secondaryTextColor : '#FF4444'} />
-                  </TouchableOpacity>
-                </View>
-                <CheckboxItem
-                  label="Enter through small hole (front)"
-                  checked={phase2SmallHoleIn}
-                  onToggle={() => {
-                    setPhase2SmallHoleIn(!phase2SmallHoleIn);
-                    triggerHapticsIfEnabled();
-                  }}
-                  color="#FF6347"
-                  settings={settings}
-                />
-                <CheckboxItem
-                  label="Exit through small hole (side)"
-                  checked={phase2SmallHoleOut}
-                  onToggle={() => {
-                    setPhase2SmallHoleOut(!phase2SmallHoleOut);
-                    triggerHapticsIfEnabled();
-                  }}
-                  color="#FF6347"
-                  settings={settings}
-                />
-              </View>
-            </View>
-
-            {/* Landing Options Section */}
-            <View style={[styles.phaseCard, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
-              <Text style={[styles.landingTitleCentered, { color: settings.textColor }]}>Landing</Text>
-              <View style={styles.landingGrid}>
-                <LandingOptionButton
-                  label="None"
-                  points={0}
-                  isSelected={selectedLanding === 'None'}
-                  onPress={() => {
-                    setSelectedLanding('None');
-                    triggerHapticsIfEnabled();
-                  }}
-                  buttonColor={settings.buttonColor}
-                  settings={settings}
-                />
-                <LandingOptionButton
-                  label="Pad"
-                  points={10}
-                  isSelected={selectedLanding === 'Pad'}
-                  onPress={() => {
-                    setSelectedLanding('Pad');
-                    triggerHapticsIfEnabled();
-                  }}
-                  buttonColor={settings.buttonColor}
-                  settings={settings}
-                />
-                <LandingOptionButton
-                  label="Bullseye"
-                  points={20}
-                  isSelected={selectedLanding === 'Bullseye'}
-                  onPress={() => {
-                    setSelectedLanding('Bullseye');
-                    triggerHapticsIfEnabled();
-                  }}
-                  buttonColor={settings.buttonColor}
-                  settings={settings}
-                />
-                <LandingOptionButton
-                  label="Cube"
-                  points={25}
-                  isSelected={selectedLanding === 'Cube'}
-                  onPress={() => {
-                    setSelectedLanding('Cube');
-                    triggerHapticsIfEnabled();
-                  }}
-                  buttonColor={settings.buttonColor}
-                  settings={settings}
-                />
-              </View>
-            </View>
+        {/* Landing Options Section */}
+        <View style={[styles.section, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
+          <View style={styles.landingGrid}>
+            <LandingOptionButton
+              label="None"
+              points={0}
+              isSelected={selectedLanding === 'None'}
+              onPress={() => {
+                setSelectedLanding('None');
+                triggerHapticsIfEnabled();
+              }}
+              buttonColor={settings.buttonColor}
+              settings={settings}
+            />
+            <LandingOptionButton
+              label="Pad"
+              points={10}
+              isSelected={selectedLanding === 'Pad'}
+              onPress={() => {
+                setSelectedLanding('Pad');
+                triggerHapticsIfEnabled();
+              }}
+              buttonColor={settings.buttonColor}
+              settings={settings}
+            />
+            <LandingOptionButton
+              label="Bullseye"
+              points={20}
+              isSelected={selectedLanding === 'Bullseye'}
+              onPress={() => {
+                setSelectedLanding('Bullseye');
+                triggerHapticsIfEnabled();
+              }}
+              buttonColor={settings.buttonColor}
+              settings={settings}
+            />
+            <LandingOptionButton
+              label="Cube"
+              points={25}
+              isSelected={selectedLanding === 'Cube'}
+              onPress={() => {
+                setSelectedLanding('Cube');
+                triggerHapticsIfEnabled();
+              }}
+              buttonColor={settings.buttonColor}
+              settings={settings}
+            />
           </View>
         </View>
       </ScrollView>
@@ -574,30 +567,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontStyle: 'italic',
   },
-  twoColumnContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  column: {
-    flex: 1,
-  },
-  leftColumn: {
-    marginRight: 5,
-  },
-  rightColumn: {
-    marginLeft: 5,
-  },
   phaseRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
     marginBottom: 10,
   },
   phaseCard: {
+    flex: 1,
     borderRadius: 12,
     padding: 12,
-    marginBottom: 10,
+    marginHorizontal: 5,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -714,27 +693,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 4,
   },
-  landingSection: {
-    marginTop: 10,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(128, 128, 128, 0.3)',
-  },
-  landingTitleCentered: {
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
   landingGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
   landingButton: {
-    width: '48.5%',
+    width: '48%',
     borderRadius: 10,
-    padding: 10,
+    padding: 12,
     marginBottom: 6,
     alignItems: 'center',
     elevation: 2,
@@ -744,12 +711,12 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   landingButtonText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: 'bold',
     marginBottom: 2,
   },
   landingButtonPoints: {
-    fontSize: 10,
+    fontSize: 11,
   },
 });
 

@@ -40,6 +40,7 @@ import { robotEventsAPI } from '../services/apiRouter';
 import { Event, Division, Team } from '../types';
 import { getMatchDisplayConfig } from '../utils/matchDisplay';
 import { isTeamVsTeamFormat, is2v0Format, useThemedScoreColors } from '../utils/programMappings';
+import MatchCardSkeleton from '../components/MatchCardSkeleton';
 
 type EventTeamMatchesScreenRouteProp = RouteProp<
   {
@@ -48,6 +49,7 @@ type EventTeamMatchesScreenRouteProp = RouteProp<
       teamNumber: string;
       teamId: number;
       division?: Division;
+      teamsMap?: Record<string, string>;
     };
   },
   'EventTeamMatches'
@@ -93,7 +95,7 @@ interface MatchListItem {
 
 
 const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
-  const { event, teamNumber, teamId, division } = route.params;
+  const { event, teamNumber, teamId, division, teamsMap = {} } = route.params;
   const settings = useSettings();
   const {
     backgroundColor,
@@ -133,22 +135,6 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
         fontWeight: '500',
         fontSize: 19,
       },
-      headerRight: () => (
-        <View style={dynamicStyles.headerButtons}>
-          <TouchableOpacity
-            style={dynamicStyles.headerButton}
-            onPress={handleRefresh}
-          >
-            <Ionicons name="refresh" size={24} color={settings.topBarContentColor} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={dynamicStyles.headerButton}
-            onPress={() => setShowingTeamNotes(true)}
-          >
-            <Ionicons name="document-text" size={24} color={settings.topBarContentColor} />
-          </TouchableOpacity>
-        </View>
-      ),
     });
   }, [teamNumber, settings.topBarColor, settings.topBarContentColor]);
 
@@ -265,17 +251,17 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
       console.log('Found', teamMatchesResponse.data.length, 'matches for team', teamNumber || 'Unknown', 'at event', event.id || 'Unknown');
 
       const matchListItems: MatchListItem[] = teamMatchesResponse.data.map((match) => {
-        // Extract team numbers from alliances
         const redTeams: string[] = [];
         const blueTeams: string[] = [];
 
         match.alliances.forEach((alliance: any) => {
           alliance.teams.forEach((teamData: any) => {
-            const teamNumber = teamData.team.name || teamData.team.id.toString();
+            const teamId = teamData.team.id;
+            const extractedTeamNumber = teamData.team.name || teamId.toString();
             if (alliance.color === 'red') {
-              redTeams.push(teamNumber);
+              redTeams.push(extractedTeamNumber);
             } else if (alliance.color === 'blue') {
-              blueTeams.push(teamNumber);
+              blueTeams.push(extractedTeamNumber);
             }
           });
         });
@@ -309,23 +295,17 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
         };
       });
 
-      // Sort by scheduled time first, then by start time as backup
       matchListItems.sort((a, b) => {
-        // Primary sort: scheduled time
-        if (a.scheduledTime && b.scheduledTime) {
-          return a.scheduledTime.getTime() - b.scheduledTime.getTime();
-        }
-        if (a.scheduledTime && !b.scheduledTime) return -1; // Scheduled matches come first
-        if (!a.scheduledTime && b.scheduledTime) return 1;
+        const timeA = a.time ? new Date(a.time).getTime() : 0;
+        const timeB = b.time ? new Date(b.time).getTime() : 0;
 
-        // Backup sort: start time (for matches without scheduled time)
-        if (a.startedTime && b.startedTime) {
-          return a.startedTime.getTime() - b.startedTime.getTime();
+        if (timeA && timeB) {
+          return timeA - timeB;
         }
-        if (a.startedTime && !b.startedTime) return -1; // Started matches come first
-        if (!a.startedTime && b.startedTime) return 1;
 
-        // Final fallback: match ID
+        if (timeA && !timeB) return -1;
+        if (!timeA && timeB) return 1;
+
         return a.id - b.id;
       });
 
@@ -726,22 +706,23 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
       started: matchItem.time
     };
 
-    // Build teamsMap from raw match data with team ID -> team name mapping
-    const teamsMap: Record<string, string> = {};
-    if (matchItem.rawMatch && matchItem.rawMatch.alliances) {
+    let matchTeamsMap = teamsMap;
+    if (Object.keys(matchTeamsMap).length === 0 && matchItem.rawMatch && matchItem.rawMatch.alliances) {
+      const builtMap: Record<string, string> = {};
       matchItem.rawMatch.alliances.forEach((alliance: any) => {
         alliance.teams.forEach((teamData: any) => {
           const teamId = teamData.team.id.toString();
-          const teamName = teamData.team.team_name || teamData.team.name || '';
-          teamsMap[teamId] = teamName;
+          const extractedTeamNumber = teamData.team.name || teamId;
+          builtMap[teamId] = extractedTeamNumber;
         });
       });
+      matchTeamsMap = builtMap;
     }
 
     navigation.navigate('MatchNotes', {
       event,
       match: matchForNotes,
-      teamsMap: teamsMap,
+      teamsMap: matchTeamsMap,
     });
   };
 
@@ -802,7 +783,7 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
                   team === teamNumber && dynamicStyles.compactHighlightedRedTeamButton,
                 ]}
                 onPress={() => {
-                  navigation.navigate('EventTeamView', {
+                  navigation.navigate('EventTeamInfo', {
                     event: event,
                     teamNumber: team,
                     teamData: null,
@@ -854,7 +835,7 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
                   team === teamNumber && dynamicStyles.compactHighlightedBlueTeamButton,
                 ]}
                 onPress={() => {
-                  navigation.navigate('EventTeamView', {
+                  navigation.navigate('EventTeamInfo', {
                     event: event,
                     teamNumber: team,
                     teamData: null,
@@ -920,7 +901,7 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
                       }
                     ]}
                     onPress={() => {
-                      navigation.navigate('EventTeamView', {
+                      navigation.navigate('EventTeamInfo', {
                         event: event,
                         teamNumber: team,
                         teamData: null,
@@ -960,7 +941,7 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
                       }
                     ]}
                     onPress={() => {
-                      navigation.navigate('EventTeamView', {
+                      navigation.navigate('EventTeamInfo', {
                         event: event,
                         teamNumber: team,
                         teamData: null,
@@ -1032,7 +1013,7 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
                       }
                     ]}
                     onPress={() => {
-                      navigation.navigate('EventTeamView', {
+                      navigation.navigate('EventTeamInfo', {
                         event: event,
                         teamNumber: team,
                         teamData: null,
@@ -1076,7 +1057,7 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
                       }
                     ]}
                     onPress={() => {
-                      navigation.navigate('EventTeamView', {
+                      navigation.navigate('EventTeamInfo', {
                         event: event,
                         teamNumber: team,
                         teamData: null,
@@ -1166,9 +1147,13 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
 
   if (showLoading) {
     return (
-      <View style={dynamicStyles.loadingContainer}>
-        <ActivityIndicator size="large" color={settings.buttonColor} />
-        <Text style={dynamicStyles.loadingText}>Loading matches...</Text>
+      <View style={dynamicStyles.container}>
+        <FlatList
+          data={Array(8).fill(null)}
+          renderItem={() => <MatchCardSkeleton />}
+          keyExtractor={(_, index) => `skeleton-${index}`}
+          contentContainerStyle={{ paddingVertical: 8 }}
+        />
       </View>
     );
   }

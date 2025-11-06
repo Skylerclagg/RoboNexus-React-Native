@@ -36,50 +36,34 @@ const WorldSkillsFiltersModal: React.FC<WorldSkillsFiltersModalProps> = ({
   selectedProgram,
 }) => {
   const settings = useSettings();
-  const { updateGlobalSeason, globalSeasonEnabled, selectedSeason: globalSeason } = settings;
+  const { updateGlobalSeason } = settings;
   const [localFilters, setLocalFilters] = useState<WorldSkillsFilters>(filters);
 
   useEffect(() => {
     setLocalFilters(filters);
   }, [filters]);
 
-  // Sync with global season when global mode is enabled
-  useEffect(() => {
-    if (globalSeasonEnabled && globalSeason && globalSeason !== localFilters.season) {
-      console.log('WorldSkillsFiltersModal: Syncing to global season:', globalSeason);
-      setLocalFilters(prev => ({ ...prev, season: globalSeason }));
-    }
-  }, [globalSeasonEnabled, globalSeason, localFilters.season]);
-
   const handleApplyFilters = () => {
-    console.log('WorldSkillsFiltersModal: Applying filters:', localFilters, 'globalSeasonEnabled:', globalSeasonEnabled);
-    onFiltersChange(localFilters);
+    console.log('WorldSkillsFiltersModal: Applying filters:', localFilters);
 
-    // Update global season if a season is selected
+    // Update global season when applying filters
     if (localFilters.season) {
       updateGlobalSeason(localFilters.season);
     }
+
+    onFiltersChange(localFilters);
     onClose();
   };
 
-  const handleResetFilters = () => {
-    // Use global season if global mode is enabled, otherwise use first available season
-    const defaultSeason = (globalSeasonEnabled && globalSeason)
-      ? globalSeason
-      : (seasons.length > 0 ? seasons[0].value : '');
+  const handleClearFilters = () => {
+    const defaultSeason = seasons.length > 0 ? seasons[0].value : '';
 
-    const resetFilters: WorldSkillsFilters = {
+    const clearedFilters: WorldSkillsFilters = {
       season: defaultSeason,
       region: '', // All regions
     };
-    setLocalFilters(resetFilters);
-  };
-
-  const updateLocalFilter = <K extends keyof WorldSkillsFilters>(
-    key: K,
-    value: WorldSkillsFilters[K]
-  ) => {
-    setLocalFilters(prev => ({ ...prev, [key]: value }));
+    setLocalFilters(clearedFilters);
+    onFiltersChange(clearedFilters);
   };
 
   return (
@@ -90,67 +74,74 @@ const WorldSkillsFiltersModal: React.FC<WorldSkillsFiltersModalProps> = ({
       onRequestClose={onClose}
     >
       <View style={[styles.container, { backgroundColor: settings.backgroundColor }]}>
-        {/* Header */}
-        <View style={[styles.header, { borderBottomColor: settings.borderColor }]}>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color={settings.textColor} />
+        {/* Modern Header */}
+        <View style={[styles.header, {
+          backgroundColor: settings.cardBackgroundColor,
+          borderBottomColor: settings.borderColor,
+          shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000'
+        }]}>
+          <TouchableOpacity onPress={onClose} style={styles.headerButton}>
+            <Ionicons name="close" size={24} color={settings.iconColor} />
           </TouchableOpacity>
-          <Text style={[styles.title, { color: settings.textColor }]}>
-            World Skills Filters
-          </Text>
-          <TouchableOpacity onPress={handleResetFilters}>
-            <Text style={[styles.resetButton, { color: settings.buttonColor }]}>Reset</Text>
+          <Text style={[styles.headerTitle, { color: settings.textColor }]}>World Skills Filters</Text>
+          <TouchableOpacity onPress={handleApplyFilters} style={[styles.applyHeaderButton, { backgroundColor: settings.buttonColor }]}>
+            <Text style={styles.applyHeaderButtonText}>Apply</Text>
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.content}>
-          {/* Program Display */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: settings.textColor }]}>Program</Text>
-            <View style={[styles.infoCard, {
-              backgroundColor: settings.cardBackgroundColor,
-              borderColor: settings.borderColor
-            }]}>
-              <Text style={[styles.programText, { color: settings.textColor }]}>
-                {selectedProgram}
-              </Text>
-            </View>
-          </View>
-
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Season Filter */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: settings.textColor }]}>Season</Text>
+          <View style={[styles.modernFilterCard, {
+            backgroundColor: settings.cardBackgroundColor,
+            borderColor: settings.borderColor,
+            shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000'
+          }]}>
+            <View style={styles.filterHeader}>
+              <Ionicons name="calendar-outline" size={20} color={settings.buttonColor} />
+              <Text style={[styles.modernFilterTitle, { color: settings.textColor }]}>Season</Text>
+            </View>
             <DropdownPicker
               options={seasons}
               selectedValue={localFilters.season}
-              onValueChange={(value) => updateLocalFilter('season', value)}
-              placeholder={seasons.length === 0 ? "Loading seasons..." : "Select a season"}
+              onValueChange={(value) => {
+                // Only update local state, don't apply yet
+                setLocalFilters({ ...localFilters, season: value });
+              }}
+              placeholder={seasons.length === 0 ? "Loading seasons..." : "Select Season"}
             />
           </View>
 
           {/* Region Filter */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: settings.textColor }]}>Region</Text>
+          <View style={[styles.modernFilterCard, {
+            backgroundColor: settings.cardBackgroundColor,
+            borderColor: settings.borderColor,
+            shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000'
+          }]}>
+            <View style={styles.filterHeader}>
+              <Ionicons name="location-outline" size={20} color={settings.buttonColor} />
+              <Text style={[styles.modernFilterTitle, { color: settings.textColor }]}>Region</Text>
+            </View>
             <DropdownPicker
               options={[{ label: 'All Regions', value: '' }, ...regions]}
               selectedValue={localFilters.region}
-              onValueChange={(value) => updateLocalFilter('region', value)}
+              onValueChange={(value) => setLocalFilters({ ...localFilters, region: value })}
               placeholder="All Regions"
             />
           </View>
-        </ScrollView>
 
-        {/* Footer */}
-        <View style={[styles.footer, { borderTopColor: settings.borderColor }]}>
+          {/* Clear Filters */}
           <TouchableOpacity
-            style={[styles.applyButton, { backgroundColor: settings.buttonColor }]}
-            onPress={handleApplyFilters}
+            style={[styles.modernClearButton, {
+              backgroundColor: settings.cardBackgroundColor,
+              borderColor: '#FF3B30',
+              shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000'
+            }]}
+            onPress={handleClearFilters}
           >
-            <Text style={[styles.applyButtonText, { color: 'white' }]}>
-              Apply Filters
-            </Text>
+            <Ionicons name="refresh" size={20} color="#FF3B30" />
+            <Text style={[styles.modernClearButtonText, { color: '#FF3B30' }]}>Clear All Filters</Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </View>
     </Modal>
   );
@@ -162,57 +153,74 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    alignItems: 'center',
+    paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  closeButton: {
-    padding: 4,
+  headerButton: {
+    padding: 8,
   },
-  title: {
+  headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    flex: 1,
-    textAlign: 'center',
   },
-  resetButton: {
+  applyHeaderButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  applyHeaderButtonText: {
+    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   content: {
     flex: 1,
-    paddingHorizontal: 16,
+    padding: 20,
   },
-  section: {
-    marginVertical: 16,
+  modernFilterCard: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+  filterHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 12,
   },
-  infoCard: {
-    padding: 16,
+  modernFilterTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  modernClearButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
     borderRadius: 12,
     borderWidth: 1,
+    marginTop: 8,
+    marginBottom: 32,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  programText: {
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  footer: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-  },
-  applyButton: {
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  applyButtonText: {
+  modernClearButtonText: {
+    marginLeft: 8,
     fontSize: 16,
     fontWeight: '600',
   },

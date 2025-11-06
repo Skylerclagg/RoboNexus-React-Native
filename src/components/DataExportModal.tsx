@@ -16,17 +16,16 @@ interface ExportField {
   key: string;
   label: string;
   category: 'info' | 'performance' | 'skills' | 'history';
-  slow?: boolean;
 }
 
 interface DataExportModalProps {
   visible: boolean;
   onClose: () => void;
-  onExport: (selectedFields: { [key: string]: boolean }, exportScope: 'event' | 'season') => void;
+  onExport: (selectedFields: { [key: string]: boolean }, exportScope: 'event' | 'season' | 'season-by-event', eventAwardsScope?: 'event' | 'season') => void;
   eventName: string;
   seasonName?: string;
   isExporting?: boolean;
-  exportProgress?: { current: number; total: number };
+  exportProgress?: { current: number; total: number; startTime?: number };
 }
 
 const EXPORTABLE_FIELDS: ExportField[] = [
@@ -36,6 +35,7 @@ const EXPORTABLE_FIELDS: ExportField[] = [
   { key: 'Organization', label: 'Organization/School', category: 'info' },
   { key: 'Team Location', label: 'Location (City, Region, Country)', category: 'info' },
   { key: 'Grade Level', label: 'Grade Level', category: 'info' },
+  { key: 'Event Name', label: 'Event Name (for by-event breakdown)', category: 'info' },
 
   // Performance
   { key: 'Total Matches', label: 'Match Count', category: 'performance' },
@@ -43,19 +43,25 @@ const EXPORTABLE_FIELDS: ExportField[] = [
   { key: 'Total Losses', label: 'Losses', category: 'performance' },
   { key: 'Total Ties', label: 'Ties', category: 'performance' },
   { key: 'Winrate', label: 'Win Rate (%)', category: 'performance' },
+  { key: 'WP', label: 'WP', category: 'performance' },
+  { key: 'AP', label: 'AP', category: 'performance' },
+  { key: 'SP', label: 'SP', category: 'performance' },
+  { key: 'High Score', label: 'Highest Score', category: 'performance' },
+  { key: 'Average Points', label: 'Average Points', category: 'performance' },
+  { key: 'Total Points', label: 'Total Points', category: 'performance' },
   { key: 'Event Rank', label: 'Qualification Rank', category: 'performance' },
 
   // Skills
-  { key: 'World Skills Ranking', label: 'World Skills Rank', category: 'skills' },
+  { key: 'Skills Ranking', label: 'Skills Ranking (Event rank or World rank)', category: 'skills' },
   { key: 'Combined Skills', label: 'Combined Score', category: 'skills' },
   { key: 'Programming Skills', label: 'Programming Score', category: 'skills' },
   { key: 'Driver Skills', label: 'Driver Score', category: 'skills' },
 
-  // History (slow - requires extra API calls)
-  { key: 'Average Qualifiers Ranking', label: 'Season Avg. Rank', category: 'history', slow: true },
-  { key: 'Total Events Attended', label: 'Events This Season', category: 'history', slow: true },
-  { key: 'Total Awards', label: 'Awards This Season', category: 'history', slow: true },
-  { key: 'Award Details', label: 'Award Names & Events', category: 'history', slow: true },
+  // History (requires additional API calls per team)
+  { key: 'Average Qualifiers Ranking', label: 'Season Avg. Rank', category: 'history' },
+  { key: 'Total Events Attended', label: 'Events This Season', category: 'history' },
+  { key: 'Total Awards', label: 'Awards This Season', category: 'history' },
+  { key: 'Award Details', label: 'Award Names & Events', category: 'history' },
 ];
 
 const DataExportModal: React.FC<DataExportModalProps> = ({
@@ -69,17 +75,38 @@ const DataExportModal: React.FC<DataExportModalProps> = ({
 }) => {
   const settings = useSettings();
 
-  // Initialize with default selections
+  // Initialize with default selections - enable all fields by default
   const [selectedFields, setSelectedFields] = useState<{ [key: string]: boolean }>(() => {
     const defaults: { [key: string]: boolean } = {};
     EXPORTABLE_FIELDS.forEach(field => {
-      // Enable basic fields by default, disable slow fields
-      defaults[field.key] = !field.slow;
+      defaults[field.key] = true;
     });
     return defaults;
   });
 
-  const [exportScope, setExportScope] = useState<'event' | 'season'>('event');
+  const [exportScope, setExportScope] = useState<'event' | 'season' | 'season-by-event'>('event');
+  const [eventAwardsScope, setEventAwardsScope] = useState<'event' | 'season'>('event');
+
+  // Calculate estimated time remaining
+  const getEstimatedTimeRemaining = (): string => {
+    if (!exportProgress || !exportProgress.startTime || exportProgress.current === 0) {
+      return 'Calculating...';
+    }
+
+    const elapsedMs = Date.now() - exportProgress.startTime;
+    const avgTimePerTeam = elapsedMs / exportProgress.current;
+    const remainingTeams = exportProgress.total - exportProgress.current;
+    const estimatedRemainingMs = avgTimePerTeam * remainingTeams;
+
+    // Convert to readable format
+    const seconds = Math.ceil(estimatedRemainingMs / 1000);
+    if (seconds < 60) {
+      return `${seconds} second${seconds !== 1 ? 's' : ''}`;
+    } else {
+      const minutes = Math.ceil(seconds / 60);
+      return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+    }
+  };
 
   const toggleField = (key: string) => {
     setSelectedFields(prev => ({
@@ -122,20 +149,15 @@ const DataExportModal: React.FC<DataExportModalProps> = ({
       return;
     }
 
-    const hasSlowFields = EXPORTABLE_FIELDS.some(f => f.slow && selectedFields[f.key]);
-
-    if (hasSlowFields) {
-      Alert.alert(
-        'Extended Export Time',
-        'You have selected fields that require additional API calls. This export may take several minutes depending on the number of teams.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Continue', onPress: () => onExport(selectedFields, exportScope) },
-        ]
-      );
-    } else {
-      onExport(selectedFields, exportScope);
-    }
+    // Show confirmation for all exports
+    Alert.alert(
+      'Start Export',
+      'This export will make API calls for each team and may take a few minutes to complete. Please do not leave this screen until the export finishes.\n\nAre you sure you want to continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Continue', onPress: () => onExport(selectedFields, exportScope, eventAwardsScope) },
+      ]
+    );
   };
 
   const getCategoryIcon = (category: string): string => {
@@ -209,12 +231,6 @@ const DataExportModal: React.FC<DataExportModalProps> = ({
                 <Text style={[styles.fieldLabel, { color: settings.textColor }]}>
                   {field.label}
                 </Text>
-                {field.slow && (
-                  <View style={[styles.slowBadge, { backgroundColor: `${settings.buttonColor}30`, borderColor: settings.buttonColor }]}>
-                    <Ionicons name="hourglass-outline" size={10} color={settings.buttonColor} />
-                    <Text style={[styles.slowBadgeText, { color: settings.buttonColor }]}>Slow</Text>
-                  </View>
-                )}
               </View>
               <Switch
                 value={selectedFields[field.key]}
@@ -286,6 +302,11 @@ const DataExportModal: React.FC<DataExportModalProps> = ({
               {/* Percentage */}
               <Text style={[styles.progressPercentage, { color: settings.buttonColor }]}>
                 {Math.round((exportProgress.current / exportProgress.total) * 100)}%
+              </Text>
+
+              {/* Estimated Time Remaining */}
+              <Text style={[styles.progressTimeRemaining, { color: settings.secondaryTextColor }]}>
+                Estimated time remaining: {getEstimatedTimeRemaining()}
               </Text>
 
               <Text style={[styles.progressNote, { color: settings.secondaryTextColor }]}>
@@ -375,7 +396,124 @@ const DataExportModal: React.FC<DataExportModalProps> = ({
                 </View>
               </TouchableOpacity>
             )}
+
+            {seasonName && (
+              <TouchableOpacity
+                style={[
+                  styles.scopeOption,
+                  exportScope === 'season-by-event' && styles.scopeOptionSelected,
+                  {
+                    backgroundColor: exportScope === 'season-by-event' ? `${settings.buttonColor}15` : settings.cardBackgroundColor,
+                    borderColor: exportScope === 'season-by-event' ? settings.buttonColor : settings.borderColor,
+                    shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000',
+                  }
+                ]}
+                onPress={() => setExportScope('season-by-event')}
+                activeOpacity={0.7}
+              >
+                <View style={styles.scopeOptionContent}>
+                  <View style={[
+                    styles.radioButton,
+                    exportScope === 'season-by-event' && styles.radioButtonSelected,
+                    { borderColor: exportScope === 'season-by-event' ? settings.buttonColor : settings.borderColor }
+                  ]}>
+                    {exportScope === 'season-by-event' && (
+                      <View style={[styles.radioButtonInner, { backgroundColor: settings.buttonColor }]} />
+                    )}
+                  </View>
+                  <View style={styles.scopeOptionText}>
+                    <Text style={[styles.scopeOptionTitle, { color: settings.textColor }]}>
+                      Season by Event
+                    </Text>
+                    <Text style={[styles.scopeOptionDescription, { color: settings.secondaryTextColor }]} numberOfLines={2}>
+                      One row per event per team (detailed breakdown, takes longer)
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            )}
           </View>
+
+          {/* Awards Scope for Single Event */}
+          {exportScope === 'event' && seasonName && (selectedFields['Total Awards'] || selectedFields['Award Details']) && (
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="trophy" size={20} color={settings.buttonColor} style={{ marginRight: 8 }} />
+                <Text style={[styles.sectionTitle, { color: settings.textColor }]}>Awards Scope</Text>
+              </View>
+              <Text style={[styles.sectionSubtitle, { color: settings.secondaryTextColor }]}>
+                Choose which awards to export for single event
+              </Text>
+
+              <TouchableOpacity
+                style={[
+                  styles.scopeOption,
+                  eventAwardsScope === 'event' && styles.scopeOptionSelected,
+                  {
+                    backgroundColor: eventAwardsScope === 'event' ? `${settings.buttonColor}15` : settings.cardBackgroundColor,
+                    borderColor: eventAwardsScope === 'event' ? settings.buttonColor : settings.borderColor,
+                    shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000',
+                  }
+                ]}
+                onPress={() => setEventAwardsScope('event')}
+                activeOpacity={0.7}
+              >
+                <View style={styles.scopeOptionContent}>
+                  <View style={[
+                    styles.radioButton,
+                    eventAwardsScope === 'event' && styles.radioButtonSelected,
+                    { borderColor: eventAwardsScope === 'event' ? settings.buttonColor : settings.borderColor }
+                  ]}>
+                    {eventAwardsScope === 'event' && (
+                      <View style={[styles.radioButtonInner, { backgroundColor: settings.buttonColor }]} />
+                    )}
+                  </View>
+                  <View style={styles.scopeOptionText}>
+                    <Text style={[styles.scopeOptionTitle, { color: settings.textColor }]}>
+                      Event Awards Only
+                    </Text>
+                    <Text style={[styles.scopeOptionDescription, { color: settings.secondaryTextColor }]} numberOfLines={1}>
+                      Awards won at {eventName}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.scopeOption,
+                  eventAwardsScope === 'season' && styles.scopeOptionSelected,
+                  {
+                    backgroundColor: eventAwardsScope === 'season' ? `${settings.buttonColor}15` : settings.cardBackgroundColor,
+                    borderColor: eventAwardsScope === 'season' ? settings.buttonColor : settings.borderColor,
+                    shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000',
+                  }
+                ]}
+                onPress={() => setEventAwardsScope('season')}
+                activeOpacity={0.7}
+              >
+                <View style={styles.scopeOptionContent}>
+                  <View style={[
+                    styles.radioButton,
+                    eventAwardsScope === 'season' && styles.radioButtonSelected,
+                    { borderColor: eventAwardsScope === 'season' ? settings.buttonColor : settings.borderColor }
+                  ]}>
+                    {eventAwardsScope === 'season' && (
+                      <View style={[styles.radioButtonInner, { backgroundColor: settings.buttonColor }]} />
+                    )}
+                  </View>
+                  <View style={styles.scopeOptionText}>
+                    <Text style={[styles.scopeOptionTitle, { color: settings.textColor }]}>
+                      Season Awards
+                    </Text>
+                    <Text style={[styles.scopeOptionDescription, { color: settings.secondaryTextColor }]} numberOfLines={1}>
+                      All awards won during {seasonName}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Quick Actions */}
           <View style={styles.quickActions}>
@@ -678,7 +816,13 @@ const styles = StyleSheet.create({
   progressPercentage: {
     fontSize: 28,
     fontWeight: '700',
+    marginBottom: 8,
+  },
+  progressTimeRemaining: {
+    fontSize: 14,
+    textAlign: 'center',
     marginBottom: 12,
+    fontWeight: '500',
   },
   progressNote: {
     fontSize: 13,

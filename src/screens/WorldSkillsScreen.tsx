@@ -33,12 +33,15 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { robotEventsAPI } from '../services/apiRouter';
 import { useSettings } from '../contexts/SettingsContext';
+import { useDataCache } from '../contexts/DataCacheContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { WorldSkillsResponse } from '../types';
 import WorldSkillsFiltersModal from '../components/WorldSkillsFiltersModal';
 import WorldSkillsRankingSkeleton from '../components/WorldSkillsRankingSkeleton';
+import AnimatedScrollBar from '../components/AnimatedScrollBar';
 import {
   getProgramId,
   programHasWorldSkills,
@@ -65,6 +68,7 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
   const settings = useSettings();
   const { selectedProgram, globalSeasonEnabled, selectedSeason: globalSeason, updateGlobalSeason } = settings;
   const { addTeam, removeTeam, isTeamFavorited } = useFavorites();
+  const { getWorldSkills, preloadWorldSkills, forceRefreshWorldSkills } = useDataCache();
 
   // Get available divisions based on the selected program using centralized config
   const getAvailableDivisions = (): DivisionType[] => {
@@ -93,6 +97,12 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
   });
   const [availableRegions, setAvailableRegions] = useState<{label: string, value: string}[]>([]);
   const searchInputRef = useRef<TextInput>(null);
+
+  // Scroll tracking for AnimatedScrollBar
+  const [scrollY, setScrollY] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const flatListRef = useRef<any>(null);
 
   // Filter rankings based on search text and region filter
   const filteredRankings = useMemo(() => {
@@ -226,9 +236,19 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
         setSelectedSeasonId(seasonId.toString());
       }
 
+      const programId = getProgramId(selectedProgram);
+
       console.log('Loading rankings for season ID:', seasonId, 'division:', selectedDivision, 'program:', selectedProgram);
-      // Fetch world skills rankings - API level handles token rotation automatically
-      const skillsData = await robotEventsAPI.getWorldSkillsRankings(seasonId, selectedDivision);
+
+      // Cache-first approach: try to get from cache first
+      let skillsData = getWorldSkills(seasonId, programId, selectedDivision);
+
+      // If cache is empty, pre-load it and use returned data
+      if (!skillsData || skillsData.length === 0) {
+        console.log('Cache empty, pre-loading World Skills data...');
+        skillsData = await preloadWorldSkills(seasonId, programId, selectedDivision);
+      }
+
       console.log('Loaded rankings count:', skillsData.length);
       setRankings(skillsData);
 
@@ -258,8 +278,15 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
       }
 
       const seasonId = parseInt(selectedSeasonId);
+      const programId = getProgramId(selectedProgram);
+
       console.log('Refreshing rankings for season:', seasonId, 'division:', selectedDivision, 'program:', selectedProgram);
-      const skillsData = await robotEventsAPI.getWorldSkillsRankings(seasonId, selectedDivision);
+
+      // Force refresh cache
+      await forceRefreshWorldSkills(seasonId, programId, selectedDivision);
+
+      // Get refreshed data from cache
+      const skillsData = getWorldSkills(seasonId, programId, selectedDivision);
       console.log('Refresh successful, loaded:', skillsData.length, 'teams');
       setRankings(skillsData);
 
@@ -275,7 +302,7 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
     } finally {
       setRefreshing(false);
     }
-  }, [selectedDivision, selectedSeasonId, selectedProgram]);
+  }, [selectedDivision, selectedSeasonId, selectedProgram, getWorldSkills, forceRefreshWorldSkills]);
 
 
   const toggleSearch = useCallback(() => {
@@ -316,10 +343,20 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
+    const programId = getProgramId(selectedProgram);
+
     console.log('Loading rankings for season:', newSeasonId, 'division:', selectedDivision);
     setIsLoading(true);
     try {
-      const skillsData = await robotEventsAPI.getWorldSkillsRankings(newSeasonId, selectedDivision);
+      // Cache-first approach
+      let skillsData = getWorldSkills(newSeasonId, programId, selectedDivision);
+
+      // If cache is empty, pre-load it and use returned data
+      if (!skillsData || skillsData.length === 0) {
+        console.log('Cache empty for new season, pre-loading...');
+        skillsData = await preloadWorldSkills(newSeasonId, programId, selectedDivision);
+      }
+
       console.log('Loaded rankings:', skillsData.length, 'teams');
       setRankings(skillsData);
 
@@ -332,7 +369,7 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedDivision, updateGlobalSeason]);
+  }, [selectedDivision, selectedProgram, updateGlobalSeason, getWorldSkills, preloadWorldSkills]);
 
   const handleFiltersChange = useCallback((filters: { season: string; region: string }) => {
     setWorldSkillsFilters(filters);
@@ -414,11 +451,11 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
 
   // Sync worldSkillsFilters with selectedSeasonId
   useEffect(() => {
-    if (selectedSeasonId !== worldSkillsFilters.season) {
+    if (selectedSeasonId && selectedSeasonId !== worldSkillsFilters.season) {
       console.log('Syncing worldSkillsFilters season with selectedSeasonId:', selectedSeasonId);
       setWorldSkillsFilters(prev => ({ ...prev, season: selectedSeasonId }));
     }
-  }, [selectedSeasonId, worldSkillsFilters.season]);
+  }, [selectedSeasonId]); // Only depend on selectedSeasonId to avoid loops
 
   useEffect(() => {
     if (selectedSeasonId && selectedDivision) {
@@ -450,6 +487,23 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
     }
   }, [isSearchVisible]);
 
+  // Cache validation on screen focus
+  useFocusEffect(
+    useCallback(() => {
+      if (!selectedSeasonId || !selectedDivision) return;
+
+      const seasonId = parseInt(selectedSeasonId);
+      const programId = getProgramId(selectedProgram);
+
+      // Check if cache is empty and pre-load if needed
+      const cacheData = getWorldSkills(seasonId, programId, selectedDivision);
+      if (!cacheData || cacheData.length === 0) {
+        console.log(`[WorldSkills] Cache empty for ${selectedDivision} on focus, pre-loading...`);
+        preloadWorldSkills(seasonId, programId, selectedDivision);
+      }
+    }, [selectedSeasonId, selectedDivision, selectedProgram, getWorldSkills, preloadWorldSkills])
+  );
+
   const renderRankingItem = useCallback(({ item }: { item: ExtendedWorldSkillsResponse }) => (
     <TouchableOpacity
       style={[styles.rankingItem, {
@@ -477,7 +531,7 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
 
         <View style={styles.teamInfo}>
           <Text style={[styles.teamNumber, { color: settings.textColor }]}>{item.team.team}</Text>
-          <Text style={[styles.teamName, { color: settings.secondaryTextColor }]} numberOfLines={1}>{item.team.teamName}</Text>
+          <Text style={[styles.teamName, { color: settings.secondaryTextColor }]}>{item.team.teamName}</Text>
           <Text style={[styles.organization, { color: settings.secondaryTextColor }]} numberOfLines={1}>{item.team.organization}</Text>
           <Text style={[styles.location, { color: settings.secondaryTextColor }]} numberOfLines={1}>📍 {formatLocation(item.team)}</Text>
         </View>
@@ -574,8 +628,9 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
             >
               <Text style={[
                 styles.tabText,
-                { color: settings.textColor },
-                selectedDivision === division && { color: settings.buttonColor, fontWeight: '600' }
+                selectedDivision === division ?
+                  { color: settings.buttonColor, fontWeight: '600' } :
+                  { color: settings.textColor }
               ]}>
                 {division}
               </Text>
@@ -675,8 +730,16 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
               placeholderTextColor={settings.secondaryTextColor}
               value={searchText}
               onChangeText={setSearchText}
-              clearButtonMode="while-editing"
             />
+            {searchText.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setSearchText('')}
+                style={styles.clearButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="close-circle" size={20} color={settings.secondaryTextColor} />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       )}
@@ -692,16 +755,68 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
       )}
 
       {/* FlatList without header */}
-      <FlatList
-        data={filteredRankings}
-        renderItem={renderRankingItem}
-        keyExtractor={(item) => `${item.team.team}-${currentSeason}-${selectedDivision}`}
-        style={styles.list}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      />
+      <View style={{ flex: 1 }}>
+        <FlatList
+          ref={flatListRef}
+          data={filteredRankings}
+          renderItem={renderRankingItem}
+          keyExtractor={(item) => `${item.team.team}-${currentSeason}-${selectedDivision}`}
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={
+            !isLoading ? (
+              <View style={styles.emptyStateContainer}>
+                <Ionicons
+                  name={worldSkillsFilters.region ? "filter-outline" : "trophy-outline"}
+                  size={64}
+                  color={settings.secondaryTextColor}
+                  style={styles.emptyStateIcon}
+                />
+                <Text style={[styles.emptyStateTitle, { color: settings.textColor }]}>
+                  {worldSkillsFilters.region ? 'No Teams Found' : 'No Rankings Available'}
+                </Text>
+                <Text style={[styles.emptyStateMessage, { color: settings.secondaryTextColor }]}>
+                  {worldSkillsFilters.region
+                    ? `No teams found in ${worldSkillsFilters.region} for ${selectedDivision}.`
+                    : `No World Skills rankings available for ${selectedDivision} this season.`
+                  }
+                </Text>
+                {worldSkillsFilters.region && (
+                  <TouchableOpacity
+                    style={[styles.clearFiltersButton, { backgroundColor: settings.buttonColor }]}
+                    onPress={() => {
+                      setWorldSkillsFilters({ ...worldSkillsFilters, region: '' });
+                    }}
+                  >
+                    <Ionicons name="close-circle-outline" size={20} color="#FFFFFF" />
+                    <Text style={styles.clearFiltersButtonText}>Clear Filters</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ) : null
+          }
+          onScroll={(event) => {
+            const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+            setScrollY(contentOffset.y);
+            setContentHeight(contentSize.height);
+            setViewportHeight(layoutMeasurement.height);
+          }}
+          scrollEventThrottle={16}
+        />
+
+        {/* Animated Scroll Bar */}
+        <AnimatedScrollBar
+          scrollY={scrollY}
+          contentHeight={contentHeight}
+          viewportHeight={viewportHeight}
+          color={settings.buttonColor}
+          enabled={settings.scrollBarEnabled && settings.scrollBarWorldSkills}
+          scrollViewRef={flatListRef}
+        />
+      </View>
 
       {/* World Skills Filters Modal */}
       <WorldSkillsFiltersModal
@@ -800,6 +915,7 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     marginLeft: 8,
+    padding: 2,
   },
   searchResults: {
     fontSize: 12,
@@ -822,6 +938,42 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 80,
+    paddingHorizontal: 32,
+  },
+  emptyStateIcon: {
+    marginBottom: 16,
+    opacity: 0.5,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyStateMessage: {
+    fontSize: 15,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  clearFiltersButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    gap: 8,
+  },
+  clearFiltersButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   list: {
     flex: 1,
