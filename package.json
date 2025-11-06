@@ -7,8 +7,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "build:web": "expo export --platform web",
-    "deploy": "gh-pages -d dist"
+    "build:web": "expo export --platform web && mv dist/assets/node_modules dist/assets/vendor && sed -i '' 's|assets/node_modules|assets/vendor|g' dist/_expo/static/js/web/*.js",
+    "deploy": "npm run build:web && gh-pages -d dist -t --nojekyll --cname robonexus.app"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
