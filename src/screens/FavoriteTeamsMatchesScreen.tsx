@@ -19,6 +19,9 @@
  * - Refresh functionality and loading state management
  */
 import React, { useState, useEffect, useMemo } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('FavoriteTeamsMatchesScreen');
 import {
   View,
   Text,
@@ -483,21 +486,21 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
       const favoriteTeamIds = favoriteEventTeams.map(team => team.id);
       const favoriteTeamNumbers = favoriteEventTeams.map(team => team.number);
 
-      console.log('Fetching matches for', favoriteEventTeams.length, 'favorite teams:', favoriteTeamNumbers);
+      logger.debug('Fetching matches for', favoriteEventTeams.length, 'favorite teams:', favoriteTeamNumbers);
 
       let allMatches: any[] = [];
 
       // Approach 1: Try to get matches from event divisions (if available)
       if (event.divisions && event.divisions.length > 0) {
-        console.log('Event has', event.divisions.length, 'divisions, fetching matches by division');
+        logger.debug('Event has', event.divisions.length, 'divisions, fetching matches by division');
 
         for (const division of event.divisions) {
           try {
             const divisionMatchesResponse = await robotEventsAPI.getEventDivisionMatches(event.id, division.id);
-            console.log('Division', division.name || 'Unknown', 'has', divisionMatchesResponse.data.length, 'matches');
+            logger.debug('Division', division.name || 'Unknown', 'has', divisionMatchesResponse.data.length, 'matches');
             allMatches = allMatches.concat(divisionMatchesResponse.data);
           } catch (error) {
-            console.error('Failed to fetch matches for division', division.name || 'Unknown', ':', error);
+            logger.error('Failed to fetch matches for division', division.name || 'Unknown', ':', error);
           }
         }
 
@@ -512,7 +515,7 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
           );
         });
 
-        console.log('Found', filteredMatches.length, 'matches featuring favorite teams from divisions');
+        logger.debug('Found', filteredMatches.length, 'matches featuring favorite teams from divisions');
 
         // Transform matches to MatchListItem format
         const transformedMatches = filteredMatches.map(match => {
@@ -559,26 +562,26 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
 
       } else {
         // Approach 2: Fallback - get matches for each favorite team individually
-        console.log('No divisions found, fetching matches per team');
+        logger.debug('No divisions found, fetching matches per team');
 
         const matchesMap = new Map();
 
         for (const team of favoriteEventTeams) {
           try {
             const teamMatchesResponse = await robotEventsAPI.getTeamMatches(team.id, { event: [event.id] });
-            console.log('Team', team.number || 'Unknown', 'has', teamMatchesResponse.data.length, 'matches');
+            logger.debug('Team', team.number || 'Unknown', 'has', teamMatchesResponse.data.length, 'matches');
 
             // Add matches to map to avoid duplicates
             teamMatchesResponse.data.forEach(match => {
               matchesMap.set(match.id, match);
             });
           } catch (error) {
-            console.error('Failed to fetch matches for team', team.number || 'Unknown', ':', error);
+            logger.error('Failed to fetch matches for team', team.number || 'Unknown', ':', error);
           }
         }
 
         const uniqueMatches = Array.from(matchesMap.values());
-        console.log('Found', uniqueMatches.length, 'unique matches featuring favorite teams');
+        logger.debug('Found', uniqueMatches.length, 'unique matches featuring favorite teams');
 
         // Transform matches to MatchListItem format
         const transformedMatches = uniqueMatches.map(match => {
@@ -625,7 +628,7 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
       }
 
     } catch (error) {
-      console.error('Failed to fetch favorite teams matches:', error);
+      logger.error('Failed to fetch favorite teams matches:', error);
       Alert.alert('Error', 'Failed to load matches. Please try again.');
     } finally {
       setLoading(false);

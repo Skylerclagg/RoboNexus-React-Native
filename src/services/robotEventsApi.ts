@@ -29,7 +29,9 @@ import {
 } from '../types/api';
 import { WorldSkillsResponse } from '../types';
 import { getProgramId } from '../utils/programMappings';
+import { createLogger } from '../utils/logger';
 
+const logger = createLogger('robotEventsApi');
 /**
  * Comprehensive RobotEvents API Service
  *
@@ -172,15 +174,15 @@ class ComprehensiveRobotEventsAPI {
     this.apiKeys = keys;
     this.teamBrowserApiKeys = teamBrowserKeys;
 
-    console.log('[Comprehensive RobotEvents API] Loaded', this.apiKeys.length, 'general API keys for rotation');
-    console.log('[Comprehensive RobotEvents API] Loaded', this.teamBrowserApiKeys.length, 'team browser API keys for rotation');
+    logger.debug('Loaded', this.apiKeys.length, 'general API keys for rotation');
+    logger.debug('Loaded', this.teamBrowserApiKeys.length, 'team browser API keys for rotation');
 
     if (this.apiKeys.length === 0) {
-      console.warn('[Comprehensive RobotEvents API] No general API keys found! API calls will fail.');
+      logger.warn('No general API keys found! API calls will fail.');
     }
 
     if (this.teamBrowserApiKeys.length === 0) {
-      console.log('[Comprehensive RobotEvents API] No team browser API keys found. Will fall back to general keys for team browser operations.');
+      logger.debug('No team browser API keys found. Will fall back to general keys for team browser operations.');
     }
   }
 
@@ -188,7 +190,7 @@ class ComprehensiveRobotEventsAPI {
     if (this.apiKeys.length === 0) {
       // No general keys available, try team browser pool as fallback
       if (allowTeamBrowserFallback && this.teamBrowserApiKeys.length > 0) {
-        console.warn('[Comprehensive RobotEvents API] No general keys available, falling back to team browser pool');
+        logger.warn('No general keys available, falling back to team browser pool');
         return this.getTeamBrowserApiKey();
       }
       return null;
@@ -197,7 +199,7 @@ class ComprehensiveRobotEventsAPI {
     // Reset failed keys periodically
     const now = Date.now();
     if (now - this.lastKeyResetTime > this.keyResetTime) {
-      console.log('[Comprehensive RobotEvents API] Resetting general failed keys list and cycle tracking');
+      logger.debug('Resetting general failed keys list and cycle tracking');
       this.failedKeys.clear();
       this.lastKeyResetTime = now;
       this.generalCycleAttempts = 0;
@@ -210,7 +212,7 @@ class ComprehensiveRobotEventsAPI {
       const oldIndex = this.currentKeyIndex;
       this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.length;
       this.generalKeyCallsSinceRotation = 0;
-      console.log('[Comprehensive RobotEvents API] Auto-rotating general key from', oldIndex + 1, 'to', this.currentKeyIndex + 1, 'after', this.CALLS_BEFORE_ROTATION, 'calls');
+      logger.debug('Auto-rotating general key from', oldIndex + 1, 'to', this.currentKeyIndex + 1, 'after', this.CALLS_BEFORE_ROTATION, 'calls');
     }
 
     // Find next available key that hasn't failed
@@ -218,18 +220,18 @@ class ComprehensiveRobotEventsAPI {
     const startIndex = this.currentKeyIndex;
     while (attempts < this.apiKeys.length) {
       if (!this.failedKeys.has(this.currentKeyIndex)) {
-        console.log(`[Comprehensive RobotEvents API] Using General Pool - Key #${this.currentKeyIndex + 1}/${this.apiKeys.length} (failed keys: ${this.failedKeys.size}/${this.apiKeys.length})`);
+        logger.debug(`Using General Pool - Key #${this.currentKeyIndex + 1}/${this.apiKeys.length} (failed keys: ${this.failedKeys.size}/${this.apiKeys.length})`);
         this.generalKeyUsageCount++;
         this.generalKeyCallsSinceRotation++;
         return this.apiKeys[this.currentKeyIndex];
       }
 
-      console.log(`[Comprehensive RobotEvents API] Skipping General Pool - Key #${this.currentKeyIndex + 1} (marked as failed), trying next...`);
+      logger.debug(`Skipping General Pool - Key #${this.currentKeyIndex + 1} (marked as failed), trying next...`);
       this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.length;
       attempts++;
     }
 
-    console.log(`[Comprehensive RobotEvents API] All ${this.apiKeys.length} general keys have been marked as failed in this cycle`);
+    logger.debug(`All ${this.apiKeys.length} general keys have been marked as failed in this cycle`);
 
     // All keys in current cycle have failed
     this.generalCycleAttempts++;
@@ -237,9 +239,9 @@ class ComprehensiveRobotEventsAPI {
     // Check if this cycle had any successful calls
     if (this.generalSuccessfulCallsInCurrentCycle === 0) {
       this.generalConsecutiveFailedCycles++;
-      console.warn('[Comprehensive RobotEvents API] Completed cycle', this.generalCycleAttempts, 'with 0 successful calls (consecutive failed cycles:', this.generalConsecutiveFailedCycles, ')');
+      logger.warn('Completed cycle', this.generalCycleAttempts, 'with 0 successful calls (consecutive failed cycles:', this.generalConsecutiveFailedCycles, ')');
     } else {
-      console.log('[Comprehensive RobotEvents API] Completed cycle', this.generalCycleAttempts, 'with', this.generalSuccessfulCallsInCurrentCycle, 'successful calls - resetting consecutive failed cycle count');
+      logger.debug('Completed cycle', this.generalCycleAttempts, 'with', this.generalSuccessfulCallsInCurrentCycle, 'successful calls - resetting consecutive failed cycle count');
       this.generalConsecutiveFailedCycles = 0; // Reset if we had any successes
     }
 
@@ -247,7 +249,7 @@ class ComprehensiveRobotEventsAPI {
     const shouldFallback = this.generalConsecutiveFailedCycles >= this.MAX_CYCLES_BEFORE_FALLBACK;
 
     if (shouldFallback && allowTeamBrowserFallback && this.teamBrowserApiKeys.length > 0) {
-      console.warn('[Comprehensive RobotEvents API] All general keys failed for', this.generalConsecutiveFailedCycles, 'consecutive cycles with no successful calls, falling back to team browser pool');
+      logger.warn('All general keys failed for', this.generalConsecutiveFailedCycles, 'consecutive cycles with no successful calls, falling back to team browser pool');
       const browserKey = this.getTeamBrowserApiKey();
 
       if (!browserKey && this.checkIfAllKeysFailed()) {
@@ -264,7 +266,7 @@ class ComprehensiveRobotEventsAPI {
     }
 
     // Try another cycle through the keys
-    console.log('[Comprehensive RobotEvents API] Resetting failed keys and trying another cycle (consecutive failed cycles:', this.generalConsecutiveFailedCycles, '/', this.MAX_CYCLES_BEFORE_FALLBACK, ')');
+    logger.debug('Resetting failed keys and trying another cycle (consecutive failed cycles:', this.generalConsecutiveFailedCycles, '/', this.MAX_CYCLES_BEFORE_FALLBACK, ')');
     this.failedKeys.clear();
     this.currentKeyIndex = 0;
     this.generalSuccessfulCallsInCurrentCycle = 0; // Reset success counter for new cycle
@@ -276,7 +278,7 @@ class ComprehensiveRobotEventsAPI {
   }
 
   private markCurrentKeyAsFailed(): void {
-    console.warn(`[Comprehensive RobotEvents API] Marking General Pool - Key #${this.currentKeyIndex + 1} as failed`);
+    logger.warn(`Marking General Pool - Key #${this.currentKeyIndex + 1} as failed`);
     this.failedKeys.add(this.currentKeyIndex);
     this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.length;
   }
@@ -286,14 +288,14 @@ class ComprehensiveRobotEventsAPI {
    */
   private getTeamBrowserApiKey(): string | null {
     if (this.teamBrowserApiKeys.length === 0) {
-      console.log('[Comprehensive RobotEvents API] No team browser keys available');
+      logger.debug('No team browser keys available');
       return null;
     }
 
     // Reset failed keys periodically
     const now = Date.now();
     if (now - this.teamBrowserLastKeyResetTime > this.keyResetTime) {
-      console.log('[Comprehensive RobotEvents API] Resetting team browser failed keys list and cycle tracking');
+      logger.debug('Resetting team browser failed keys list and cycle tracking');
       this.teamBrowserFailedKeys.clear();
       this.teamBrowserLastKeyResetTime = now;
       this.teamBrowserCycleAttempts = 0;
@@ -306,7 +308,7 @@ class ComprehensiveRobotEventsAPI {
       const oldIndex = this.teamBrowserCurrentKeyIndex;
       this.teamBrowserCurrentKeyIndex = (this.teamBrowserCurrentKeyIndex + 1) % this.teamBrowserApiKeys.length;
       this.teamBrowserKeyCallsSinceRotation = 0;
-      console.log('[Comprehensive RobotEvents API] Auto-rotating team browser key from', oldIndex + 1, 'to', this.teamBrowserCurrentKeyIndex + 1, 'after', this.CALLS_BEFORE_ROTATION, 'calls');
+      logger.debug('Auto-rotating team browser key from', oldIndex + 1, 'to', this.teamBrowserCurrentKeyIndex + 1, 'after', this.CALLS_BEFORE_ROTATION, 'calls');
     }
 
     // Find next available key that hasn't failed
@@ -314,18 +316,18 @@ class ComprehensiveRobotEventsAPI {
     const startIndex = this.teamBrowserCurrentKeyIndex;
     while (attempts < this.teamBrowserApiKeys.length) {
       if (!this.teamBrowserFailedKeys.has(this.teamBrowserCurrentKeyIndex)) {
-        console.log(`[Comprehensive RobotEvents API] Using Team Browser Pool - Key #${this.teamBrowserCurrentKeyIndex + 1}/${this.teamBrowserApiKeys.length} (failed keys: ${this.teamBrowserFailedKeys.size}/${this.teamBrowserApiKeys.length})`);
+        logger.debug(`Using Team Browser Pool - Key #${this.teamBrowserCurrentKeyIndex + 1}/${this.teamBrowserApiKeys.length} (failed keys: ${this.teamBrowserFailedKeys.size}/${this.teamBrowserApiKeys.length})`);
         this.teamBrowserKeyUsageCount++;
         this.teamBrowserKeyCallsSinceRotation++;
         return this.teamBrowserApiKeys[this.teamBrowserCurrentKeyIndex];
       }
 
-      console.log(`[Comprehensive RobotEvents API] Skipping Team Browser Pool - Key #${this.teamBrowserCurrentKeyIndex + 1} (marked as failed), trying next...`);
+      logger.debug(`Skipping Team Browser Pool - Key #${this.teamBrowserCurrentKeyIndex + 1} (marked as failed), trying next...`);
       this.teamBrowserCurrentKeyIndex = (this.teamBrowserCurrentKeyIndex + 1) % this.teamBrowserApiKeys.length;
       attempts++;
     }
 
-    console.log(`[Comprehensive RobotEvents API] All ${this.teamBrowserApiKeys.length} team browser keys have been marked as failed in this cycle`);
+    logger.debug(`All ${this.teamBrowserApiKeys.length} team browser keys have been marked as failed in this cycle`);
 
     // All keys in current cycle have failed
     this.teamBrowserCycleAttempts++;
@@ -333,9 +335,9 @@ class ComprehensiveRobotEventsAPI {
     // Check if this cycle had any successful calls
     if (this.teamBrowserSuccessfulCallsInCurrentCycle === 0) {
       this.teamBrowserConsecutiveFailedCycles++;
-      console.warn('[Comprehensive RobotEvents API] Completed cycle', this.teamBrowserCycleAttempts, 'with 0 successful calls (consecutive failed cycles:', this.teamBrowserConsecutiveFailedCycles, ')');
+      logger.warn('Completed cycle', this.teamBrowserCycleAttempts, 'with 0 successful calls (consecutive failed cycles:', this.teamBrowserConsecutiveFailedCycles, ')');
     } else {
-      console.log('[Comprehensive RobotEvents API] Completed cycle', this.teamBrowserCycleAttempts, 'with', this.teamBrowserSuccessfulCallsInCurrentCycle, 'successful calls - resetting consecutive failed cycle count');
+      logger.debug('Completed cycle', this.teamBrowserCycleAttempts, 'with', this.teamBrowserSuccessfulCallsInCurrentCycle, 'successful calls - resetting consecutive failed cycle count');
       this.teamBrowserConsecutiveFailedCycles = 0; // Reset if we had any successes
     }
 
@@ -343,7 +345,7 @@ class ComprehensiveRobotEventsAPI {
     const shouldGiveUp = this.teamBrowserConsecutiveFailedCycles >= this.MAX_CYCLES_BEFORE_FALLBACK;
 
     if (shouldGiveUp) {
-      console.error('[Comprehensive RobotEvents API] All team browser keys failed for', this.teamBrowserConsecutiveFailedCycles, 'consecutive cycles with no successful calls');
+      logger.error('All team browser keys failed for', this.teamBrowserConsecutiveFailedCycles, 'consecutive cycles with no successful calls');
 
       // Reset cycle tracking
       this.teamBrowserFailedKeys.clear();
@@ -357,7 +359,7 @@ class ComprehensiveRobotEventsAPI {
     }
 
     // Try another cycle through the keys
-    console.log('[Comprehensive RobotEvents API] Resetting failed team browser keys and trying another cycle (consecutive failed cycles:', this.teamBrowserConsecutiveFailedCycles, '/', this.MAX_CYCLES_BEFORE_FALLBACK, ')');
+    logger.debug('Resetting failed team browser keys and trying another cycle (consecutive failed cycles:', this.teamBrowserConsecutiveFailedCycles, '/', this.MAX_CYCLES_BEFORE_FALLBACK, ')');
     this.teamBrowserFailedKeys.clear();
     this.teamBrowserCurrentKeyIndex = 0;
     this.teamBrowserSuccessfulCallsInCurrentCycle = 0; // Reset success counter for new cycle
@@ -370,7 +372,7 @@ class ComprehensiveRobotEventsAPI {
 
   private markTeamBrowserKeyAsFailed(): void {
     if (this.teamBrowserApiKeys.length > 0) {
-      console.warn(`[Comprehensive RobotEvents API] Marking Team Browser Pool - Key #${this.teamBrowserCurrentKeyIndex + 1} as failed`);
+      logger.warn(`Marking Team Browser Pool - Key #${this.teamBrowserCurrentKeyIndex + 1} as failed`);
       this.teamBrowserFailedKeys.add(this.teamBrowserCurrentKeyIndex);
       this.teamBrowserCurrentKeyIndex = (this.teamBrowserCurrentKeyIndex + 1) % this.teamBrowserApiKeys.length;
     } else {
@@ -405,7 +407,7 @@ class ComprehensiveRobotEventsAPI {
   public resetApiUsageStats(): void {
     this.generalKeyUsageCount = 0;
     this.teamBrowserKeyUsageCount = 0;
-    console.log('[Comprehensive RobotEvents API] API usage statistics reset');
+    logger.debug('API usage statistics reset');
   }
 
   /**
@@ -437,8 +439,8 @@ class ComprehensiveRobotEventsAPI {
   private handleAllKeysFailure(): void {
     if (!this.allKeysFailedTimestamp) {
       this.allKeysFailedTimestamp = Date.now();
-      console.error('[Comprehensive RobotEvents API] ⚠️ CRITICAL: All API keys have failed across both pools!');
-      console.error('[Comprehensive RobotEvents API] App will enter limited mode temporarily.');
+      logger.error('⚠️ CRITICAL: All API keys have failed across both pools!');
+      logger.error('App will enter limited mode temporarily.');
     }
   }
 
@@ -497,8 +499,8 @@ class ComprehensiveRobotEventsAPI {
    * API failure mode is temporary and resets on app restart.
    */
   public resetFailureState(): void {
-    console.log('[Comprehensive RobotEvents API] Resetting TEMPORARY API failure state on app launch');
-    console.log('[Comprehensive RobotEvents API] NOTE: This does NOT reset program-specific limited mode from programMappings');
+    logger.debug('Resetting TEMPORARY API failure state on app launch');
+    logger.debug('NOTE: This does NOT reset program-specific limited mode from programMappings');
     this.allKeysFailedTimestamp = null;
     this.apiFailureNotificationShown = false;
     this.failedKeys.clear();
@@ -515,7 +517,7 @@ class ComprehensiveRobotEventsAPI {
 
   private getProgramId(program: string): number {
     const programId = getProgramId(program);
-    console.log('[Comprehensive RobotEvents API] Getting program ID for', program || 'Unknown', ':', programId);
+    logger.debug('Getting program ID for', program || 'Unknown', ':', programId);
     return programId;
   }
 
@@ -540,7 +542,7 @@ class ComprehensiveRobotEventsAPI {
       const stackLines = stack.split('\n');
 
       // Debug: Uncomment to see raw stack traces
-      // console.log('[DEBUG] Stack trace:', stackLines);
+      // logger.debug('[DEBUG] Stack trace:', stackLines);
 
       // Try to find the first line that contains src/ or src\ (for native/Windows)
       // or http://localhost for web/Chrome
@@ -605,7 +607,7 @@ class ComprehensiveRobotEventsAPI {
     const timeSinceLastRequest = now - this.lastRequestTime;
     if (timeSinceLastRequest < this.requestDelay) {
       const delayNeeded = this.requestDelay - timeSinceLastRequest;
-      console.log('[Comprehensive RobotEvents API] Rate limiting: waiting', delayNeeded, 'ms before request');
+      logger.debug('Rate limiting: waiting', delayNeeded, 'ms before request');
       await new Promise(resolve => setTimeout(resolve, delayNeeded));
     }
     this.lastRequestTime = Date.now();
@@ -656,23 +658,23 @@ class ComprehensiveRobotEventsAPI {
       if (response.status === 429) {
         const retryAfter = response.headers.get('Retry-After');
         const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 5000;
-        console.warn('[Comprehensive RobotEvents API] Rate limited! Waiting', waitTime, 'ms before retry');
+        logger.warn('Rate limited! Waiting', waitTime, 'ms before retry');
         await new Promise(resolve => setTimeout(resolve, waitTime));
         return this.request(endpoint, params, retryCount);
       }
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('[Comprehensive RobotEvents API] Error response body:', errorText);
+        logger.error('Error response body:', errorText);
 
         // Check if it's an HTML login page (indicates auth failure)
         if (errorText.includes('<!DOCTYPE html>') && errorText.includes('login')) {
-          console.warn('[Comprehensive RobotEvents API] Authentication failed with current key, marking as failed');
+          logger.warn('Authentication failed with current key, marking as failed');
           this.markCurrentKeyAsFailed();
 
           // Retry with next key if we haven't exceeded retry limit
           if (retryCount < this.apiKeys.length - 1) {
-            console.log('[Comprehensive RobotEvents API] Retrying with next API key (attempt', retryCount + 1, ')');
+            logger.debug('Retrying with next API key (attempt', retryCount + 1, ')');
             return this.request(endpoint, params, retryCount + 1);
           }
 
@@ -690,18 +692,18 @@ class ComprehensiveRobotEventsAPI {
         this.generalSuccessfulCallsInCurrentCycle++;
         return result;
       } catch (parseError) {
-        console.error('[Comprehensive RobotEvents API] JSON parse error for endpoint:', endpoint || 'Unknown');
-        console.error('[Comprehensive RobotEvents API] Full URL:', url.toString());
-        console.error('[Comprehensive RobotEvents API] Parse error details:', parseError);
-        console.error('[Comprehensive RobotEvents API] Raw response text:', responseText.substring(0, 500) + '...');
+        logger.error('JSON parse error for endpoint:', endpoint || 'Unknown');
+        logger.error('Full URL:', url.toString());
+        logger.error('Parse error details:', parseError);
+        logger.error('Raw response text:', responseText.substring(0, 500) + '...');
 
         if (responseText.includes('<!DOCTYPE html>')) {
-          console.warn('[Comprehensive RobotEvents API] Received HTML instead of JSON, marking current key as failed');
+          logger.warn('Received HTML instead of JSON, marking current key as failed');
           this.markCurrentKeyAsFailed();
 
           // Retry with next key if we haven't exceeded retry limit
           if (retryCount < this.apiKeys.length - 1) {
-            console.log('[Comprehensive RobotEvents API] Retrying with next API key (attempt', retryCount + 1, ')');
+            logger.debug('Retrying with next API key (attempt', retryCount + 1, ')');
             return this.request(endpoint, params, retryCount + 1);
           }
 
@@ -711,9 +713,9 @@ class ComprehensiveRobotEventsAPI {
         throw new Error(`JSON parse error: ${parseError}`);
       }
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Request failed for endpoint:', endpoint || 'Unknown');
-      console.error('[Comprehensive RobotEvents API] Full URL:', url.toString());
-      console.error('[Comprehensive RobotEvents API] Error details:', error);
+      logger.error('Request failed for endpoint:', endpoint || 'Unknown');
+      logger.error('Full URL:', url.toString());
+      logger.error('Error details:', error);
       throw error;
     }
   }
@@ -729,7 +731,7 @@ class ComprehensiveRobotEventsAPI {
     const timeSinceLastRequest = now - this.lastRequestTime;
     if (timeSinceLastRequest < this.requestDelay) {
       const delayNeeded = this.requestDelay - timeSinceLastRequest;
-      console.log('[Comprehensive RobotEvents API] [Team Browser] Rate limiting: waiting', delayNeeded, 'ms before request');
+      logger.debug('[Team Browser] Rate limiting: waiting', delayNeeded, 'ms before request');
       await new Promise(resolve => setTimeout(resolve, delayNeeded));
     }
     this.lastRequestTime = Date.now();
@@ -770,11 +772,11 @@ class ComprehensiveRobotEventsAPI {
       headers['Authorization'] = `Bearer ${currentApiKey}`;
     }
 
-    console.log('[Comprehensive RobotEvents API] [Team Browser] Making request to endpoint:', endpoint || 'Unknown');
+    logger.debug('[Team Browser] Making request to endpoint:', endpoint || 'Unknown');
     const poolType = this.teamBrowserApiKeys.length > 0 ? 'Team Browser Pool' : 'General Pool (fallback)';
     const keyNum = this.teamBrowserApiKeys.length > 0 ? this.teamBrowserCurrentKeyIndex + 1 : this.currentKeyIndex + 1;
     const totalKeys = this.teamBrowserApiKeys.length > 0 ? this.teamBrowserApiKeys.length : this.apiKeys.length;
-    console.log(`[Comprehensive RobotEvents API] [Team Browser] Using ${poolType} - Key #${keyNum}/${totalKeys}`);
+    logger.debug(`[Team Browser] Using ${poolType} - Key #${keyNum}/${totalKeys}`);
 
     try {
       const response = await fetch(url.toString(), {
@@ -782,30 +784,30 @@ class ComprehensiveRobotEventsAPI {
         headers,
       });
 
-      console.log('[Comprehensive RobotEvents API] [Team Browser] Response status:', response.status);
+      logger.debug('[Team Browser] Response status:', response.status);
 
       // Handle rate limiting responses
       if (response.status === 429) {
         const retryAfter = response.headers.get('Retry-After');
         const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 5000;
-        console.warn('[Comprehensive RobotEvents API] [Team Browser] Rate limited! Waiting', waitTime, 'ms before retry');
+        logger.warn('[Team Browser] Rate limited! Waiting', waitTime, 'ms before retry');
         await new Promise(resolve => setTimeout(resolve, waitTime));
         return this.teamBrowserRequest(endpoint, params, retryCount);
       }
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('[Comprehensive RobotEvents API] [Team Browser] Error response body:', errorText);
+        logger.error('[Team Browser] Error response body:', errorText);
 
         // Check if it's an HTML login page (indicates auth failure)
         if (errorText.includes('<!DOCTYPE html>') && errorText.includes('login')) {
-          console.warn('[Comprehensive RobotEvents API] [Team Browser] Authentication failed with current key, marking as failed');
+          logger.warn('[Team Browser] Authentication failed with current key, marking as failed');
           this.markTeamBrowserKeyAsFailed();
 
           // Retry with next key if we haven't exceeded retry limit
           const maxRetries = this.teamBrowserApiKeys.length > 0 ? this.teamBrowserApiKeys.length - 1 : this.apiKeys.length - 1;
           if (retryCount < maxRetries) {
-            console.log('[Comprehensive RobotEvents API] [Team Browser] Retrying with next API key (attempt', retryCount + 1, ')');
+            logger.debug('[Team Browser] Retrying with next API key (attempt', retryCount + 1, ')');
             return this.teamBrowserRequest(endpoint, params, retryCount + 1);
           }
 
@@ -816,7 +818,7 @@ class ComprehensiveRobotEventsAPI {
       }
 
       const responseText = await response.text();
-      console.log('[Comprehensive RobotEvents API] [Team Browser] Response body length:', responseText.length, 'characters');
+      logger.debug('[Team Browser] Response body length:', responseText.length, 'characters');
 
       try {
         const result = JSON.parse(responseText);
@@ -824,17 +826,17 @@ class ComprehensiveRobotEventsAPI {
         this.teamBrowserSuccessfulCallsInCurrentCycle++;
         return result;
       } catch (parseError) {
-        console.error('[Comprehensive RobotEvents API] [Team Browser] JSON parse error for endpoint:', endpoint || 'Unknown');
-        console.error('[Comprehensive RobotEvents API] [Team Browser] Parse error details:', parseError);
+        logger.error('[Team Browser] JSON parse error for endpoint:', endpoint || 'Unknown');
+        logger.error('[Team Browser] Parse error details:', parseError);
 
         if (responseText.includes('<!DOCTYPE html>')) {
-          console.warn('[Comprehensive RobotEvents API] [Team Browser] Received HTML instead of JSON, marking current key as failed');
+          logger.warn('[Team Browser] Received HTML instead of JSON, marking current key as failed');
           this.markTeamBrowserKeyAsFailed();
 
           // Retry with next key if we haven't exceeded retry limit
           const maxRetries = this.teamBrowserApiKeys.length > 0 ? this.teamBrowserApiKeys.length - 1 : this.apiKeys.length - 1;
           if (retryCount < maxRetries) {
-            console.log('[Comprehensive RobotEvents API] [Team Browser] Retrying with next API key (attempt', retryCount + 1, ')');
+            logger.debug('[Team Browser] Retrying with next API key (attempt', retryCount + 1, ')');
             return this.teamBrowserRequest(endpoint, params, retryCount + 1);
           }
 
@@ -844,8 +846,8 @@ class ComprehensiveRobotEventsAPI {
         throw new Error(`[Team Browser] JSON parse error: ${parseError}`);
       }
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] [Team Browser] Request failed for endpoint:', endpoint || 'Unknown');
-      console.error('[Comprehensive RobotEvents API] [Team Browser] Error details:', error);
+      logger.error('[Team Browser] Request failed for endpoint:', endpoint || 'Unknown');
+      logger.error('[Team Browser] Error details:', error);
       throw error;
     }
   }
@@ -857,7 +859,7 @@ class ComprehensiveRobotEventsAPI {
 
   public setSelectedProgram(program: string): void {
     this.selectedProgram = program;
-    console.log('[Comprehensive RobotEvents API] Selected program set to:', program || 'Unknown');
+    logger.debug('Selected program set to:', program || 'Unknown');
   }
 
   public getSelectedProgram(): string {
@@ -892,7 +894,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<ProgramsResponse>('/programs', params);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get programs:', error);
+      logger.error('Failed to get programs:', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -906,7 +908,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<Program>(`/programs/${programId}`);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get program', programId || 'Unknown', ':', error);
+      logger.error('Failed to get program', programId || 'Unknown', ':', error);
       return null;
     }
   }
@@ -935,7 +937,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<SeasonsResponse>('/seasons', params);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get seasons:', error);
+      logger.error('Failed to get seasons:', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -949,7 +951,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<Season>(`/seasons/${seasonId}`);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get season', seasonId || 'Unknown', ':', error);
+      logger.error('Failed to get season', seasonId || 'Unknown', ':', error);
       return null;
     }
   }
@@ -973,7 +975,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<EventsResponse>(`/seasons/${seasonId}/events`, params);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get events for season', seasonId || 'Unknown', ':', error);
+      logger.error('Failed to get events for season', seasonId || 'Unknown', ':', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -994,7 +996,7 @@ class ComprehensiveRobotEventsAPI {
       const currentSeason = response.data?.[0];
       return currentSeason?.id || this.getDefaultSeasonId(selectedProgram);
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get current season:', error);
+      logger.error('Failed to get current season:', error);
       return this.getDefaultSeasonId(program || this.selectedProgram);
     }
   }
@@ -1029,7 +1031,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<EventsResponse>('/events', params);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get events:', error);
+      logger.error('Failed to get events:', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -1043,7 +1045,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<Event>(`/events/${eventId}`);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get event', eventId || 'Unknown', ':', error);
+      logger.error('Failed to get event', eventId || 'Unknown', ':', error);
       return null;
     }
   }
@@ -1067,7 +1069,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<TeamsResponse>(`/events/${eventId}/teams`, params);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get teams for event', eventId || 'Unknown', ':', error);
+      logger.error('Failed to get teams for event', eventId || 'Unknown', ':', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -1088,7 +1090,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<SkillsResponse>(`/events/${eventId}/skills`, params);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get skills for event', eventId || 'Unknown', ':', error);
+      logger.error('Failed to get skills for event', eventId || 'Unknown', ':', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -1109,7 +1111,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<AwardsResponse>(`/events/${eventId}/awards`, params);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get awards for event', eventId || 'Unknown', ':', error);
+      logger.error('Failed to get awards for event', eventId || 'Unknown', ':', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -1132,7 +1134,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<MatchesResponse>(`/events/${eventId}/divisions/${divisionId}/matches`, params);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get matches for event', eventId || 'Unknown', ', division', divisionId || 'Unknown', ':', error);
+      logger.error('Failed to get matches for event', eventId || 'Unknown', ', division', divisionId || 'Unknown', ':', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -1153,7 +1155,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<RankingsResponse>(`/events/${eventId}/divisions/${divisionId}/finalistRankings`, params);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get finalist rankings for event', eventId || 'Unknown', ', division', divisionId || 'Unknown', ':', error);
+      logger.error('Failed to get finalist rankings for event', eventId || 'Unknown', ', division', divisionId || 'Unknown', ':', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -1195,13 +1197,13 @@ class ComprehensiveRobotEventsAPI {
 
           // Safety check to prevent infinite loops
           if (currentPage > 200) {
-            console.warn('[Comprehensive RobotEvents API] Reached maximum page limit (200), stopping pagination');
+            logger.warn('Reached maximum page limit (200), stopping pagination');
             break;
           }
         }
       }
 
-      console.log('[Comprehensive RobotEvents API] Total rankings fetched:', allRankings.length);
+      logger.debug('Total rankings fetched:', allRankings.length);
 
       // Return in the expected format
       return {
@@ -1214,7 +1216,7 @@ class ComprehensiveRobotEventsAPI {
         } as any
       };
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get rankings for event', eventId || 'Unknown', ', division', divisionId || 'Unknown', ':', error);
+      logger.error('Failed to get rankings for event', eventId || 'Unknown', ', division', divisionId || 'Unknown', ':', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -1245,7 +1247,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<TeamsResponse>('/teams', params);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get teams:', error);
+      logger.error('Failed to get teams:', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -1273,7 +1275,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.teamBrowserRequest<TeamsResponse>('/teams', params);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] [Team Browser] Failed to get teams:', error);
+      logger.error('[Team Browser] Failed to get teams:', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -1287,7 +1289,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<Team>(`/teams/${teamId}`);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get team', teamId || 'Unknown', ':', error);
+      logger.error('Failed to get team', teamId || 'Unknown', ':', error);
       return null;
     }
   }
@@ -1300,7 +1302,7 @@ class ComprehensiveRobotEventsAPI {
       const selectedProgram = program || this.selectedProgram;
       const programId = this.getProgramId(selectedProgram);
 
-      console.log('[Comprehensive RobotEvents API] Looking up team', teamNumber || 'Unknown', 'for program', selectedProgram || 'Unknown', '(ID:', programId || 'Unknown', ')');
+      logger.debug('Looking up team', teamNumber || 'Unknown', 'for program', selectedProgram || 'Unknown', '(ID:', programId || 'Unknown', ')');
 
       // Check cache first
       const cached = this.getCachedTeam(teamNumber, selectedProgram);
@@ -1321,13 +1323,13 @@ class ComprehensiveRobotEventsAPI {
 
       for (let i = 0; i < patterns.length; i++) {
         const filters = patterns[i];
-        console.log('[Comprehensive RobotEvents API] Trying pattern', i + 1, ':', filters);
+        logger.debug('Trying pattern', i + 1, ':', filters);
 
         try {
           const response = await this.getTeams(filters);
           const teams = response.data || [];
 
-          console.log('[Comprehensive RobotEvents API] Pattern', i + 1, 'returned', teams.length, 'teams');
+          logger.debug('Pattern', i + 1, 'returned', teams.length, 'teams');
 
           if (teams.length > 0) {
             let selectedTeam = null;
@@ -1336,13 +1338,13 @@ class ComprehensiveRobotEventsAPI {
               const exactMatch = teams.find((team: Team) => team.number === teamNumber);
               if (exactMatch) {
                 selectedTeam = exactMatch;
-                console.log('[Comprehensive RobotEvents API] Found exact team match:', exactMatch.number || 'Unknown', '-', exactMatch.team_name || 'Unknown');
+                logger.debug('Found exact team match:', exactMatch.number || 'Unknown', '-', exactMatch.team_name || 'Unknown');
               }
             }
 
             if (!selectedTeam) {
               selectedTeam = teams[0];
-              console.log('[Comprehensive RobotEvents API] Using first team:', selectedTeam.number || 'Unknown', '-', selectedTeam.team_name || 'Unknown');
+              logger.debug('Using first team:', selectedTeam.number || 'Unknown', '-', selectedTeam.team_name || 'Unknown');
             }
 
             // Cache the successful result
@@ -1351,19 +1353,19 @@ class ComprehensiveRobotEventsAPI {
             return selectedTeam;
           }
         } catch (patternError) {
-          console.warn('[Comprehensive RobotEvents API] Pattern', i + 1, 'failed:', patternError);
+          logger.warn('Pattern', i + 1, 'failed:', patternError);
 
           if (patternError instanceof Error && patternError.message.includes('Authentication failed')) {
-            console.error('[Comprehensive RobotEvents API] Authentication failed, stopping pattern attempts');
+            logger.error('Authentication failed, stopping pattern attempts');
             break;
           }
         }
       }
 
-      console.log('[Comprehensive RobotEvents API] No team found for number', teamNumber || 'Unknown', 'after trying all patterns');
+      logger.debug('No team found for number', teamNumber || 'Unknown', 'after trying all patterns');
       return null;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get team by number "' + (teamNumber || 'Unknown') + '":', error);
+      logger.error('Failed to get team by number "' + (teamNumber || 'Unknown') + '":', error);
       return null;
     }
   }
@@ -1387,7 +1389,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<EventsResponse>(`/teams/${teamId}/events`, params);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get events for team', teamId || 'Unknown', ':', error);
+      logger.error('Failed to get events for team', teamId || 'Unknown', ':', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -1411,7 +1413,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<MatchesResponse>(`/teams/${teamId}/matches`, params);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get matches for team', teamId || 'Unknown', ':', error);
+      logger.error('Failed to get matches for team', teamId || 'Unknown', ':', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -1433,7 +1435,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<RankingsResponse>(`/teams/${teamId}/rankings`, params);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get rankings for team', teamId || 'Unknown', ':', error);
+      logger.error('Failed to get rankings for team', teamId || 'Unknown', ':', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -1455,7 +1457,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<SkillsResponse>(`/teams/${teamId}/skills`, params);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get skills for team', teamId || 'Unknown', ':', error);
+      logger.error('Failed to get skills for team', teamId || 'Unknown', ':', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -1476,7 +1478,7 @@ class ComprehensiveRobotEventsAPI {
       const response = await this.request<AwardsResponse>(`/teams/${teamId}/awards`, params);
       return response;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get awards for team', teamId || 'Unknown', ':', error);
+      logger.error('Failed to get awards for team', teamId || 'Unknown', ':', error);
       return { data: [], meta: {} as any };
     }
   }
@@ -1494,8 +1496,8 @@ class ComprehensiveRobotEventsAPI {
       const url = new URL(`https://www.robotevents.com/api/seasons/${seasonId}/skills`);
       url.searchParams.append('grade_level', gradeLevel);
 
-      console.log('[Comprehensive RobotEvents API] Getting World Skills rankings for season:', seasonId, 'grade:', gradeLevel);
-      console.log('[Comprehensive RobotEvents API] World Skills URL:', url.toString());
+      logger.debug('Getting World Skills rankings for season:', seasonId, 'grade:', gradeLevel);
+      logger.debug('World Skills URL:', url.toString());
 
       // World Skills API doesn't require authentication - matches Swift implementation
       const response = await fetch(url.toString(), {
@@ -1507,10 +1509,10 @@ class ComprehensiveRobotEventsAPI {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('[Comprehensive RobotEvents API] World Skills request failed with status:', response.status);
-        console.error('[Comprehensive RobotEvents API] Request URL that failed:', url.toString());
-        console.error('[Comprehensive RobotEvents API] Request parameters - seasonId:', seasonId, 'gradeLevel:', gradeLevel);
-        console.error('[Comprehensive RobotEvents API] Error response:', errorText.substring(0, 500));
+        logger.error('World Skills request failed with status:', response.status);
+        logger.error('Request URL that failed:', url.toString());
+        logger.error('Request parameters - seasonId:', seasonId, 'gradeLevel:', gradeLevel);
+        logger.error('Error response:', errorText.substring(0, 500));
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -1547,7 +1549,7 @@ class ComprehensiveRobotEventsAPI {
 
       return transformedData;
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to get world skills rankings:', error);
+      logger.error('Failed to get world skills rankings:', error);
       return [];
     }
   }
@@ -1563,10 +1565,10 @@ class ComprehensiveRobotEventsAPI {
       if (storedCache) {
         const cacheData = JSON.parse(storedCache);
         this.teamIdCache = new Map(Object.entries(cacheData));
-        console.log('[Comprehensive RobotEvents API] Loaded', this.teamIdCache.size, 'cached teams from storage');
+        logger.debug('Loaded', this.teamIdCache.size, 'cached teams from storage');
       }
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to load cache from storage:', error);
+      logger.error('Failed to load cache from storage:', error);
     }
   }
 
@@ -1574,9 +1576,9 @@ class ComprehensiveRobotEventsAPI {
     try {
       const cacheData = Object.fromEntries(this.teamIdCache);
       await storage.setItem(this.CACHE_STORAGE_KEY, JSON.stringify(cacheData));
-      console.log('[Comprehensive RobotEvents API] Saved', this.teamIdCache.size, 'cached teams to storage');
+      logger.debug('Saved', this.teamIdCache.size, 'cached teams to storage');
     } catch (error) {
-      console.error('[Comprehensive RobotEvents API] Failed to save cache to storage:', error);
+      logger.error('Failed to save cache to storage:', error);
     }
   }
 
@@ -1589,12 +1591,12 @@ class ComprehensiveRobotEventsAPI {
     const cached = this.teamIdCache.get(cacheKey);
 
     if (cached && (Date.now() - cached.timestamp) < this.cacheExpiry) {
-      console.log('[Comprehensive RobotEvents API] Using cached team data for', teamNumber || 'Unknown', '(ID:', cached.id || 'Unknown', ')');
+      logger.debug('Using cached team data for', teamNumber || 'Unknown', '(ID:', cached.id || 'Unknown', ')');
       return { id: cached.id, data: cached.data };
     }
 
     if (cached) {
-      console.log('[Comprehensive RobotEvents API] Cached data for', teamNumber || 'Unknown', 'has expired, removing');
+      logger.debug('Cached data for', teamNumber || 'Unknown', 'has expired, removing');
       this.teamIdCache.delete(cacheKey);
       this.saveCacheToStorage();
     }
@@ -1609,7 +1611,7 @@ class ComprehensiveRobotEventsAPI {
       data,
       timestamp: Date.now()
     });
-    console.log('[Comprehensive RobotEvents API] Cached team data for', teamNumber || 'Unknown', '(ID:', id || 'Unknown', ')');
+    logger.debug('Cached team data for', teamNumber || 'Unknown', '(ID:', id || 'Unknown', ')');
 
     this.saveCacheToStorage();
   }
@@ -1617,7 +1619,7 @@ class ComprehensiveRobotEventsAPI {
   public clearCache(): void {
     this.teamIdCache.clear();
     storage.removeItem(this.CACHE_STORAGE_KEY);
-    console.log('[Comprehensive RobotEvents API] Cache cleared');
+    logger.debug('Cache cleared');
   }
 
   // =============================================================================

@@ -23,6 +23,9 @@
  * - Multi-line text input with proper keyboard handling
  */
 import React, { useState, useEffect, useRef } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('MatchNotesScreen');
 import {
   View,
   Text,
@@ -184,7 +187,7 @@ const TeamNotes: React.FC<TeamNotesProps> = ({
             setIsSaving(false);
           }
         } catch (error) {
-          console.error('Failed to save note:', error);
+          logger.error('Failed to save note:', error);
           if (isMountedRef.current) {
             setIsSaving(false);
           }
@@ -257,7 +260,7 @@ const TeamNotes: React.FC<TeamNotesProps> = ({
         await saveWithImage(uri);
       }
     } catch (error) {
-      console.error('Error taking photo:', error);
+      logger.error('Error taking photo:', error);
       Alert.alert('Error', 'Failed to take photo');
     }
   };
@@ -283,7 +286,7 @@ const TeamNotes: React.FC<TeamNotesProps> = ({
         await saveWithImage(uri);
       }
     } catch (error) {
-      console.error('Error picking image:', error);
+      logger.error('Error picking image:', error);
       Alert.alert('Error', 'Failed to select photo');
     }
   };
@@ -298,7 +301,7 @@ const TeamNotes: React.FC<TeamNotesProps> = ({
         });
         setCurrentNote(updatedNote);
       } catch (error) {
-        console.error('Failed to remove photo:', error);
+        logger.error('Failed to remove photo:', error);
       }
     }
   };
@@ -313,7 +316,7 @@ const TeamNotes: React.FC<TeamNotesProps> = ({
         });
         setCurrentNote(updatedNote);
       } catch (error) {
-        console.error('Failed to save note with image:', error);
+        logger.error('Failed to save note with image:', error);
       }
     }
   };
@@ -562,7 +565,7 @@ const MatchNotesScreen = ({ route, navigation }: Props) => {
             try {
               await deleteNote(noteId);
             } catch (error) {
-              console.error('Failed to delete note:', error);
+              logger.error('Failed to delete note:', error);
               Alert.alert('Error', 'Failed to delete note');
             }
           },

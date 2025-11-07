@@ -17,6 +17,9 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('LookupScreenSeparated');
 import {
   View,
   Text,
@@ -40,7 +43,7 @@ interface LookupScreenSeparatedProps {
 }
 
 const LookupScreenSeparated: React.FC<LookupScreenSeparatedProps> = ({ navigation, route }) => {
-  console.log('[LookupScreenSeparated] Component loading...');
+  logger.debug('[LookupScreenSeparated] Component loading...');
   const settings = useSettings();
   const { isDeveloperMode, teamBrowserEnabled } = settings;
 

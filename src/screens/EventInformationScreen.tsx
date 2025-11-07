@@ -19,6 +19,9 @@
  * - Integration with external apps for navigation and communication
  */
 import React, { useState, useEffect } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('EventInformationScreen');
 import {
   View,
   Text,
@@ -100,7 +103,7 @@ const EventInformationScreen = ({ route, navigation }: EventInformationScreenPro
       // Fetch webcast link using the same approach as Swift version
       await fetchLivestreamLink();
     } catch (error) {
-      console.error('Failed to fetch event data:', error);
+      logger.error('Failed to fetch event data:', error);
     } finally {
       setRefreshing(false);
     }
@@ -108,8 +111,8 @@ const EventInformationScreen = ({ route, navigation }: EventInformationScreenPro
 
   const fetchLivestreamLink = async () => {
     try {
-      console.log(`Starting webcast detection for event: ${event.sku} (${event.name})`);
-      console.log(`Selected program: ${selectedProgram}`);
+      logger.debug(`Starting webcast detection for event: ${event.sku} (${event.name})`);
+      logger.debug(`Selected program: ${selectedProgram}`);
 
       // Determine the correct URL based on the selected program
       const programUrls = {
@@ -124,7 +127,7 @@ const EventInformationScreen = ({ route, navigation }: EventInformationScreenPro
                      programUrls['VEX V5 Robotics Competition'];
       const eventPageUrl = `${baseUrl}${event.sku}.html`;
 
-      console.log(`Fetching event page: ${eventPageUrl}`);
+      logger.debug(`Fetching event page: ${eventPageUrl}`);
 
       // Fetch the HTML content of the event page with timeout
       const controller = new AbortController();
@@ -138,56 +141,56 @@ const EventInformationScreen = ({ route, navigation }: EventInformationScreenPro
       });
       clearTimeout(timeoutId);
 
-      console.log(`Response status: ${response.status}`);
+      logger.debug(`Response status: ${response.status}`);
 
       if (!response.ok) {
-        console.error(`Failed to fetch event page: ${response.status} ${response.statusText}`);
+        logger.error(`Failed to fetch event page: ${response.status} ${response.statusText}`);
         setLivestreamLink('');
         return;
       }
 
       const html = await response.text();
-      console.log(`HTML length: ${html.length} characters`);
+      logger.debug(`HTML length: ${html.length} characters`);
 
       // Check if "Webcast" appears more than 3 times (same logic as Swift version)
       const webcastMatches = (html.match(/Webcast/gi) || []).length; // Case insensitive
-      console.log(`Webcast mentions found: ${webcastMatches} for event ${event.sku}`);
+      logger.debug(`Webcast mentions found: ${webcastMatches} for event ${event.sku}`);
 
       // Also check for other common streaming terms
       const streamingTerms = ['livestream', 'live stream', 'webcast', 'live broadcast', 'stream'];
       const allStreamingMatches = streamingTerms.reduce((total, term) => {
         const matches = (html.match(new RegExp(term, 'gi')) || []).length;
-        console.log(`"${term}" mentions: ${matches}`);
+        logger.debug(`"${term}" mentions: ${matches}`);
         return total + matches;
       }, 0);
 
-      console.log(`Total streaming term mentions: ${allStreamingMatches}`);
+      logger.debug(`Total streaming term mentions: ${allStreamingMatches}`);
 
       if (webcastMatches >= 3 || allStreamingMatches >= 3) {
-        console.log('Webcast detected! Attempting to find actual stream URL...');
+        logger.debug('Webcast detected! Attempting to find actual stream URL...');
 
         // First try to extract URL from the event page itself
         let actualWebcastUrl = extractWebcastUrl(html);
 
         if (!actualWebcastUrl) {
-          console.log('No direct URL found on event page, checking robotevents.com webcast page...');
+          logger.debug('No direct URL found on event page, checking robotevents.com webcast page...');
           actualWebcastUrl = await findEventOnWebcastPage();
         }
 
         if (actualWebcastUrl) {
-          console.log('✅ Found actual webcast URL:', actualWebcastUrl);
+          logger.debug('✅ Found actual webcast URL:', actualWebcastUrl);
           setLivestreamLink(actualWebcastUrl);
         } else {
           const webcastUrl = `${eventPageUrl}#webcast`;
-          console.log('⚠️ Using fallback webcast URL:', webcastUrl);
+          logger.debug('⚠️ Using fallback webcast URL:', webcastUrl);
           setLivestreamLink(webcastUrl);
         }
       } else {
-        console.log('❌ No webcast detected');
+        logger.debug('❌ No webcast detected');
         setLivestreamLink(''); // No webcast available
       }
     } catch (error) {
-      console.error('❌ Failed to fetch webcast link:', error);
+      logger.error('❌ Failed to fetch webcast link:', error);
 
       // As a last resort, try the fallback URL anyway for testing
       const programUrls = {
@@ -201,14 +204,14 @@ const EventInformationScreen = ({ route, navigation }: EventInformationScreenPro
                      programUrls['VEX V5 Robotics Competition'];
       const fallbackUrl = `${baseUrl}${event.sku}.html#webcast`;
 
-      console.log('🔄 Setting fallback URL due to error:', fallbackUrl);
+      logger.debug('🔄 Setting fallback URL due to error:', fallbackUrl);
       setLivestreamLink(fallbackUrl);
     }
   };
 
   const findEventOnWebcastPage = async (): Promise<string | null> => {
     try {
-      console.log(`Searching for event "${event.name}" on robotevents.com webcast page...`);
+      logger.debug(`Searching for event "${event.name}" on robotevents.com webcast page...`);
 
       // Check the main robotevents webcast page
       const webcastPageUrl = 'https://www.robotevents.com/webcasts';
@@ -220,28 +223,28 @@ const EventInformationScreen = ({ route, navigation }: EventInformationScreenPro
       });
 
       if (!response.ok) {
-        console.log(`Webcast page fetch failed: ${response.status}`);
+        logger.debug(`Webcast page fetch failed: ${response.status}`);
         return null;
       }
 
       const webcastHtml = await response.text();
-      console.log(`Webcast page HTML length: ${webcastHtml.length} characters`);
+      logger.debug(`Webcast page HTML length: ${webcastHtml.length} characters`);
 
       // Try to find the event by name or SKU
       const eventNameNormalized = event.name.toLowerCase().replace(/[^\w\s]/g, '').trim();
       const eventSkuNormalized = event.sku.toLowerCase();
 
-      console.log(`Searching for event name: "${eventNameNormalized}" or SKU: "${eventSkuNormalized}"`);
+      logger.debug(`Searching for event name: "${eventNameNormalized}" or SKU: "${eventSkuNormalized}"`);
 
       // Look for the event name in the HTML first
       const eventNameInPage = webcastHtml.toLowerCase().includes(eventNameNormalized.substring(0, Math.min(eventNameNormalized.length, 20)));
       const eventSkuInPage = webcastHtml.toLowerCase().includes(eventSkuNormalized);
 
-      console.log(`Event name found in page: ${eventNameInPage}`);
-      console.log(`Event SKU found in page: ${eventSkuInPage}`);
+      logger.debug(`Event name found in page: ${eventNameInPage}`);
+      logger.debug(`Event SKU found in page: ${eventSkuInPage}`);
 
       if (eventNameInPage || eventSkuInPage) {
-        console.log('Event found on webcast page! Looking for stream links...');
+        logger.debug('Event found on webcast page! Looking for stream links...');
 
         // Look for patterns specific to the webcasts page format
         const eventPatterns = [
@@ -263,7 +266,7 @@ const EventInformationScreen = ({ route, navigation }: EventInformationScreenPro
           if (match) {
             const streamUrl = match[1] || match[2];
             if (streamUrl) {
-              console.log(`Found stream URL for event: ${streamUrl}`);
+              logger.debug(`Found stream URL for event: ${streamUrl}`);
               return normalizeStreamUrl(streamUrl);
             }
           }
@@ -271,7 +274,7 @@ const EventInformationScreen = ({ route, navigation }: EventInformationScreenPro
 
         // Try to find any livestream links and check if they're related to our event
         const allStreamLinks = webcastHtml.match(/(?:href|src)=["']([^"']*(?:youtube|twitch|vimeo|stream|live)[^"']*)["']/gi) || [];
-        console.log(`Found ${allStreamLinks.length} potential stream links on webcast page`);
+        logger.debug(`Found ${allStreamLinks.length} potential stream links on webcast page`);
 
         // Check each link to see if it might be related to our event
         for (const linkMatch of allStreamLinks) {
@@ -282,13 +285,13 @@ const EventInformationScreen = ({ route, navigation }: EventInformationScreenPro
             if (url.includes(eventSkuNormalized) ||
                 webcastHtml.toLowerCase().includes(`${eventNameNormalized.substring(0, 10)}`) &&
                 webcastHtml.indexOf(linkMatch) > -1) {
-              console.log(`Found potential match: ${url}`);
+              logger.debug(`Found potential match: ${url}`);
               return normalizeStreamUrl(url);
             }
           }
         }
       } else {
-        console.log('Event not found on webcast page, looking for any current live streams...');
+        logger.debug('Event not found on webcast page, looking for any current live streams...');
       }
 
       const liveStreamPattern = /(?:href|src)=["']([^"']*(?:youtube\.com\/watch\?v=|twitch\.tv\/|vimeo\.com\/)[^"']*)["']/gi;
@@ -298,16 +301,16 @@ const EventInformationScreen = ({ route, navigation }: EventInformationScreenPro
         // Take the first live stream as a potential match
         const firstStreamMatch = liveStreams[0].match(/(?:href|src)=["']([^"']*)["']/i);
         if (firstStreamMatch) {
-          console.log(`Using first available live stream: ${firstStreamMatch[1]}`);
+          logger.debug(`Using first available live stream: ${firstStreamMatch[1]}`);
           return normalizeStreamUrl(firstStreamMatch[1]);
         }
       }
 
-      console.log('No matching stream found on webcast page');
+      logger.debug('No matching stream found on webcast page');
       return null;
 
     } catch (error) {
-      console.error('Error searching webcast page:', error);
+      logger.error('Error searching webcast page:', error);
       return null;
     }
   };
@@ -329,7 +332,7 @@ const EventInformationScreen = ({ route, navigation }: EventInformationScreenPro
   };
 
   const extractWebcastUrl = (html: string): string | null => {
-    console.log('Extracting webcast URL from event page HTML...');
+    logger.debug('Extracting webcast URL from event page HTML...');
 
     // Try multiple patterns to find ACTUAL streaming URLs (not generic robotevents pages)
     const patterns = [
@@ -352,7 +355,7 @@ const EventInformationScreen = ({ route, navigation }: EventInformationScreenPro
         if (match[0].includes('youtube') || match[0].includes('youtu.be')) {
           const videoId = match[1];
           if (videoId && videoId.length === 11) {
-            console.log(`Found YouTube video ID: ${videoId}`);
+            logger.debug(`Found YouTube video ID: ${videoId}`);
             return `https://www.youtube.com/watch?v=${videoId}`;
           }
         }
@@ -361,7 +364,7 @@ const EventInformationScreen = ({ route, navigation }: EventInformationScreenPro
         if (match[0].includes('twitch.tv')) {
           const channel = match[1];
           if (channel) {
-            console.log(`Found Twitch channel: ${channel}`);
+            logger.debug(`Found Twitch channel: ${channel}`);
             return `https://www.twitch.tv/${channel}`;
           }
         }
@@ -370,22 +373,22 @@ const EventInformationScreen = ({ route, navigation }: EventInformationScreenPro
         if (match[0].includes('vimeo.com')) {
           const videoId = match[1];
           if (videoId) {
-            console.log(`Found Vimeo video ID: ${videoId}`);
+            logger.debug(`Found Vimeo video ID: ${videoId}`);
             return `https://vimeo.com/${videoId}`;
           }
         }
 
         if (url.startsWith('http') && !url.includes('robotevents.com')) {
-          console.log(`Found external stream URL: ${url}`);
+          logger.debug(`Found external stream URL: ${url}`);
           return url;
         } else if (url.startsWith('//') && !url.includes('robotevents.com')) {
-          console.log(`Found external stream URL (protocol relative): ${url}`);
+          logger.debug(`Found external stream URL (protocol relative): ${url}`);
           return `https:${url}`;
         }
       }
     }
 
-    console.log('No direct streaming URLs found on event page');
+    logger.debug('No direct streaming URLs found on event page');
     return null;
   };
 
@@ -434,11 +437,11 @@ const EventInformationScreen = ({ route, navigation }: EventInformationScreenPro
   };
 
   const copyToClipboard = async (text: string, label: string = 'Text') => {
-    console.log(`Attempting to copy ${label.toLowerCase()}:`, text);
+    logger.debug(`Attempting to copy ${label.toLowerCase()}:`, text);
 
     try {
       const success = await clipboard.setString(text);
-      console.log('Clipboard operation result:', success);
+      logger.debug('Clipboard operation result:', success);
 
       if (success) {
         Alert.alert('Copied', `${label} copied to clipboard`);
@@ -450,7 +453,7 @@ const EventInformationScreen = ({ route, navigation }: EventInformationScreenPro
         );
       }
     } catch (error) {
-      console.error(`Failed to copy ${label.toLowerCase()}:`, error);
+      logger.error(`Failed to copy ${label.toLowerCase()}:`, error);
       Alert.alert(
         'Copy Error',
         'An error occurred while copying. Please check browser console for details.',

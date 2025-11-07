@@ -6,6 +6,9 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('NotesManagementModal');
 import {
   View,
   Text,
@@ -75,7 +78,7 @@ const NotesManagementModal: React.FC<Props> = ({ visible, onClose }) => {
       const allNotes = await getAllNotes();
       setNotes(allNotes);
     } catch (error) {
-      console.error('Failed to load notes:', error);
+      logger.error('Failed to load notes:', error);
       Alert.alert('Error', 'Failed to load notes');
     } finally {
       setLoading(false);
@@ -156,7 +159,7 @@ const NotesManagementModal: React.FC<Props> = ({ visible, onClose }) => {
               const updatedNotes = notes.filter(note => note.id !== noteId);
               setNotes(updatedNotes);
             } catch (error) {
-              console.error('Failed to delete note:', error);
+              logger.error('Failed to delete note:', error);
               Alert.alert('Error', 'Failed to delete note');
             }
           }
@@ -204,7 +207,7 @@ const NotesManagementModal: React.FC<Props> = ({ visible, onClose }) => {
               });
               setNotes(updatedNotes);
             } catch (error) {
-              console.error('Failed to delete notes:', error);
+              logger.error('Failed to delete notes:', error);
               Alert.alert('Error', 'Failed to delete notes');
             }
           }

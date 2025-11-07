@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createLogger } from '../utils/logger';
 import { storage } from '../utils/webCompatibility';
+
+const logger = createLogger('NotesContext');
 
 export interface TeamMatchNote {
   id: string; // Generated unique ID for React Native
@@ -66,10 +69,10 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
       if (savedNotes) {
         const parsedNotes: TeamMatchNote[] = JSON.parse(savedNotes);
         setNotes(parsedNotes);
-        console.log('Loaded', parsedNotes.length, 'notes from storage');
+        logger.debug('Loaded', parsedNotes.length, 'notes from storage');
       }
     } catch (error) {
-      console.error('Failed to load notes:', error);
+      logger.error('Failed to load notes:', error);
     }
   };
 
@@ -77,9 +80,9 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
     try {
       await storage.setItem(NOTES_STORAGE_KEY, JSON.stringify(newNotes));
       setNotes(newNotes);
-      console.log('Saved', newNotes.length, 'notes to storage');
+      logger.debug('Saved', newNotes.length, 'notes to storage');
     } catch (error) {
-      console.error('Failed to save notes:', error);
+      logger.error('Failed to save notes:', error);
       throw error;
     }
   };
@@ -141,10 +144,10 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
       const newNotes = [...notes, newNote];
       await saveNotes(newNotes);
 
-      console.log('Created new note for team', newNote.teamNumber, 'in match', newNote.matchName || 'General');
+      logger.debug('Created new note for team', newNote.teamNumber, 'in match', newNote.matchName || 'General');
       return newNote;
     } catch (error) {
-      console.error('Failed to create note:', error);
+      logger.error('Failed to create note:', error);
       throw error;
     }
   };
@@ -168,10 +171,10 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
       newNotes[existingNoteIndex] = updatedNote;
       await saveNotes(newNotes);
 
-      console.log('Updated note', noteId, 'for team', updatedNote.teamNumber);
+      logger.debug('Updated note', noteId, 'for team', updatedNote.teamNumber);
       return updatedNote;
     } catch (error) {
-      console.error('Failed to update note:', error);
+      logger.error('Failed to update note:', error);
       throw error;
     }
   };
@@ -193,7 +196,7 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
         return await createNote(noteData);
       }
     } catch (error) {
-      console.error('Failed to create or update note:', error);
+      logger.error('Failed to create or update note:', error);
       throw error;
     }
   };
@@ -202,9 +205,9 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
     try {
       const newNotes = notes.filter(note => note.id !== noteId);
       await saveNotes(newNotes);
-      console.log('Deleted note', noteId);
+      logger.debug('Deleted note', noteId);
     } catch (error) {
-      console.error('Failed to delete note:', error);
+      logger.error('Failed to delete note:', error);
       throw error;
     }
   };
@@ -216,10 +219,10 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
 
       if (deletedCount > 0) {
         await saveNotes(filteredNotes);
-        console.log('Deleted', deletedCount, 'notes for team', teamId);
+        logger.debug('Deleted', deletedCount, 'notes for team', teamId);
       }
     } catch (error) {
-      console.error('Failed to delete notes for team:', error);
+      logger.error('Failed to delete notes for team:', error);
       throw error;
     }
   };
@@ -231,10 +234,10 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
 
       if (deletedCount > 0) {
         await saveNotes(filteredNotes);
-        console.log('Deleted', deletedCount, 'notes for event', eventId);
+        logger.debug('Deleted', deletedCount, 'notes for event', eventId);
       }
     } catch (error) {
-      console.error('Failed to delete notes for event:', error);
+      logger.error('Failed to delete notes for event:', error);
       throw error;
     }
   };
@@ -246,10 +249,10 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
 
       if (deletedCount > 0) {
         await saveNotes(nonEmptyNotes);
-        console.log('Deleted', deletedCount, 'empty notes');
+        logger.debug('Deleted', deletedCount, 'empty notes');
       }
     } catch (error) {
-      console.error('Failed to delete empty notes:', error);
+      logger.error('Failed to delete empty notes:', error);
       throw error;
     }
   };
@@ -257,9 +260,9 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
   const clearAllNotes = async (): Promise<void> => {
     try {
       await saveNotes([]);
-      console.log('Cleared all notes');
+      logger.debug('Cleared all notes');
     } catch (error) {
-      console.error('Failed to clear all notes:', error);
+      logger.error('Failed to clear all notes:', error);
       throw error;
     }
   };

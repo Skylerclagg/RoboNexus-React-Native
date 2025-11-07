@@ -14,6 +14,9 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('EventLookup');
 import {
   View,
   Text,
@@ -49,7 +52,7 @@ interface EventLookupProps {
 }
 
 const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list' }) => {
-  console.log('[EventLookup] Component loading...');
+  logger.debug('Component loading...');
   const settings = useSettings();
   const { selectedProgram, globalSeasonEnabled, selectedSeason: globalSeason, updateGlobalSeason, isDeveloperMode } = settings;
   const { addEvent, removeEvent, isEventFavorited } = useFavorites();
@@ -139,11 +142,11 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
       if (isActiveSeason && !eventFilters.dateFilter) {
         // Auto-enable date filter for active season
         setEventFilters(prev => ({ ...prev, dateFilter: true }));
-        console.log('Auto-enabled date filter for active season:', eventFilters.season);
+        logger.debug('Auto-enabled date filter for active season:', eventFilters.season);
       } else if (!isActiveSeason && eventFilters.dateFilter) {
         // Auto-disable date filter for non-active seasons
         setEventFilters(prev => ({ ...prev, dateFilter: false }));
-        console.log('Auto-disabled date filter for non-active season:', eventFilters.season);
+        logger.debug('Auto-disabled date filter for non-active season:', eventFilters.season);
       }
     }
   }, [eventFilters.season, seasons]);
@@ -164,25 +167,25 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
 
   // Request location permission when nearby filter is enabled
   useEffect(() => {
-    console.log('[EventLookup] nearbyFilter changed:', eventFilters.nearbyFilter, 'locationPermission:', locationPermission);
+    logger.debug('nearbyFilter changed:', eventFilters.nearbyFilter, 'locationPermission:', locationPermission);
     if (eventFilters.nearbyFilter && !locationPermission) {
-      console.log('[EventLookup] Triggering location permission request');
+      logger.debug('Triggering location permission request');
       requestLocationPermission();
     }
   }, [eventFilters.nearbyFilter]);
 
   // Re-apply filters when user location is obtained
   useEffect(() => {
-    console.log('[EventLookup] userLocation useEffect triggered, userLocation:', !!userLocation, 'nearbyFilter:', eventFilters.nearbyFilter);
+    logger.debug('userLocation useEffect triggered, userLocation:', !!userLocation, 'nearbyFilter:', eventFilters.nearbyFilter);
     if (userLocation && allEvents && allEvents.length > 0 && eventFilters.nearbyFilter) {
-      console.log('[EventLookup] Re-applying filters due to location update');
+      logger.debug('Re-applying filters due to location update');
       applyFiltersAndPagination(allEvents, eventFilters, 1);
     }
   }, [userLocation, eventFilters.nearbyFilter, allEvents]);
 
   // Re-apply filters when event filters change
   useEffect(() => {
-    console.log('[EventLookup] eventFilters useEffect triggered with filters:', eventFilters);
+    logger.debug('eventFilters useEffect triggered with filters:', eventFilters);
     if (allEvents && allEvents.length > 0) {
       applyFiltersAndPagination(allEvents, eventFilters, 1);
     }
@@ -203,7 +206,7 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
         if (!eventFilters.season || !selectedProgram) return;
 
         if (allEvents.length > 0) {
-          console.log('[EventLookup] Data already loaded, skipping reload');
+          logger.debug('Data already loaded, skipping reload');
           return;
         }
 
@@ -217,18 +220,18 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
             const timeSinceLastFetch = now - lastFetchTime;
 
             if (timeSinceLastFetch > CACHE_DURATION) {
-              console.log('[EventLookup] Cache expired (older than 1 hour), refreshing...');
+              logger.debug('Cache expired (older than 1 hour), refreshing...');
               loadAllEvents();
             } else {
-              console.log('[EventLookup] Cache is fresh, loading from cache...');
+              logger.debug('Cache is fresh, loading from cache...');
               loadCachedEvents();
             }
           } else {
-            console.log('[EventLookup] No cache found, loading events...');
+            logger.debug('No cache found, loading events...');
             loadAllEvents();
           }
         } catch (error) {
-          console.error('[EventLookup] Error checking cache:', error);
+          logger.error('Error checking cache:', error);
         }
       };
 
@@ -238,12 +241,12 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
 
   const loadSeasons = async () => {
     try {
-      console.log('Loading seasons for program:', selectedProgram || 'Unknown');
+      logger.debug('Loading seasons for program:', selectedProgram || 'Unknown');
       // Get program ID for filtering
       const programId = getProgramId(selectedProgram);
 
       const seasonResponse = await robotEventsAPI.getSeasons({ program: [programId] });
-      console.log('Seasons loaded for', selectedProgram || 'Unknown', ':', seasonResponse.data.length, seasonResponse.data.map(s => ({
+      logger.debug('Seasons loaded for', selectedProgram || 'Unknown', ':', seasonResponse.data.length, seasonResponse.data.map(s => ({
         id: s.id,
         name: s.name,
         program: s.program?.name || s.program?.code || 'Unknown'
@@ -281,10 +284,10 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
           // Enable date filter by default for the active season
           dateFilter: isActiveSeason
         }));
-        console.log('Set event filter season for program:', defaultSeason, 'isActiveSeason:', isActiveSeason);
+        logger.debug('Set event filter season for program:', defaultSeason, 'isActiveSeason:', isActiveSeason);
       }
     } catch (error) {
-      console.error('Failed to load seasons:', error);
+      logger.error('Failed to load seasons:', error);
     }
   };
 
@@ -302,17 +305,17 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
 
       if (cachedData) {
         const parsedEvents: ExtendedEvent[] = JSON.parse(cachedData);
-        console.log('[EventLookup] Loaded', parsedEvents.length, 'events from cache for', selectedProgram, 'season', eventFilters.season);
+        logger.debug('Loaded', parsedEvents.length, 'events from cache for', selectedProgram, 'season', eventFilters.season);
 
         setAllEvents(parsedEvents);
         extractRegionsAndStates(parsedEvents);
         applyFiltersAndPagination(parsedEvents, eventFilters, 1);
       } else {
-        console.log('[EventLookup] No cached data found, loading fresh events');
+        logger.debug('No cached data found, loading fresh events');
         loadAllEvents();
       }
     } catch (error) {
-      console.error('[EventLookup] Error loading cached events:', error);
+      logger.error('Error loading cached events:', error);
       loadAllEvents();
     }
   };
@@ -327,9 +330,9 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
       await storage.setItem(cacheKey, JSON.stringify(events));
       await storage.setItem(timestampKey, Date.now().toString());
 
-      console.log('[EventLookup] Saved', events.length, 'events to cache for', selectedProgram, 'season', eventFilters.season);
+      logger.debug('Saved', events.length, 'events to cache for', selectedProgram, 'season', eventFilters.season);
     } catch (error) {
-      console.error('[EventLookup] Error saving events to cache:', error);
+      logger.error('Error saving events to cache:', error);
     }
   };
 
@@ -344,14 +347,14 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
                       seasons.length > 0 ? parseInt(seasons[0].value) : undefined;
 
       if (!seasonId) {
-        console.error('[EventLookup] No season ID available, cannot load events');
+        logger.error('No season ID available, cannot load events');
         setAllEvents([]);
         setEvents([]);
         setFilteredEvents([]);
         return;
       }
 
-      console.log('Loading all events for season (with pagination):', {
+      logger.debug('Loading all events for season (with pagination):', {
         program: selectedProgram,
         seasonId,
         dateFilterEnabled: eventFilters.dateFilter,
@@ -364,7 +367,7 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
       const pageSize = 250; // Maximum page size for RobotEvents API
 
       while (hasMorePages) {
-        console.log('[EventLookup] Fetching events page', currentPage, '(page size:', pageSize, ')');
+        logger.debug('Fetching events page', currentPage, '(page size:', pageSize, ')');
 
         const eventsResponse = await robotEventsAPI.getEvents({
           program: [programId],
@@ -375,20 +378,20 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
 
         if (eventsResponse.data && eventsResponse.data.length > 0) {
           allAPIEvents = allAPIEvents.concat(eventsResponse.data);
-          console.log('[EventLookup] Page', currentPage, ': Got', eventsResponse.data.length, 'events. Total so far:', allAPIEvents.length);
+          logger.debug('Page', currentPage, ': Got', eventsResponse.data.length, 'events. Total so far:', allAPIEvents.length);
 
           // Check if we have more pages
           hasMorePages = eventsResponse.data.length === pageSize;
           currentPage++;
         } else {
-          console.log('[EventLookup] Page', currentPage, ': No more events found. Stopping pagination.');
+          logger.debug('Page', currentPage, ': No more events found. Stopping pagination.');
           hasMorePages = false;
         }
       }
 
-      console.log('Events returned for', selectedProgram || 'Unknown', ':', allAPIEvents.length);
+      logger.debug('Events returned for', selectedProgram || 'Unknown', ':', allAPIEvents.length);
       if (allAPIEvents.length > 0) {
-        console.log('Sample event programs:', allAPIEvents.slice(0, 3).map(event => ({
+        logger.debug('Sample event programs:', allAPIEvents.slice(0, 3).map(event => ({
           name: event.name,
           program: event.program?.name || event.program?.code || 'Unknown',
           programId: event.program?.id
@@ -400,7 +403,7 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
         !event.name.toLowerCase().includes('workshop')
       );
 
-      console.log('Loaded', allAPIEvents.length, 'events for season (after filtering workshops)');
+      logger.debug('Loaded', allAPIEvents.length, 'events for season (after filtering workshops)');
 
       // Transform API events to UI events and expand league events into separate session cards
       const uiEvents: ExtendedEvent[] = [];
@@ -490,7 +493,7 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
       applyFiltersAndPagination(uiEvents, eventFilters, 1);
 
     } catch (error) {
-      console.error('Failed to load events:', error);
+      logger.error('Failed to load events:', error);
       setAllEvents([]);
       setEvents([]);
       setFilteredEvents([]);
@@ -533,7 +536,7 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
         setEventFilters(prev => ({ ...prev, nearbyFilter: false }));
       }
     } catch (error) {
-      console.error('Failed to get location permission:', error);
+      logger.error('Failed to get location permission:', error);
       setLocationPermission(false);
       setEventFilters(prev => ({ ...prev, nearbyFilter: false }));
     }
@@ -620,16 +623,16 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
     setAvailableCountries(countryOptions);
     setRegionsByCountry(regionsByCountryMap);
 
-    console.log('Extracted regions (excluding countries):', regionOptions.length);
-    console.log('Extracted states:', stateOptions.length);
-    console.log('Extracted countries:', countryOptions.length);
-    console.log('Regions by country mapping:', regionsByCountryMap);
+    logger.debug('Extracted regions (excluding countries):', regionOptions.length);
+    logger.debug('Extracted states:', stateOptions.length);
+    logger.debug('Extracted countries:', countryOptions.length);
+    logger.debug('Regions by country mapping:', regionsByCountryMap);
   };
 
   const applyFiltersAndPagination = (events: ExtendedEvent[], filters: typeof eventFilters, page: number = 1) => {
     // Safety check to ensure events is an array
     if (!events || !Array.isArray(events)) {
-      console.error('applyFiltersAndPagination called with invalid events:', events);
+      logger.error('applyFiltersAndPagination called with invalid events:', events);
       setEvents([]);
       setFilteredEvents([]);
       return;
@@ -674,7 +677,7 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
       // Live events only filter
       if (filters.liveEventsOnly) {
         const eventStatus = getEventStatus(event);
-        console.log('[EventLookup] Live filter check for', event.name, '- status:', eventStatus.status);
+        logger.debug('Live filter check for', event.name, '- status:', eventStatus.status);
         if (eventStatus.status !== 'live') {
           return false;
         }
@@ -719,8 +722,8 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
     setCurrentPage(page);
     setHasMoreEvents(endIndex < filtered.length);
 
-    console.log('[EventLookup] Applied filters:', JSON.stringify(filters, null, 2));
-    console.log('[EventLookup] Filtered from', events.length, 'to', filtered.length, 'events, showing', paginatedEvents.length, '(page', page, ')');
+    logger.debug('Applied filters:', JSON.stringify(filters, null, 2));
+    logger.debug('Filtered from', events.length, 'to', filtered.length, 'events, showing', paginatedEvents.length, '(page', page, ')');
   };
 
   const loadMoreEvents = () => {
@@ -734,14 +737,14 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
   };
 
   const handleFiltersChange = (newFilters: typeof eventFilters) => {
-    console.log('[EventLookup] Filters changed from:', eventFilters, 'to:', newFilters);
+    logger.debug('Filters changed from:', eventFilters, 'to:', newFilters);
     setEventFilters(newFilters);
 
     // Force immediate re-application of filters
     if (allEvents && allEvents.length > 0) {
       // The useEffect for userLocation will handle it once location is obtained
       if (newFilters.nearbyFilter && !userLocation) {
-        console.log('[EventLookup] Nearby filter enabled but no location yet, waiting for location...');
+        logger.debug('Nearby filter enabled but no location yet, waiting for location...');
         return;
       }
 
@@ -870,7 +873,7 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
                     await addEvent(eventForFavorites);
                   }
                 } catch (error) {
-                  console.error('Failed to toggle event favorite:', error);
+                  logger.error('Failed to toggle event favorite:', error);
                   Alert.alert('Error', 'Failed to update favorite status');
                 }
               }}

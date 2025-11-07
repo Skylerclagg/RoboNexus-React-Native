@@ -16,6 +16,9 @@
  */
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('DashboardScreen');
 import {
   View,
   Text,
@@ -27,6 +30,7 @@ import {
   Dimensions,
   Alert,
   Animated,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -99,13 +103,13 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
   // Memoize filtered favorites to prevent unnecessary recalculations
   const favoriteTeams = useMemo(() => {
     const teams = favorites.filter(item => item.type === 'team');
-    console.log('[Dashboard] favoriteTeams recalculated:', teams.length, 'teams for program:', settings.selectedProgram);
+    logger.debug('favoriteTeams recalculated:', teams.length, 'teams for program:', settings.selectedProgram);
     return teams;
   }, [favorites, settings.selectedProgram]);
 
   const favoriteEvents = useMemo(() => {
     const events = favorites.filter(item => item.type === 'event');
-    console.log('[Dashboard] favoriteEvents recalculated:', events.length, 'events for program:', settings.selectedProgram);
+    logger.debug('favoriteEvents recalculated:', events.length, 'events for program:', settings.selectedProgram);
     return events;
   }, [favorites, settings.selectedProgram]);
 
@@ -149,30 +153,30 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
 
   // Memoize sorted team data based on settings
   const sortedTeamData = useMemo(() => {
-    // console.log('[Dashboard] sortDashboardByNextMatch setting:', settings.sortDashboardByNextMatch);
-    // console.log('[Dashboard] Team data to sort:', teamData.length, 'teams');
+    logger.debug('sortDashboardByNextMatch setting:', settings.sortDashboardByNextMatch);
+    logger.debug('Team data to sort:', teamData.length, 'teams');
 
     if (!settings.sortDashboardByNextMatch) {
-      // console.log('[Dashboard] Sorting disabled, keeping original order');
+      logger.debug('Sorting disabled, keeping original order');
       return teamData; // Keep original order (favorites order)
     }
 
-    // console.log('[Dashboard] Sorting enabled, applying next match sort');
+    logger.debug('Sorting enabled, applying next match sort');
 
     // Log current state of teams
-    // teamData.forEach(team => {
-    //   console.log('[Dashboard] Team', team.teamNumber, '- at event:', team.isAtEvent, ', next match:', team.currentEvent?.nextMatchNumber);
-    // });
+     teamData.forEach(team => {
+       logger.debug('Team', team.teamNumber, '- at event:', team.isAtEvent, ', next match:', team.currentEvent?.nextMatchNumber);
+     });
 
     // Sort teams: teams at events with next match first
     const sorted = [...teamData].sort((a, b) => {
       // Teams at events come before teams not at events
       if (a.isAtEvent && !b.isAtEvent) {
-        // console.log('[Dashboard]', a.teamNumber, 'at event,', b.teamNumber, 'not at event →', a.teamNumber, 'first');
+        logger.debug('[Dashboard]', a.teamNumber, 'at event,', b.teamNumber, 'not at event →', a.teamNumber, 'first');
         return -1;
       }
       if (!a.isAtEvent && b.isAtEvent) {
-        // console.log('[Dashboard]', b.teamNumber, 'at event,', a.teamNumber, 'not at event →', b.teamNumber, 'first');
+        logger.debug('[Dashboard]', b.teamNumber, 'at event,', a.teamNumber, 'not at event →', b.teamNumber, 'first');
         return 1;
       }
 
@@ -208,7 +212,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
           const matchA = parseMatch(aHasMatch);
           const matchB = parseMatch(bHasMatch);
 
-          // console.log('[Dashboard] Comparing matches:', aHasMatch, '→', matchA, 'vs', bHasMatch, '→', matchB);
+          logger.debug('Comparing matches:', aHasMatch, '→', matchA, 'vs', bHasMatch, '→', matchB);
 
           // Compare primary numbers first
           if (matchA.primary !== matchB.primary) {
@@ -226,10 +230,10 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
       return 0;
     });
 
-    // console.log('[Dashboard] Sorted order:');
-    // sorted.forEach((team, index) => {
-    //   console.log(`[Dashboard] ${index + 1}.`, team.teamNumber, '- at event:', team.isAtEvent, ', next match:', team.currentEvent?.nextMatchNumber);
-    // });
+    logger.debug('Sorted order:');
+     sorted.forEach((team, index) => {
+      logger.debug(`${index + 1}.`, team.teamNumber, '- at event:', team.isAtEvent, ', next match:', team.currentEvent?.nextMatchNumber);
+     });
 
     return sorted;
   }, [teamData, settings.sortDashboardByNextMatch]);
@@ -252,13 +256,13 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
   }, [globalSeasonEnabled, globalSeason]);
 
 
-  const loadDashboardData = async (forceRefresh = false) => {
-    // console.log('[Dashboard] loadDashboardData called, current loading state:', loading, 'forceRefresh:', forceRefresh);
+  const loadDashboardData = useCallback(async (forceRefresh = false) => {
+    logger.debug('loadDashboardData called, current loading state:', loading, 'forceRefresh:', forceRefresh);
     if (teamData.length === 0 || forceRefresh) {
       setLoading(true);
     }
     try {
-      // console.log('[Dashboard] Starting to load dashboard data for', favoriteTeams.length, 'teams');
+      logger.debug('Starting to load dashboard data for', favoriteTeams.length, 'teams');
       // Initialize API cache on first load
       await robotEventsAPI.initializeCache();
 
@@ -269,7 +273,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
       } else {
         targetSeasonId = await robotEventsAPI.getCurrentSeasonId(settings.selectedProgram);
       }
-      // console.log('[Dashboard] Using season ID:', targetSeasonId, 'for all teams');
+      logger.debug('Using season ID:', targetSeasonId, 'for all teams');
 
       const programId = getProgramId(settings.selectedProgram);
       const availableGrades = getAvailableGrades(settings.selectedProgram);
@@ -281,9 +285,9 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
               preloadWorldSkills(targetSeasonId, programId, grade)
             )
           );
-          console.log('[Dashboard] Pre-loaded World Skills data for all grades:', availableGrades);
+          logger.debug('Pre-loaded World Skills data for all grades:', availableGrades);
         } catch (error) {
-          console.error('[Dashboard] Failed to pre-load World Skills rankings:', error);
+          logger.error('Failed to pre-load World Skills rankings:', error);
         }
       }
 
@@ -292,11 +296,11 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
 
         try {
           // Get basic team info
-          // console.log('[Dashboard] Fetching team info for:', team.number || 'Unknown');
+          logger.debug('Fetching team info for:', team.number || 'Unknown');
           const teamInfo = await robotEventsAPI.getTeamByNumber(team.number);
 
           if (!teamInfo) {
-            // console.error('[Dashboard] No team info returned for team', team.number || 'Unknown');
+            logger.error('No team info returned for team', team.number || 'Unknown');
 
             // Return a fallback team data object with cached info if available
             return {
@@ -320,14 +324,14 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
             };
           }
 
-          // console.log('[Dashboard] Team info for', team.number || 'Unknown', ':', {
-          //   id: teamInfo.id,
-          //   team_name: teamInfo.team_name,
-          //   teamName: teamInfo.team_name,
-          //   organization: teamInfo.organization,
-          //   city: teamInfo.location?.city || '',
-          //   region: teamInfo.location?.region || ''
-          // });
+           logger.debug('Team info for', team.number || 'Unknown', ':', {
+             id: teamInfo.id,
+             team_name: teamInfo.team_name,
+             teamName: teamInfo.team_name,
+             organization: teamInfo.organization,
+             city: teamInfo.location?.city || '',
+             region: teamInfo.location?.region || ''
+           });
 
           // Parallel fetch: awards and events (skills data is from cache)
           const [awardsResult, eventsResult, teamSkillsResult] = await Promise.allSettled([
@@ -341,7 +345,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
 
           if (targetSeasonId && teamInfo.id) {
             try {
-              console.log('[Dashboard] Searching for team', team.number, '(ID:', teamInfo.id, ') in World Skills caches');
+              logger.debug('Searching for team', team.number, '(ID:', teamInfo.id, ') in World Skills caches');
 
               let teamSkillsData = null;
               for (const grade of availableGrades) {
@@ -353,7 +357,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                   );
 
                   if (teamSkillsData) {
-                    console.log('[Dashboard] ✓ Found team', team.number, 'in', grade, 'World Skills cache - Rank:', teamSkillsData.rank);
+                    logger.debug('✓ Found team', team.number, 'in', grade, 'World Skills cache - Rank:', teamSkillsData.rank);
                     break;
                   }
                 }
@@ -362,22 +366,22 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
               if (teamSkillsData) {
                 skillsRank = teamSkillsData.rank;
                 highestSkillsScore = teamSkillsData.scores?.score || 0;
-                console.log('[Dashboard] Team', team.number, 'skills rank:', skillsRank, ', highest score:', highestSkillsScore);
+                logger.debug('Team', team.number, 'skills rank:', skillsRank, ', highest score:', highestSkillsScore);
               } else {
-                console.log('[Dashboard] ✗ Team', team.number, '(ID:', teamInfo.id, ') not found in any World Skills cache');
+                logger.debug('✗ Team', team.number, '(ID:', teamInfo.id, ') not found in any World Skills cache');
               }
             } catch (error) {
-              console.error('[Dashboard] Error getting World Skills from cache for team', team.number, ':', error);
+              logger.error('Error getting World Skills from cache for team', team.number, ':', error);
             }
           } else {
-            if (!targetSeasonId) console.log('[Dashboard] No target season ID for team', team.number);
-            if (!teamInfo.id) console.log('[Dashboard] No team ID for team', team.number);
+            if (!targetSeasonId) logger.debug('No target season ID for team', team.number);
+            if (!teamInfo.id) logger.debug('No team ID for team', team.number);
           }
 
           if (!highestSkillsScore && teamSkillsResult.status === 'fulfilled' && teamSkillsResult.value.data.length > 0) {
             const scores = teamSkillsResult.value.data.map((run: any) => run.score || 0);
             highestSkillsScore = Math.max(...scores);
-            // console.log('[Dashboard] Team', team.number, 'highest skills score from direct fetch:', highestSkillsScore);
+            logger.debug('Team', team.number, 'highest skills score from direct fetch:', highestSkillsScore);
           }
 
           // Process awards and qualifications
@@ -388,15 +392,15 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
           if (awardsResult.status === 'fulfilled') {
             const awardsResponse = awardsResult.value;
             recentAwards = awardsResponse.data.length;
-            // console.log('[Dashboard] Team', team.number || 'Unknown', 'has', recentAwards, 'awards for season', targetSeasonId || 'Unknown');
+            logger.debug('Team', team.number || 'Unknown', 'has', recentAwards, 'awards for season', targetSeasonId || 'Unknown');
 
             // Check for qualifications using the qualification data from awards API
             for (const award of awardsResponse.data) {
               try {
-                // console.log('[Dashboard] Checking qualification for award:', {
-                //   title: award.title,
-                //   qualifications: award.qualifications
-                // });
+                 logger.debug('Checking qualification for award:', {
+                  title: award.title,
+                   qualifications: award.qualifications
+                 });
 
                 // Check if the award has qualification data
                 if (award.qualifications && award.qualifications.length > 0) {
@@ -408,19 +412,19 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                         qualificationText.includes('state') ||
                         qualificationText.includes('provincial')) {
                       qualifiedForRegionals = true;
-                      // console.log('[Dashboard] Team', team.number || 'Unknown', 'qualified for regionals via', award.title || 'Unknown', '->', qualification || 'Unknown');
+                       logger.debug('Team', team.number || 'Unknown', 'qualified for regionals via', award.title || 'Unknown', '->', qualification || 'Unknown');
                     }
 
                     // Check for world championship qualifications
                     if (qualificationText.includes('world') ||
                         qualificationText.includes('signature')) {
                       qualifiedForWorlds = true;
-                      // console.log('[Dashboard] Team', team.number || 'Unknown', 'qualified for worlds via', award.title || 'Unknown', '->', qualification || 'Unknown');
+                       logger.debug('Team', team.number || 'Unknown', 'qualified for worlds via', award.title || 'Unknown', '->', qualification || 'Unknown');
                     }
                   }
                 }
               } catch (awardError) {
-                console.error('[Dashboard] Error checking award qualifications for', award.title || 'Unknown', ':', awardError);
+                logger.error('Error checking award qualifications for', award.title || 'Unknown', ':', awardError);
               }
             }
           }
@@ -429,15 +433,15 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
           let isAtEvent = false;
           let currentEvent = undefined;
 
-          // console.log('[Dashboard] Checking event participation for team', team.number || 'Unknown', '- eventsResult status:', eventsResult.status);
+           logger.debug('Checking event participation for team', team.number || 'Unknown', '- eventsResult status:', eventsResult.status);
 
           if (eventsResult.status === 'fulfilled') {
             const teamEventsResponse = eventsResult.value;
-            // console.log('[Dashboard] Team', team.number || 'Unknown', 'has', teamEventsResponse.data?.length || 0, 'events');
-            // console.log('[Dashboard] Events response data exists:', !!teamEventsResponse.data);
+             logger.debug('Team', team.number || 'Unknown', 'has', teamEventsResponse.data?.length || 0, 'events');
+             logger.debug('Events response data exists:', !!teamEventsResponse.data);
 
             if (!teamEventsResponse.data || teamEventsResponse.data.length === 0) {
-              // console.log('[Dashboard] No events found for team', team.number || 'Unknown');
+               logger.debug('No events found for team', team.number || 'Unknown');
             }
 
             const now = new Date();
@@ -450,7 +454,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
               devTestEventId: settings.devTestEventId
             });
 
-            // console.log('[Dashboard] Found', liveEvents.length, 'potentially live events for team', team.number || 'Unknown');
+             logger.debug('Found', liveEvents.length, 'potentially live events for team', team.number || 'Unknown');
             if (liveEvents.length > 0) {
               // Use centralized utility to select the most relevant live event
               const liveEvent = await selectCurrentLiveEvent(
@@ -468,15 +472,15 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
               // If we found a live event, mark team as at event
               if (liveEvent) {
                 isAtEvent = true;
-                // console.log('[Dashboard] Team', team.number || 'Unknown', 'is at live event:', liveEvent.name);
+                 logger.debug('Team', team.number || 'Unknown', 'is at live event:', liveEvent.name);
               } else {
-                // console.log('[Dashboard] Team', team.number || 'Unknown', 'has no current live event');
+                 logger.debug('Team', team.number || 'Unknown', 'has no current live event');
                 isAtEvent = false;
               }
 
               if (isAtEvent && liveEvent) {
                 // Get live event data (matches, rankings, skills) - collect whatever data we can
-                // console.log('[Dashboard] Fetching live event data for team', team.number || 'Unknown', 'at event', liveEvent.id || 'Unknown');
+                logger.debug('Fetching live event data for team', team.number || 'Unknown', 'at event', liveEvent.id || 'Unknown');
 
                 // Initialize variables for all data we want to collect
                 let nextMatchNumber = undefined;
@@ -499,21 +503,21 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
 
                 if (fullEventDetails && fullEventDetails.divisions && fullEventDetails.divisions.length > 0) {
                   isMultiDivision = fullEventDetails.divisions.length > 1;
-                  // console.log('[Dashboard] Event has', fullEventDetails.divisions.length, 'divisions:', fullEventDetails.divisions.map(d => d.name).join(', '), '- Multi-division:', isMultiDivision);
+                   logger.debug('Event has', fullEventDetails.divisions.length, 'divisions:', fullEventDetails.divisions.map(d => d.name).join(', '), '- Multi-division:', isMultiDivision);
 
                   // Check all divisions simultaneously
                   const divisionChecks = fullEventDetails.divisions.map(async (division) => {
                     try {
-                      // console.log('[Dashboard] Checking division', division.name, 'for team', team.number || 'Unknown');
+                       logger.debug('Checking division', division.name, 'for team', team.number || 'Unknown');
                       const rankingsResponse = await robotEventsAPI.getEventDivisionRankings(liveEvent.id, division.id);
                       const teamRanking = rankingsResponse.data.find(ranking => ranking.team?.id === teamInfo.id);
                       if (teamRanking) {
-                        // console.log('[Dashboard] Found team', team.number || 'Unknown', 'in division', division.name, 'with rank', teamRanking.rank);
+                        logger.debug('Found team', team.number || 'Unknown', 'in division', division.name, 'with rank', teamRanking.rank);
                         return { division, rank: teamRanking.rank };
                       }
                       return null;
                     } catch (error) {
-                      console.warn('[Dashboard] Error checking division', division.name, ':', error);
+                      logger.warn('Error checking division', division.name, ':', error);
                       return null;
                     }
                   });
@@ -525,23 +529,23 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                     divisionId = teamDivisionInfo.division.id;
                     divisionName = teamDivisionInfo.division.name;
                     eventRank = teamDivisionInfo.rank;
-                    // console.log('[Dashboard] Team', team.number || 'Unknown', 'is in division', divisionName, 'with rank', eventRank);
+                    logger.debug('Team', team.number || 'Unknown', 'is in division', divisionName, 'with rank', eventRank);
                   } else {
-                    // console.log('[Dashboard] Team', team.number || 'Unknown', 'not found in any division rankings');
+                    logger.debug('Team', team.number || 'Unknown', 'not found in any division rankings');
                   }
                 }
 
                 // Process team matches from parallel fetch
                 const teamMatchesResponse = teamMatchesResult.status === 'fulfilled' ? teamMatchesResult.value : { data: [] };
-                // console.log('[Dashboard] Found', teamMatchesResponse.data.length, 'matches for team', team.number || 'Unknown', 'at event', liveEvent.id || 'Unknown');
+                logger.debug('Found', teamMatchesResponse.data.length, 'matches for team', team.number || 'Unknown', 'at event', liveEvent.id || 'Unknown');
 
                 // Log match statuses for debugging
-                // if (teamMatchesResponse.data.length > 0) {
-                //   console.log('[Dashboard] Match statuses for team', team.number || 'Unknown', ':');
-                //   teamMatchesResponse.data.forEach((match, index) => {
-                //     console.log(`[Dashboard] Match ${index + 1}: ${match.name} - scored: ${match.scored}, started: ${match.started}, scores: ${match.alliances?.map(a => a.score)}`);
-                //   });
-                // }
+                 if (teamMatchesResponse.data.length > 0) {
+                   logger.debug('Match statuses for team', team.number || 'Unknown', ':');
+                   teamMatchesResponse.data.forEach((match, index) => {
+                     logger.debug(`Match ${index + 1}: ${match.name} - scored: ${match.scored}, started: ${match.started}, scores: ${match.alliances?.map(a => a.score)}`);
+                   });
+                 }
 
                 if (teamMatchesResponse.data.length > 0) {
                   // Use division from matches as fallback if we didn't find it from rankings
@@ -556,9 +560,9 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                     try {
                       const divisionMatchesResponse = await robotEventsAPI.getEventDivisionMatches(liveEvent.id, divisionId);
                       allEventMatches = divisionMatchesResponse.data || [];
-                      // console.log('[Dashboard] Fetched', allEventMatches.length, 'total matches for division', divisionName);
+                      logger.debug('Fetched', allEventMatches.length, 'total matches for division', divisionName);
                     } catch (error) {
-                      console.warn('[Dashboard] Failed to fetch division matches:', error);
+                      logger.warn('Failed to fetch division matches:', error);
                       // Fallback: use only team matches for comparison
                       allEventMatches = teamMatchesResponse.data;
                     }
@@ -606,7 +610,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                     });
 
                     if (laterMatchScored) {
-                      // console.log('[Dashboard] Match', match.name, 'has 0-0 but later match scored, considering it played');
+                      logger.debug('Match', match.name, 'has 0-0 but later match scored, considering it played');
                       return true;
                     }
 
@@ -620,8 +624,8 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                       const isPlayed = isMatchPlayed(match, allEventMatches);
                       const isUnplayed = !isPlayed;
 
-                      // console.log('[Dashboard] Match', match.name, '- scored:', match.scored, ', started:', match.started, ', scores:',
-                      //   match.alliances?.map(a => a.score), ', isPlayed:', isPlayed, ', isUnplayed:', isUnplayed);
+                      logger.debug('Match', match.name, '- scored:', match.scored, ', started:', match.started, ', scores:',
+                         match.alliances?.map(a => a.score), ', isPlayed:', isPlayed, ', isUnplayed:', isUnplayed);
 
                       return isUnplayed;
                     })
@@ -641,7 +645,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                       }
                     });
 
-                  // console.log('[Dashboard] Team', team.number || 'Unknown', 'has', upcomingMatches.length, 'unplayed matches');
+                  logger.debug('Team', team.number || 'Unknown', 'has', upcomingMatches.length, 'unplayed matches');
                   if (upcomingMatches.length > 0) {
                     const nextMatch = upcomingMatches[0];
                     nextMatchNumber = nextMatch.name;
@@ -660,30 +664,30 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                         nextMatchAlliance = 'blue';
                       }
 
-                      // console.log('[Dashboard] Team', team.number || 'Unknown', 'alliance:', nextMatchAlliance);
+                      logger.debug('Team', team.number || 'Unknown', 'alliance:', nextMatchAlliance);
                     }
 
                     const scheduleInfo = nextMatch.scheduled ? `at ${nextMatch.scheduled}` : 'TBD';
-                    // console.log('[Dashboard] Next match for team', team.number || 'Unknown', ':', nextMatchNumber || 'Unknown', scheduleInfo);
+                    logger.debug('Next match for team', team.number || 'Unknown', ':', nextMatchNumber || 'Unknown', scheduleInfo);
                   } else {
-                    // console.log('[Dashboard] No upcoming matches for team', team.number || 'Unknown', '. All', teamMatchesResponse.data.length, 'matches are complete');
+                    logger.debug('No upcoming matches for team', team.number || 'Unknown', '. All', teamMatchesResponse.data.length, 'matches are complete');
                   }
                 }
 
               // Process event skills from parallel fetch
               if (skillsResult.status === 'fulfilled') {
                 const skillsResponse = skillsResult.value;
-                // console.log('[Dashboard] Found', skillsResponse.data.length, 'skills entries for event', liveEvent.id || 'Unknown');
+                logger.debug('Found', skillsResponse.data.length, 'skills entries for event', liveEvent.id || 'Unknown');
 
                 const teamSkills = skillsResponse.data.find(skills => skills.team?.id === teamInfo.id);
                 if (teamSkills) {
                   eventSkillsRank = teamSkills.rank;
-                  // console.log('[Dashboard] Team', team.number || 'Unknown', 'event skills rank:', eventSkillsRank);
+                  logger.debug('Team', team.number || 'Unknown', 'event skills rank:', eventSkillsRank);
                 } else {
-                  // console.log('[Dashboard] Team', team.number || 'Unknown', '(ID:', teamInfo.id || 'Unknown', ') not found in skills rankings.');
+                  logger.debug('Team', team.number || 'Unknown', '(ID:', teamInfo.id || 'Unknown', ') not found in skills rankings.');
                 }
               } else {
-                console.warn('[Dashboard] Could not fetch event skills rankings for team', team.number || 'Unknown');
+                logger.warn('Could not fetch event skills rankings for team', team.number || 'Unknown');
               }
 
               // Use null instead of undefined to ensure properties are preserved
@@ -698,15 +702,15 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                 isMultiDivision: isMultiDivision,
               };
 
-              // console.log('[Dashboard] Live event data for team', team.number || 'Unknown', ':', {
-              //   eventId: liveEvent.id,
-              //   event: liveEvent.name,
-              //   nextMatch: nextMatchNumber,
-              //   eventRank: eventRank,
-              //   eventSkillsRank: eventSkillsRank,
-              //   divisionName: divisionName,
-              //   isMultiDivision: isMultiDivision
-              // });
+               logger.debug('Live event data for team', team.number || 'Unknown', ':', {
+                 eventId: liveEvent.id,
+                 event: liveEvent.name,
+                 nextMatch: nextMatchNumber,
+                 eventRank: eventRank,
+                 eventSkillsRank: eventSkillsRank,
+                 divisionName: divisionName,
+                 isMultiDivision: isMultiDivision
+               });
               }
             }
           }
@@ -733,7 +737,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
 
           return dashboardData;
         } catch (error) {
-          console.error('Failed to load data for team', team.number || 'Unknown', ':', error);
+          logger.error('Failed to load data for team', team.number || 'Unknown', ':', error);
           return null;
         }
       });
@@ -743,33 +747,33 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
       setTeamData(validTeamData);
 
       // Load event data for favorite events
-      // console.log('[Dashboard] Starting to load dashboard data for', favoriteEvents.length, 'events');
+      logger.debug('Starting to load dashboard data for', favoriteEvents.length, 'events');
       const eventDataPromises = favoriteEvents.map(async (eventFavorite) => {
         try {
           const eventId = eventFavorite.eventApiId;
           if (!eventId) {
-            console.warn('[Dashboard] Event favorite missing eventApiId:', eventFavorite.name);
+            logger.warn('Event favorite missing eventApiId:', eventFavorite.name);
             return null;
           }
 
-          // console.log('[Dashboard] Fetching event data for:', eventFavorite.name, 'ID:', eventId);
+          logger.debug('Fetching event data for:', eventFavorite.name, 'ID:', eventId);
           const eventDetails = await robotEventsAPI.getEventById(eventId);
 
           if (!eventDetails) {
-            console.error('[Dashboard] No event details returned for event', eventId);
+            logger.error('No event details returned for event', eventId);
             return null;
           }
 
-          // console.log('[Dashboard] Event details for', eventFavorite.name, ':', {
-          //   id: eventDetails.id,
-          //   name: eventDetails.name,
-          //   start: eventDetails.start,
-          //   end: eventDetails.end,
-          // });
+           logger.debug('Event details for', eventFavorite.name, ':', {
+             id: eventDetails.id,
+             name: eventDetails.name,
+             start: eventDetails.start,
+             end: eventDetails.end,
+           });
 
           return eventDetails;
         } catch (error) {
-          console.error('Failed to load data for event', eventFavorite.name, ':', error);
+          logger.error('Failed to load data for event', eventFavorite.name, ':', error);
           return null;
         }
       });
@@ -778,7 +782,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
       const validEventData = eventResults.filter((data): data is any => data !== null);
       setEventData(validEventData);
     } catch (error) {
-      console.error('[Dashboard] Failed to load dashboard data:', error);
+      logger.error('Failed to load dashboard data:', error);
       // Otherwise preserve existing data to prevent cards from disappearing
       if (forceRefresh || teamData.length === 0) {
         setTeamData([]);
@@ -787,28 +791,39 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
         setEventData([]);
       }
     } finally {
-      // console.log('[Dashboard] Setting loading to false');
+       logger.debug('Setting loading to false');
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [favoriteTeams, favoriteEvents, selectedSeason, teamData.length, eventData.length, settings.selectedProgram, settings.devLiveEventSimulation, settings.isDeveloperMode, settings.devTestEventId, robotEventsAPI, getWorldSkills, preloadWorldSkills]);
 
   useEffect(() => {
-    console.log('[Dashboard] Program changed to:', settings.selectedProgram);
+    logger.debug('Program changed to:', settings.selectedProgram);
     setTeamData([]);
     setEventData([]);
     setLoading(true);
   }, [settings.selectedProgram]);
 
   useEffect(() => {
+    // On web, wait for favorites to finish loading before making decisions
+    // This prevents a race condition where the effect runs before AsyncStorage loads
+    if (Platform.OS === 'web' && favoritesLoading) {
+      logger.debug('Web: Waiting for favorites to finish loading...');
+      return;
+    }
+
+    logger.debug('useEffect triggered - favoriteTeams:', favoriteTeams.length, 'favoriteEvents:', favoriteEvents.length);
+
     if (favoriteTeams.length > 0 || favoriteEvents.length > 0) {
+      logger.debug('Calling loadDashboardData()...');
       loadDashboardData();
     } else {
+      logger.debug('No favorites, clearing data and setting loading to false');
       setTeamData([]);
       setEventData([]);
       setLoading(false);
     }
-  }, [favoriteTeams.length, favoriteEvents.length, selectedSeason]);
+  }, [favoriteTeams.length, favoriteEvents.length, selectedSeason, favoritesLoading, loadDashboardData]);
 
   // Set up 3-minute interval for refetching data for teams at events
   useEffect(() => {
@@ -824,7 +839,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
 
         const teamsAtEvents = teamData.filter(team => team.isAtEvent);
         if (teamsAtEvents.length > 0) {
-          // console.log('[Dashboard] Auto-refreshing data for', teamsAtEvents.length, 'teams at events');
+          logger.debug('Auto-refreshing data for', teamsAtEvents.length, 'teams at events');
           loadDashboardData(); // Soft refresh for auto-updates
         }
       }, 3 * 60 * 1000); // 3 minutes
@@ -847,7 +862,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
   // Handle screen focus to refetch data when returning to dashboard
   useFocusEffect(
     React.useCallback(() => {
-      // console.log('[Dashboard] Screen focused - checking if refresh needed');
+      logger.debug('Screen focused - checking if refresh needed');
 
       // Check if initial load is needed for teams or events
       const hasLiveTeams = teamData.some(team => team.isAtEvent);
@@ -856,18 +871,18 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
       const needsInitialLoad = needsTeamLoad || needsEventLoad;
 
       if (needsInitialLoad) {
-        // console.log('[Dashboard] Initial load needed - refetching data');
+        logger.debug('Initial load needed - refetching data');
         loadDashboardData();
       } else if (hasLiveTeams) {
-        // console.log('[Dashboard] Teams at live events - soft refresh');
+        logger.debug('Teams at live events - soft refresh');
         loadDashboardData(); // Soft refresh for live events
       } else {
-        // console.log('[Dashboard] No refresh needed - preserving existing data');
+        logger.debug('No refresh needed - preserving existing data');
       }
 
       return () => {
         // Screen is unfocused - don't need to do anything special
-        // console.log('[Dashboard] Screen unfocused');
+        logger.debug('Screen unfocused');
       };
     }, [favoriteTeams.length, favoriteEvents.length, teamData.length, eventData.length]) // Add dependencies to prevent stale closure
   );
@@ -935,7 +950,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
               // Update local team data to remove the deleted team
               setTeamData(prevData => prevData.filter(team => team.teamNumber !== teamNumber));
             } catch (error) {
-              console.error('Failed to delete team:', error);
+              logger.error('Failed to delete team:', error);
               Alert.alert('Error', 'Failed to delete team from favorites');
             }
           }
@@ -957,7 +972,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
             try {
               await removeEvent(eventSku);
             } catch (error) {
-              console.error('Failed to delete event:', error);
+              logger.error('Failed to delete event:', error);
               Alert.alert('Error', 'Failed to delete event from favorites');
             }
           }
@@ -1274,10 +1289,10 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                     if (eventForNavigation) {
                       navigation.navigate('EventMainView', { event: eventForNavigation });
                     } else {
-                      console.error('[Dashboard] No event found for ID:', team.currentEvent.eventId);
+                      logger.error('No event found for ID:', team.currentEvent.eventId);
                     }
                   } catch (error) {
-                    console.error('[Dashboard] Failed to fetch event for navigation:', error);
+                    logger.error('Failed to fetch event for navigation:', error);
                   }
                 }
               }}
@@ -1577,7 +1592,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
   const showSideBySide = isLargeScreen && favoriteTeams.length > 0 && favoriteEvents.length > 0;
 
   // Log render state for debugging skeleton loader issues
-  console.log('[Dashboard] RENDER - State:', {
+  logger.debug('RENDER - State:', {
     favoritesLoading,
     loading,
     isLimitedMode,

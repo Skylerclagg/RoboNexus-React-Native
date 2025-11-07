@@ -12,8 +12,11 @@
  * to the appropriate API service while maintaining complete backward compatibility.
  */
 
+import { createLogger } from '../utils/logger';
 import { comprehensiveRobotEventsAPI } from './robotEventsApi';
 import { recfEventsAPI } from './recfEventsAPI';
+
+const logger = createLogger('apiRouter');
 import {
   APIKeyStatus,
   EventFilters,
@@ -52,9 +55,10 @@ class APIRouter {
   private cacheHits: number = 0;
   private cacheMisses: number = 0;
   private enableDetailedLogging: boolean = true; // Set to true to enable detailed API call logging
+  private enableDetailedErrorLogging: boolean = false; // Set to true to enable detailed error logging with stack traces
 
   constructor() {
-    console.log('[API Router] Initialized with default program: VEX V5 Robotics Competition');
+    logger.info('Initialized with default program: VEX V5 Robotics Competition');
     // Initialize the cached API service for the default program
     this.updateCachedAPIService();
   }
@@ -94,6 +98,10 @@ class APIRouter {
    * Logs detailed API call information when there's an error or unexpected response
    */
   private logAPIError(method: string, params?: any, error?: any, response?: any): void {
+    if (!this.enableDetailedErrorLogging) {
+      return;
+    }
+
     const caller = this.getCallerInfo();
     const apiType = this.shouldUseRECFAPI() ? 'RECFEvents' : 'RobotEvents';
     const statusCode = response?.status || error?.response?.status || error?.status || 'Unknown';
@@ -172,10 +180,10 @@ class APIRouter {
     }
 
     if (this.shouldUseRECFAPI(targetProgram)) {
-      console.log('[API Router] Caching RECF Events API for program:', targetProgram || 'Unknown');
+      logger.debug('Caching RECF Events API for program:', targetProgram || 'Unknown');
       this.cachedAPIService = recfEventsAPI;
     } else {
-      console.log('[API Router] Caching RobotEvents API for program:', targetProgram || 'Unknown');
+      logger.debug('Caching RobotEvents API for program:', targetProgram || 'Unknown');
       this.cachedAPIService = comprehensiveRobotEventsAPI;
     }
 
@@ -212,13 +220,13 @@ class APIRouter {
   // =============================================================================
 
   public setSelectedProgram(program: string): void {
-    console.log('[API Router] Setting selected program to:', program || 'Unknown');
+    logger.info('Setting selected program to:', program || 'Unknown');
     const oldProgram = this.selectedProgram;
     this.selectedProgram = program;
 
     // Update cached API service if program changed
     if (oldProgram !== program) {
-      console.log('[API Router] Program changed from', oldProgram || 'Unknown', 'to', program || 'Unknown', ', updating cached API service');
+      logger.info('Program changed from', oldProgram || 'Unknown', 'to', program || 'Unknown', ', updating cached API service');
       this.updateCachedAPIService(program);
     }
 
@@ -481,13 +489,13 @@ class APIRouter {
       comprehensiveRobotEventsAPI.initializeCache(),
       recfEventsAPI.initializeCache()
     ]);
-    console.log('[API Router] Cache initialized for both APIs');
+    logger.info('Cache initialized for both APIs');
   }
 
   public clearCache(): void {
     comprehensiveRobotEventsAPI.clearCache();
     recfEventsAPI.clearCache();
-    console.log('[API Router] Cache cleared for both APIs');
+    logger.info('Cache cleared for both APIs');
   }
 
   // =============================================================================
@@ -538,8 +546,8 @@ class APIRouter {
   public logRoutingStatus(): void {
     const info = this.getRoutingInfo();
     const cacheInfo = this.getCacheStatus();
-    console.log('[API Router] Current Routing Status:', JSON.stringify(info, null, 2));
-    console.log('[API Router] Cache Status:', JSON.stringify(cacheInfo, null, 2));
+    logger.debug('Current Routing Status:', JSON.stringify(info, null, 2));
+    logger.debug('Cache Status:', JSON.stringify(cacheInfo, null, 2));
   }
 
   /**

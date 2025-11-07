@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
+import { createLogger } from '../utils/logger';
 import { Appearance, ColorSchemeName } from 'react-native';
 import { storage } from '../utils/webCompatibility';
 import { robotEventsAPI } from '../services/apiRouter';
 import { getAllProgramNames, getProgramConfig } from '../utils/programMappings';
 import { setUseBundledGameManuals as setGameManualServiceBundled } from '../services/gameManualService';
 import CryptoJS from 'crypto-js';
+
+const logger = createLogger('SettingsContext');
 
 export type ProgramType =
   | 'VEX V5 Robotics Competition'
@@ -262,7 +265,7 @@ export const getProgramTheme = (program: ProgramType, colorScheme: ColorSchemeNa
 };
 
 export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  console.log('[SettingsProvider] Starting initialization...');
+  logger.debug('Starting initialization...');
 
   // All hooks must be called at the top level, before any conditional logic
   const [selectedProgram, setSelectedProgramState] = useState<ProgramType>('VEX V5 Robotics Competition');
@@ -314,9 +317,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   // Get theme colors based on program and effective color scheme
   // Use preview program if set (for temporary visual preview), otherwise use selected program
   const effectiveProgram = previewProgram || selectedProgram;
-  console.log('[SettingsProvider] Getting theme for program:', effectiveProgram, 'themeMode:', themeMode, 'effectiveColorScheme:', colorScheme);
+  logger.debug('Getting theme for program:', effectiveProgram, 'themeMode:', themeMode, 'effectiveColorScheme:', colorScheme);
   const theme = getProgramTheme(effectiveProgram, colorScheme, programColorOverrides);
-  console.log('[SettingsProvider] Theme calculated:', theme);
+  logger.debug('Theme calculated:', theme);
   const isDark = colorScheme === 'dark';
 
   // Helper function to get color with override support
@@ -462,7 +465,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         if (savedStoredDeveloperCode) setStoredDeveloperCodeState(savedStoredDeveloperCode);
         if (savedProgramColorOverrides) setProgramColorOverridesState(JSON.parse(savedProgramColorOverrides));
       } catch (error) {
-        console.error('Failed to load settings:', error);
+        logger.error('Failed to load settings:', error);
       }
     };
 
@@ -503,14 +506,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     try {
       const currentSeasonId = await robotEventsAPI.getCurrentSeasonId(program);
       if (currentSeasonId) {
-        console.log('Auto-switching to current season for', program || 'Unknown', ': (ID:', currentSeasonId || 'Unknown', ')');
+        logger.debug('Auto-switching to current season for', program || 'Unknown', ': (ID:', currentSeasonId || 'Unknown', ')');
         setSelectedSeasonState(currentSeasonId.toString());
         await storage.setItem(STORAGE_KEYS.selectedSeason, currentSeasonId.toString());
       } else {
-        console.log('No current season found for', program || 'Unknown', ', keeping current season');
+        logger.debug('No current season found for', program || 'Unknown', ', keeping current season');
       }
     } catch (error) {
-      console.error('Failed to auto-switch season:', error);
+      logger.error('Failed to auto-switch season:', error);
     }
   };
 
@@ -774,44 +777,44 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const resetProgramColorOverrides = async (programs: ProgramType[], properties?: ColorProperty[]) => {
-    console.log('[SettingsContext] resetProgramColorOverrides called');
-    console.log('[SettingsContext] Programs:', programs);
-    console.log('[SettingsContext] Properties to remove:', properties);
-    console.log('[SettingsContext] Current overrides:', JSON.stringify(programColorOverrides));
+    logger.debug('resetProgramColorOverrides called');
+    logger.debug('Programs:', programs);
+    logger.debug('Properties to remove:', properties);
+    logger.debug('Current overrides:', JSON.stringify(programColorOverrides));
 
     const newOverrides = { ...programColorOverrides };
     programs.forEach(program => {
       if (properties && properties.length > 0) {
         // Remove specific properties only
-        console.log('[SettingsContext] Removing specific properties for:', program);
+        logger.debug('Removing specific properties for:', program);
         if (newOverrides[program]) {
           const beforeLength = newOverrides[program]!.length;
           newOverrides[program] = newOverrides[program]!.filter(
             override => !properties.includes(override.property)
           );
           const afterLength = newOverrides[program]!.length;
-          console.log('[SettingsContext] Filtered overrides:', beforeLength, '->', afterLength);
+          logger.debug('Filtered overrides:', beforeLength, '->', afterLength);
 
           // If no overrides left, remove the program entry entirely
           if (newOverrides[program]!.length === 0) {
-            console.log('[SettingsContext] No overrides left, removing program entry');
+            logger.debug('No overrides left, removing program entry');
             delete newOverrides[program];
           }
         }
       } else {
         // Remove all overrides for this program
-        console.log('[SettingsContext] Removing ALL overrides for:', program);
+        logger.debug('Removing ALL overrides for:', program);
         delete newOverrides[program];
       }
     });
 
-    console.log('[SettingsContext] New overrides:', JSON.stringify(newOverrides));
-    console.log('[SettingsContext] Calling setProgramColorOverridesState');
+    logger.debug('New overrides:', JSON.stringify(newOverrides));
+    logger.debug('Calling setProgramColorOverridesState');
     setProgramColorOverridesState(newOverrides);
 
-    console.log('[SettingsContext] Saving to storage');
+    logger.debug('Saving to storage');
     await storage.setItem(STORAGE_KEYS.programColorOverrides, JSON.stringify(newOverrides));
-    console.log('[SettingsContext] Save complete');
+    logger.debug('Save complete');
   };
 
   const updateGlobalSeason = async (season: string) => {
@@ -836,7 +839,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       const lastWelcomeVersion = await storage.getItem(STORAGE_KEYS.lastWelcomeVersion);
       return lastWelcomeVersion !== currentVersion;
     } catch (error) {
-      console.error('Failed to check welcome version:', error);
+      logger.error('Failed to check welcome version:', error);
       return true; // Show welcome on error to be safe
     }
   };
@@ -845,7 +848,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     try {
       await storage.setItem(STORAGE_KEYS.lastWelcomeVersion, version);
     } catch (error) {
-      console.error('Failed to save welcome version:', error);
+      logger.error('Failed to save welcome version:', error);
     }
   };
 
@@ -854,7 +857,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     // The logic will be handled in the App component
   };
 
-  console.log('[SettingsProvider] Creating context value object...');
+  logger.debug('Creating context value object...');
 
   try {
     const value: SettingsContextType = {
@@ -952,8 +955,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     showWelcomeManually,
   };
 
-    console.log('[SettingsProvider] About to render with value:', typeof value);
-    console.log('[SettingsProvider] Children type:', typeof children);
+    logger.debug('About to render with value:', typeof value);
+    logger.debug('Children type:', typeof children);
 
     return (
       <SettingsContext.Provider value={value}>
@@ -962,8 +965,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     );
 
   } catch (error) {
-    console.error('[SettingsProvider] ERROR:', error);
-    console.error('[SettingsProvider] Error stack:', error instanceof Error ? error.stack : 'Unknown error');
+    logger.error('ERROR:', error);
+    logger.error('Error stack:', error instanceof Error ? error.stack : 'Unknown error');
 
     // Return a basic fallback
     return (

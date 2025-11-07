@@ -1,9 +1,12 @@
+import { createLogger } from './logger';
 import { Team, WorldSkillsResponse } from '../types';
 import { Alert, Platform } from 'react-native';
 import { fileDownload, isWeb } from './webCompatibility';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import { robotEventsAPI } from '../services/apiRouter';
+
+const logger = createLogger('dataExporter');
 
 export interface ExportData {
   teams?: Team[];
@@ -114,7 +117,7 @@ export class DataExporter {
         }
       }
     } catch (error) {
-      console.error('Export error:', error);
+      logger.error('Export error:', error);
       throw new Error(`Failed to create CSV file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -225,7 +228,7 @@ export class DataExporter {
         totalPoints: sumTotalPoints
       };
     } catch (error) {
-      console.error(`Error calculating match stats for team ${teamId}:`, error);
+      logger.error(`Error calculating match stats for team ${teamId}:`, error);
       return {
         totalMatches: 0, totalWins: 0, totalLosses: 0, totalTies: 0, winrate: 0,
         wp: 0, ap: 0, sp: 0, highScore: 0, averagePoints: 0, totalPoints: 0
@@ -249,7 +252,7 @@ export class DataExporter {
       }
       return { ranking: 0, combined: 0, programming: 0, driver: 0 };
     } catch (error) {
-      console.error(`Error fetching world skills for team ${team.number}:`, error);
+      logger.error(`Error fetching world skills for team ${team.number}:`, error);
       return { ranking: 0, combined: 0, programming: 0, driver: 0 };
     }
   }
@@ -270,7 +273,7 @@ export class DataExporter {
         programmingScore: programmingSkill?.score ?? 0,
       };
     } catch (error) {
-      console.error(`Error fetching event skills for team ${teamId}:`, error);
+      logger.error(`Error fetching event skills for team ${teamId}:`, error);
       return { driverRank: 0, driverScore: 0, programmingRank: 0, programmingScore: 0 };
     }
   }
@@ -295,7 +298,7 @@ export class DataExporter {
       const totalRank = validRankings.reduce((sum, r) => sum + r.rank, 0);
       return totalRank / validRankings.length;
     } catch (error) {
-      console.error(`Error calculating average ranking for team ${teamId}:`, error);
+      logger.error(`Error calculating average ranking for team ${teamId}:`, error);
       return 0;
     }
   }
@@ -326,7 +329,7 @@ export class DataExporter {
 
       return awardsList;
     } catch (error) {
-      console.error(`Error fetching award details for team ${teamId}:`, error);
+      logger.error(`Error fetching award details for team ${teamId}:`, error);
       return 'Error';
     }
   }
@@ -341,7 +344,7 @@ export class DataExporter {
       }
       return null;
     } catch (error) {
-      console.error(`Error fetching event rank for team ${teamId}:`, error);
+      logger.error(`Error fetching event rank for team ${teamId}:`, error);
       return null;
     }
   }
@@ -399,20 +402,20 @@ export class DataExporter {
           selectedFields['WP'] || selectedFields['AP'] || selectedFields['SP'] ||
           selectedFields['High Score'] || selectedFields['Average Points'] || selectedFields['Total Points'])) {
         if (eventId) {
-          console.log(`[DataExporter] Fetching match stats for team ${team.number} (ID: ${team.id}) at event ${eventId}`);
+          logger.debug(`Fetching match stats for team ${team.number} (ID: ${team.id}) at event ${eventId}`);
           matchStats = await this.calculateMatchStats(team.id, eventId);
         } else if (seasonId) {
-          console.log(`[DataExporter] Fetching season match stats for team ${team.number} (ID: ${team.id}) for season ${seasonId}`);
+          logger.debug(`Fetching season match stats for team ${team.number} (ID: ${team.id}) for season ${seasonId}`);
           matchStats = await this.calculateMatchStats(team.id, undefined, seasonId);
         }
-        console.log(`[DataExporter] Match stats for ${team.number}:`, matchStats);
+        logger.debug(`Match stats for ${team.number}:`, matchStats);
       }
 
       // Only fetch event rank if we're doing an event-scoped export
       if (eventId && selectedFields['Event Rank']) {
-        console.log(`[DataExporter] Fetching event rank for team ${team.number} (ID: ${team.id})`);
+        logger.debug(`Fetching event rank for team ${team.number} (ID: ${team.id})`);
         eventRank = await this.getEventRank(team.id, eventId, data.divisionId);
-        console.log(`[DataExporter] Event rank for ${team.number}:`, eventRank);
+        logger.debug(`Event rank for ${team.number}:`, eventRank);
       }
 
       // Fetch skills data based on export type
@@ -421,38 +424,38 @@ export class DataExporter {
 
         if (eventId) {
           // Single event export: fetch event skills
-          console.log(`[DataExporter] Fetching event skills for team ${team.number} (ID: ${team.id}) at event ${eventId}`);
+          logger.debug(`Fetching event skills for team ${team.number} (ID: ${team.id}) at event ${eventId}`);
           eventSkills = await this.getEventSkills(team.id, eventId);
-          console.log(`[DataExporter] Event skills for ${team.number}:`, eventSkills);
+          logger.debug(`Event skills for ${team.number}:`, eventSkills);
         } else if (seasonId) {
           // Season-wide export: fetch world skills
-          console.log(`[DataExporter] Fetching world skills for team ${team.number} (ID: ${team.id}) season ${seasonId}`);
+          logger.debug(`Fetching world skills for team ${team.number} (ID: ${team.id}) season ${seasonId}`);
           worldSkills = await this.getWorldSkills(team, seasonId);
-          console.log(`[DataExporter] World skills for ${team.number}:`, worldSkills);
+          logger.debug(`World skills for ${team.number}:`, worldSkills);
         }
       }
 
       if (selectedFields['Average Qualifiers Ranking']) {
-        console.log(`[DataExporter] Calculating average ranking for team ${team.number} (ID: ${team.id})`);
+        logger.debug(`Calculating average ranking for team ${team.number} (ID: ${team.id})`);
         avgRanking = await this.calculateAverageRanking(team.id);
-        console.log(`[DataExporter] Average ranking for ${team.number}:`, avgRanking);
+        logger.debug(`Average ranking for ${team.number}:`, avgRanking);
       }
 
       if (selectedFields['Total Events Attended']) {
         try {
-          console.log(`[DataExporter] Fetching events for team ${team.number} (ID: ${team.id})`);
+          logger.debug(`Fetching events for team ${team.number} (ID: ${team.id})`);
           const eventsResponse = await robotEventsAPI.getTeamEvents(team.id);
           totalEvents = eventsResponse.data.length;
-          console.log(`[DataExporter] Total events for ${team.number}:`, totalEvents);
+          logger.debug(`Total events for ${team.number}:`, totalEvents);
         } catch (error) {
-          console.error(`[DataExporter] Error fetching events for team ${team.number}:`, error);
+          logger.error(`Error fetching events for team ${team.number}:`, error);
           totalEvents = 0;
         }
       }
 
       if (selectedFields['Total Awards'] || selectedFields['Award Details']) {
         try {
-          console.log(`[DataExporter] Fetching awards for team ${team.number} (ID: ${team.id})`);
+          logger.debug(`Fetching awards for team ${team.number} (ID: ${team.id})`);
           let awardsResponse;
 
           // Determine which awards to fetch based on export scope and options
@@ -478,9 +481,9 @@ export class DataExporter {
               awardDetails = await this.getAwardDetails(team.id);
             }
           }
-          console.log(`[DataExporter] Total awards for ${team.number}:`, totalAwards);
+          logger.debug(`Total awards for ${team.number}:`, totalAwards);
         } catch (error) {
-          console.error(`[DataExporter] Error fetching awards for team ${team.number}:`, error);
+          logger.error(`Error fetching awards for team ${team.number}:`, error);
           totalAwards = 0;
           awardDetails = 'Error';
         }
@@ -590,7 +593,7 @@ export class DataExporter {
         const rankingsResponse = await robotEventsAPI.getTeamRankings(team.id, { season: [seasonId] });
         const rankings = rankingsResponse.data;
 
-        console.log(`[DataExporter] Team ${team.number} attended ${rankings.length} events`);
+        logger.debug(`Team ${team.number} attended ${rankings.length} events`);
 
         // Create one row per event
         for (const ranking of rankings) {
@@ -645,7 +648,7 @@ export class DataExporter {
               if (selectedFields['Programming Skills']) row.push(eventSkills?.programmingScore ?? 0);
               if (selectedFields['Driver Skills']) row.push(eventSkills?.driverScore ?? 0);
             } catch (error) {
-              console.error(`[DataExporter] Error fetching event skills for team ${team.number}:`, error);
+              logger.error(`Error fetching event skills for team ${team.number}:`, error);
               if (selectedFields['Skills Ranking']) row.push('N/A');
               if (selectedFields['Combined Skills']) row.push(0);
               if (selectedFields['Programming Skills']) row.push(0);
@@ -685,7 +688,7 @@ export class DataExporter {
                 row.push(eventAwardDetails);
               }
             } catch (error) {
-              console.error(`[DataExporter] Error fetching event awards for team ${team.number}:`, error);
+              logger.error(`Error fetching event awards for team ${team.number}:`, error);
               if (selectedFields['Total Awards']) row.push(0);
               if (selectedFields['Award Details']) row.push('Error');
             }
@@ -779,7 +782,7 @@ export class DataExporter {
                 seasonRow.push(seasonAwardDetails);
               }
             } catch (error) {
-              console.error(`[DataExporter] Error fetching season awards for team ${team.number}:`, error);
+              logger.error(`Error fetching season awards for team ${team.number}:`, error);
               if (selectedFields['Total Awards']) seasonRow.push(0);
               if (selectedFields['Award Details']) seasonRow.push('Error');
             }
@@ -790,7 +793,7 @@ export class DataExporter {
         }
 
       } catch (error) {
-        console.error(`[DataExporter] Error fetching data for team ${team.number}:`, error);
+        logger.error(`Error fetching data for team ${team.number}:`, error);
       }
 
       // Report progress

@@ -19,6 +19,9 @@
  * - Real-time schedule updates and notifications
  */
 import React, { useState, useEffect } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('EventAgendaScreen');
 import {
   View,
   Text,
@@ -84,7 +87,7 @@ const EventAgendaScreen = ({ route, navigation }: EventAgendaScreenProps) => {
       return;
     }
 
-    console.log('DEBUG: Fetching agenda from URL:', url);
+    logger.debug('Fetching agenda from URL:', url);
 
     try {
       setIsLoading(true);
@@ -108,21 +111,21 @@ const EventAgendaScreen = ({ route, navigation }: EventAgendaScreenProps) => {
         throw new Error('Failed to load data.');
       }
 
-      console.log('DEBUG: Full HTML length:', html.length);
+      logger.debug('Full HTML length:', html.length);
 
       // Parse the HTML to extract agenda content
       // Since we don't have SwiftSoup in React Native, we'll use regex or simple string parsing
       const agendaContent = parseAgendaFromHTML(html);
 
       if (agendaContent.length > 0) {
-        console.log('DEBUG: Joined agenda text:\n', agendaContent.join('\n\n'));
+        logger.debug('Joined agenda text:\n', agendaContent.join('\n\n'));
         setAgendaLines(agendaContent);
       } else {
-        console.log('DEBUG: No agenda content found, setting fallback message');
+        logger.debug('No agenda content found, setting fallback message');
         setAgendaLines(['No agenda found.']);
       }
     } catch (error) {
-      console.error('DEBUG: Error fetching data:', error);
+      logger.error('Error fetching data:', error);
 
       // Check for common error types and provide appropriate fallbacks
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -132,7 +135,7 @@ const EventAgendaScreen = ({ route, navigation }: EventAgendaScreenProps) => {
         errorMessage.includes('Failed to fetch') ||
         errorMessage.includes('CORS')
       )) {
-        console.log('DEBUG: Network/CORS error detected');
+        logger.debug('Network/CORS error detected');
         setAgendaLines([
           'Unable to load agenda directly from the website.',
           '',
@@ -145,7 +148,7 @@ const EventAgendaScreen = ({ route, navigation }: EventAgendaScreenProps) => {
         ]);
         setErrorMessage(null);
       } else if (errorMessage.includes('HTTP error! status: 404')) {
-        console.log('DEBUG: 404 error - event page not found');
+        logger.debug('404 error - event page not found');
         setAgendaLines([
           'Event page not found.',
           '',
@@ -165,20 +168,20 @@ const EventAgendaScreen = ({ route, navigation }: EventAgendaScreenProps) => {
 
   const parseAgendaFromHTML = (html: string): string[] => {
     try {
-      console.log('DEBUG: Parsing HTML for agenda content');
+      logger.debug('Parsing HTML for agenda content');
 
       // Use the same selector as Swift: tab[name='Agenda']
       const agendaTabPattern = /<tab[^>]*name=['"]Agenda['"][^>]*>([\s\S]*?)<\/tab>/i;
       const agendaTabMatch = html.match(agendaTabPattern);
 
       if (agendaTabMatch) {
-        console.log('DEBUG: Found agenda tab element');
+        logger.debug('Found agenda tab element');
         const agendaHTML = agendaTabMatch[1]; // Get content inside the tab
 
         // First try to extract paragraphs (like Swift implementation)
         const paragraphs = extractParagraphs(agendaHTML);
         if (paragraphs.length > 0) {
-          console.log('DEBUG: Extracted paragraphs from agenda:', paragraphs);
+          logger.debug('Extracted paragraphs from agenda:', paragraphs);
           return paragraphs;
         }
 
@@ -189,11 +192,11 @@ const EventAgendaScreen = ({ route, navigation }: EventAgendaScreenProps) => {
           .filter(line => line.length > 0);
 
         if (lines.length > 0) {
-          console.log('DEBUG: Fallback - extracted lines from raw text:', lines);
+          logger.debug('Fallback - extracted lines from raw text:', lines);
           return lines;
         }
       } else {
-        console.log('DEBUG: No agenda element found with selector "tab[name=\'Agenda\']"');
+        logger.debug('No agenda element found with selector "tab[name=\'Agenda\']"');
       }
 
       // Try alternative selectors as fallback
@@ -206,7 +209,7 @@ const EventAgendaScreen = ({ route, navigation }: EventAgendaScreenProps) => {
       for (const selector of alternativeSelectors) {
         const match = html.match(selector);
         if (match) {
-          console.log('DEBUG: Found agenda content with alternative selector');
+          logger.debug('Found agenda content with alternative selector');
           const agendaHTML = match[1];
           const paragraphs = extractParagraphs(agendaHTML);
           if (paragraphs.length > 0) {
@@ -215,10 +218,10 @@ const EventAgendaScreen = ({ route, navigation }: EventAgendaScreenProps) => {
         }
       }
 
-      console.log('DEBUG: No agenda content found');
+      logger.debug(' No agenda content found');
       return [];
     } catch (error) {
-      console.error('DEBUG: Error parsing HTML:', error);
+      logger.error(' Error parsing HTML:', error);
       return [];
     }
   };

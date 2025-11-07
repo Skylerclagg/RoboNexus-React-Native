@@ -11,6 +11,9 @@
  */
 
 import React, { useState, useEffect, useMemo, useImperativeHandle, forwardRef, useRef } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('GameManualQuickReference');
 import {
   View,
   Text,
@@ -128,7 +131,7 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
         setFavorites(favIds);
       }
     } catch (error) {
-      console.error('[QuickReference] Error loading manual:', error);
+      logger.error('Error loading manual:', error);
     } finally {
       setLoading(false);
       setLoadingProgress(null);
@@ -892,7 +895,7 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
         setFavorites(favorites.filter(id => id !== ruleId));
       }
     } catch (error) {
-      console.error('[QuickReference] Error toggling favorite:', error);
+      logger.error('Error toggling favorite:', error);
     }
   };
 
@@ -910,7 +913,7 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
   // Open VEX link
   const openVexLink = (url: string) => {
     Linking.openURL(url).catch(err => {
-      console.error('[QuickReference] Failed to open link:', err);
+      logger.error('Failed to open link:', err);
     });
   };
 

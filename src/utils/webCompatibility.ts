@@ -5,7 +5,10 @@
  * web and native platforms, ensuring features work consistently across all platforms.
  */
 
+import { createLogger } from './logger';
 import { Platform } from 'react-native';
+
+const logger = createLogger('webCompatibility');
 
 export const isWeb = Platform.OS === 'web';
 export const isNative = Platform.OS !== 'web';
@@ -111,7 +114,7 @@ export const fileDownload = {
       URL.revokeObjectURL(url);
     } else {
       // Native file handling would go here
-      console.log('Native file download not implemented in this utility');
+      logger.debug('Native file download not implemented in this utility');
     }
   }
 };
@@ -122,28 +125,28 @@ export const fileDownload = {
  */
 export const clipboard = {
   setString: async (text: string): Promise<boolean> => {
-    console.log('clipboard.setString called with:', text);
-    console.log('isWeb:', isWeb);
+    logger.debug('clipboard.setString called with:', text);
+    logger.debug('isWeb:', isWeb);
 
     try {
       if (isWeb) {
         // Check if we have a secure context (HTTPS or localhost)
         const isSecureContext = window.isSecureContext;
-        console.log('Secure context:', isSecureContext);
+        logger.debug('Secure context:', isSecureContext);
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          console.log('Using modern clipboard API');
+          logger.debug('Using modern clipboard API');
           try {
             await navigator.clipboard.writeText(text);
-            console.log('Clipboard write successful');
+            logger.debug('Clipboard write successful');
             return true;
           } catch (clipboardError) {
-            console.error('Modern clipboard API failed:', clipboardError);
+            logger.error('Modern clipboard API failed:', clipboardError);
             // Fall through to fallback method
           }
         }
 
-        console.log('Using fallback clipboard method');
+        logger.debug('Using fallback clipboard method');
         const textArea = document.createElement('textarea');
         textArea.value = text;
         textArea.style.position = 'fixed';
@@ -164,9 +167,9 @@ export const clipboard = {
         let success = false;
         try {
           success = document.execCommand('copy');
-          console.log('execCommand copy result:', success);
+          logger.debug('execCommand copy result:', success);
         } catch (execError) {
-          console.error('execCommand failed:', execError);
+          logger.error('execCommand failed:', execError);
         }
 
         document.body.removeChild(textArea);
@@ -176,15 +179,15 @@ export const clipboard = {
         try {
           const ExpoClipboard = require('expo-clipboard');
           await ExpoClipboard.setStringAsync(text);
-          console.log('Native clipboard write successful');
+          logger.debug('Native clipboard write successful');
           return true;
         } catch (e) {
-          console.error('Native clipboard error:', e);
+          logger.error('Native clipboard error:', e);
           return false;
         }
       }
     } catch (error) {
-      console.error('General clipboard error:', error);
+      logger.error('General clipboard error:', error);
       return false;
     }
   }
@@ -251,12 +254,12 @@ export const navigation = {
           // On native, just return false for now (can be extended later)
           return false;
         } catch (e) {
-          console.error('Linking error:', e);
+          logger.error('Linking error:', e);
           return false;
         }
       }
     } catch (error) {
-      console.error('Failed to open URL:', error);
+      logger.error('Failed to open URL:', error);
       return false;
     }
   }

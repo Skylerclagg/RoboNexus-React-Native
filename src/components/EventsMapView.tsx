@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createLogger } from '../utils/logger';
 import {
   View,
   Text,
@@ -13,6 +14,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../contexts/SettingsContext';
+
+const logger = createLogger('EventsMapView');
 import { useFavorites } from '../contexts/FavoritesContext';
 import { Event } from '../types';
 import { isWeb, location as webLocation } from '../utils/webCompatibility';
@@ -88,7 +91,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
 
   const clusterEvents = (events: EventMarker[], zoomLevel: number): EventCluster[] => {
     const clusteringLevel = getClusteringLevel(zoomLevel);
-    console.log(`[Clustering] Processing ${events.length} events with zoom level ${zoomLevel.toFixed(3)} using ${clusteringLevel} clustering`);
+    logger.debug(`[Clustering] Processing ${events.length} events with zoom level ${zoomLevel.toFixed(3)} using ${clusteringLevel} clustering`);
 
     // Group events by the appropriate geographic level
     const groups: { [key: string]: EventMarker[] } = {};
@@ -138,7 +141,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
       };
     });
 
-    console.log(`[Clustering] Created ${clusters.length} ${clusteringLevel}-level clusters from ${events.length} events`);
+    logger.debug(`[Clustering] Created ${clusters.length} ${clusteringLevel}-level clusters from ${events.length} events`);
     return clusters;
   };
 
@@ -170,7 +173,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
         setLocationPermission(false);
       }
     } catch (error) {
-      console.error('Failed to get location permission:', error);
+      logger.error('Failed to get location permission:', error);
       setLocationPermission(false);
     }
   };
@@ -221,7 +224,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
         // Use our webCompatibility location module instead of expo-location directly
         setLocation(webLocation);
       } catch (error) {
-        console.error('Failed to load react-native-maps:', error);
+        logger.error('Failed to load react-native-maps:', error);
         setLoadError('Failed to load map components. Map view may not be available on this device.');
       }
     };
@@ -239,7 +242,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
           setLocationPermission(false);
         }
       } catch (error) {
-        console.error('Failed to get location permission:', error);
+        logger.error('Failed to get location permission:', error);
         setLocationPermission(false);
       }
     };
@@ -390,7 +393,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
         }, 1000); // 1 second animation
       }
     } catch (error) {
-      console.error('Failed to get current location:', error);
+      logger.error('Failed to get current location:', error);
       Alert.alert('Error', 'Failed to get your current location. Make sure location services are enabled.');
     }
   };
@@ -403,7 +406,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
         await addEvent(event);
       }
     } catch (error) {
-      console.error('Failed to toggle event favorite:', error);
+      logger.error('Failed to toggle event favorite:', error);
       Alert.alert('Error', 'Failed to update favorite');
     }
   };
@@ -472,7 +475,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
         pitchEnabled={false}
         rotateEnabled={false}
         onPress={() => {
-          console.log('Map pressed');
+          logger.debug('Map pressed');
           if (modalVisible) {
             setModalVisible(false);
             setSelectedCluster(null);
@@ -481,7 +484,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
         onRegionChangeComplete={(region: any) => {
           // Update zoom level for dynamic clustering
           // latitudeDelta represents the zoom level (smaller = more zoomed in)
-          console.log('Map zoom changed - latitudeDelta:', region.latitudeDelta, 'clustering level:', getClusteringLevel(region.latitudeDelta));
+          logger.debug('Map zoom changed - latitudeDelta:', region.latitudeDelta, 'clustering level:', getClusteringLevel(region.latitudeDelta));
           setCurrentZoomLevel(region.latitudeDelta);
         }}
       >
@@ -490,7 +493,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
             key={cluster.id}
             coordinate={cluster.coordinate}
             onPress={(markerEvent: any) => {
-              console.log('Marker pressed:', cluster.count === 1 ? cluster.events[0].name : `${cluster.count} events`);
+              logger.debug('Marker pressed:', cluster.count === 1 ? cluster.events[0].name : `${cluster.count} events`);
               markerEvent.stopPropagation();
               setSelectedCluster(cluster);
               setModalVisible(true);
@@ -666,7 +669,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
                 <TouchableOpacity
                   style={[styles.viewEventButtonModal, { backgroundColor: settings.buttonColor }]}
                   onPress={() => {
-                    console.log('View event pressed:', event.name);
+                    logger.debug('View event pressed:', event.name);
                     onEventPress?.(event);
                     setModalVisible(false);
                     setSelectedCluster(null);

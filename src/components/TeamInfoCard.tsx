@@ -6,6 +6,9 @@
  */
 
 import React, { useState } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('TeamInfoCard');
 import {
   View,
   Text,
@@ -122,7 +125,7 @@ const TeamInfoCard: React.FC<TeamInfoCardProps> = ({
         await addTeam(team);
       }
     } catch (error) {
-      console.error('Failed to toggle team favorite:', error);
+      logger.error('Failed to toggle team favorite:', error);
     }
   };
 

@@ -19,6 +19,9 @@
  * - Success confirmation and error handling
  */
 import React, { useState, useEffect, useMemo } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('WelcomeScreen');
 import {
   View,
   Text,
@@ -87,7 +90,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       const defaultMessage = `Successfully configured RoboNexus for ${selectedProgram.replace('Robotics Competition', '').replace('Competition', '').trim()}!`;
       Alert.alert('Success!', successMessage || defaultMessage);
     } catch (error) {
-      console.error('Error saving program selection:', error);
+      logger.error('Error saving program selection:', error);
       Alert.alert('Error', 'Failed to save program selection');
     }
   };

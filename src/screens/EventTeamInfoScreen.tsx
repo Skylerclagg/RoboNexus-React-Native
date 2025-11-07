@@ -9,6 +9,9 @@
  * Accessed from Event team list, Match list, or Rankings
  */
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('EventTeamInfoScreen');
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
@@ -216,7 +219,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
   useEffect(() => {
     const currentTeam = team || teamData;
     if (currentTeam?.id && selectedSeason && selectedSeason !== '') {
-      console.log('Selected season changed, refreshing data for season:', selectedSeason);
+      logger.debug('Selected season changed, refreshing data for season:', selectedSeason);
       const seasonId = parseInt(selectedSeason);
       fetchAwardCounts(currentTeam.id, seasonId);
       fetchWorldSkillsData(currentTeam.id, seasonId);
@@ -241,7 +244,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
         setSelectedSeason(formattedSeasons[0].value);
       }
     } catch (error) {
-      console.error('Failed to load seasons:', error);
+      logger.error('Failed to load seasons:', error);
     }
   };
 
@@ -292,7 +295,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
         await fetchEventMatchRecord(currentTeam.id, event.id);
       }
     } catch (error) {
-      console.error('Failed to fetch team info:', error);
+      logger.error('Failed to fetch team info:', error);
       Alert.alert('Error', 'Failed to load team information');
     } finally {
       setTeamLoading(false);
@@ -301,10 +304,10 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
 
   const fetchWorldSkillsData = async (teamId: number, seasonId?: number) => {
     try {
-      console.log('Fetching world skills data for team:', teamId, 'season:', seasonId);
+      logger.debug('Fetching world skills data for team:', teamId, 'season:', seasonId);
 
       if (!team || !team.grade) {
-        console.log('No team data or grade available for world skills lookup');
+        logger.debug('No team data or grade available for world skills lookup');
         return;
       }
 
@@ -317,11 +320,11 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
           targetSeasonId = await robotEventsAPI.getCurrentSeasonId(selectedProgram);
         }
       }
-      console.log('Target season ID:', targetSeasonId);
+      logger.debug('Target season ID:', targetSeasonId);
 
       // Search for team by ID across ALL grade caches for this program/season
       const programId = getProgramId(selectedProgram);
-      console.log('[EventTeamInfo] Searching for team ID', teamId, 'in World Skills caches');
+      logger.debug('Searching for team ID', teamId, 'in World Skills caches');
 
       let teamSkillsData = null;
       const programConfig = getProgramConfig(selectedProgram);
@@ -333,7 +336,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
 
         // If cache is empty, try to preload it and use returned data
         if (gradeCache.length === 0) {
-          console.log(`[EventTeamInfo] Cache empty for ${grade}, preloading...`);
+          logger.debug(`Cache empty for ${grade}, preloading...`);
           gradeCache = await preloadWorldSkills(targetSeasonId, programId, grade);
         }
 
@@ -347,7 +350,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
           );
 
           if (teamSkillsData) {
-            console.log(`[EventTeamInfo] ✓ Found team in ${grade} World Skills rankings`);
+            logger.debug(`✓ Found team in ${grade} World Skills rankings`);
             break;
           }
         }
@@ -355,10 +358,10 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
 
       // Calculate total teams from collected caches
       const totalTeams = allGradeCaches.length;
-      console.log('[EventTeamInfo] Total teams across all grades:', totalTeams);
+      logger.debug('Total teams across all grades:', totalTeams);
 
       if (teamSkillsData) {
-        console.log('Found team in world skills rankings:', teamSkillsData);
+        logger.debug('Found team in world skills rankings:', teamSkillsData);
         setWorldSkillsData({
           ranking: teamSkillsData.rank || 0,
           combined: teamSkillsData.scores?.score || 0,
@@ -369,7 +372,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
           totalTeams,
         });
       } else {
-        console.log('Team not found in world skills rankings');
+        logger.debug('Team not found in world skills rankings');
         setWorldSkillsData({
           ranking: 0,
           combined: 0,
@@ -381,7 +384,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
         });
       }
     } catch (error) {
-      console.error('Failed to fetch world skills data:', error);
+      logger.error('Failed to fetch world skills data:', error);
       setWorldSkillsData({
         ranking: 0,
         combined: 0,
@@ -397,11 +400,11 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
   const fetchEventSkillsRanking = async (teamId: number) => {
     try {
       setEventSkillsLoading(true);
-      console.log('Fetching event skills ranking for team:', teamId, 'at event:', event.id);
+      logger.debug('Fetching event skills ranking for team:', teamId, 'at event:', event.id);
 
       // Fetch skills rankings for this event
       const skillsResponse = await robotEventsAPI.getEventSkills(event.id, {});
-      console.log('Event skills rankings returned:', skillsResponse.data.length);
+      logger.debug('Event skills rankings returned:', skillsResponse.data.length);
 
       // Group skills by team and calculate combined scores (same logic as EventSkillsRankingsScreen)
       const teamSkillsMap = new Map<number, {
@@ -468,14 +471,14 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
       const teamRanking = rankingsArray.find(r => r.id === teamId);
 
       if (teamRanking) {
-        console.log('Found team skills ranking at event:', teamRanking);
+        logger.debug('Found team skills ranking at event:', teamRanking);
         setEventSkillsRanking(teamRanking);
       } else {
-        console.log('Team has no skills ranking at this event');
+        logger.debug('Team has no skills ranking at this event');
         setEventSkillsRanking(null);
       }
     } catch (error) {
-      console.error('Failed to fetch event skills ranking:', error);
+      logger.error('Failed to fetch event skills ranking:', error);
       setEventSkillsRanking(null);
     } finally {
       setEventSkillsLoading(false);
@@ -484,7 +487,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
 
   const fetchAwardCounts = async (teamId: number, seasonId?: number) => {
     try {
-      console.log('Fetching awards for team:', teamId, 'season:', seasonId);
+      logger.debug('Fetching awards for team:', teamId, 'season:', seasonId);
 
       // Get season ID to fetch awards for - use provided seasonId, selectedSeason, or current season
       let targetSeasonId = seasonId;
@@ -496,11 +499,11 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
         }
       }
 
-      console.log('Fetching awards for season:', targetSeasonId);
+      logger.debug('Fetching awards for season:', targetSeasonId);
 
       // Fetch team awards for the selected season
       const teamAwards = await robotEventsAPI.getTeamAwards(teamId, { season: [targetSeasonId] });
-      console.log('Awards returned:', teamAwards.data.length);
+      logger.debug('Awards returned:', teamAwards.data.length);
 
       // Count awards by title (similar to Swift implementation)
       const awardCounts: AwardCounts = {};
@@ -513,10 +516,10 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
         awardCounts[title] = (awardCounts[title] || 0) + 1;
       });
 
-      console.log('Processed award counts:', awardCounts);
+      logger.debug('Processed award counts:', awardCounts);
       setAwardCounts(awardCounts);
     } catch (error) {
-      console.error('Failed to fetch award counts:', error);
+      logger.error('Failed to fetch award counts:', error);
       setAwardCounts({});
     }
   };
@@ -532,14 +535,14 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
         await addTeam(currentTeam, event.id);
       }
     } catch (error) {
-      console.error('Failed to toggle team favorite:', error);
+      logger.error('Failed to toggle team favorite:', error);
     }
   };
 
   const fetchMatchRecord = async (teamId: number) => {
     setMatchRecordLoading(true);
     try {
-      console.log('Fetching overall match record for team:', teamId);
+      logger.debug('Fetching overall match record for team:', teamId);
 
       // Get season ID to fetch rankings for
       let seasonId: number;
@@ -549,12 +552,12 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
         seasonId = await robotEventsAPI.getCurrentSeasonId(selectedProgram);
       }
 
-      console.log('Fetching rankings for season:', seasonId);
+      logger.debug('Fetching rankings for season:', seasonId);
 
       // Fetch team rankings for the selected season
       // Rankings contain the official match record (wins/losses/ties) for each event
       const teamRankings = await robotEventsAPI.getTeamRankings(teamId, { season: [seasonId] });
-      console.log('Rankings returned:', teamRankings.data.length);
+      logger.debug('Rankings returned:', teamRankings.data.length);
 
       let totalWins = 0;
       let totalLosses = 0;
@@ -574,10 +577,10 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
         totalMatches: totalWins + totalLosses + totalTies
       };
 
-      console.log('Processed overall match record from rankings:', record);
+      logger.debug('Processed overall match record from rankings:', record);
       setMatchRecord(record);
     } catch (error) {
-      console.error('Failed to fetch overall match record:', error);
+      logger.error('Failed to fetch overall match record:', error);
       setMatchRecord({
         wins: 0,
         losses: 0,
@@ -592,37 +595,37 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
   const fetchEventMatchRecord = async (teamId: number, eventId: number) => {
     setEventMatchRecordLoading(true);
     try {
-      console.log('Fetching event match record for team:', teamId, 'at event:', eventId, 'division:', division?.id);
+      logger.debug('Fetching event match record for team:', teamId, 'at event:', eventId, 'division:', division?.id);
 
       let divisionId = division?.id;
       let rankingsResponse;
 
       if (!divisionId) {
         try {
-          console.log('Division not provided, fetching event details to get division information');
+          logger.debug('Division not provided, fetching event details to get division information');
           const eventDetails = await robotEventsAPI.getEventById(eventId);
 
           if (eventDetails && eventDetails.divisions && eventDetails.divisions.length > 0) {
             // Use the first division (typically "Default Division" for single-division events)
             divisionId = eventDetails.divisions[0].id;
-            console.log('Found division from event details:', divisionId, 'name:', eventDetails.divisions[0].name);
+            logger.debug('Found division from event details:', divisionId, 'name:', eventDetails.divisions[0].name);
           }
         } catch (eventError) {
-          console.error('Failed to fetch event details:', eventError);
+          logger.error('Failed to fetch event details:', eventError);
         }
       }
 
       // Try to use division-specific rankings if division is available
       if (divisionId) {
-        console.log('Using division-specific rankings API with division:', divisionId);
+        logger.debug('Using division-specific rankings API with division:', divisionId);
         rankingsResponse = await robotEventsAPI.getEventDivisionRankings(eventId, divisionId, { team: [teamId] });
       } else {
         // Final fallback: Use team rankings filtered by event
-        console.log('No division available, using team rankings API filtered by event');
+        logger.debug('No division available, using team rankings API filtered by event');
         rankingsResponse = await robotEventsAPI.getTeamRankings(teamId, { event: [eventId] });
       }
 
-      console.log('Event rankings returned:', rankingsResponse.data.length, 'records');
+      logger.debug('Event rankings returned:', rankingsResponse.data.length, 'records');
 
       if (rankingsResponse.data.length > 0) {
         // Find the ranking record for this team/event
@@ -638,10 +641,10 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
             eventTotalMatches: teamRanking.wins + teamRanking.losses + teamRanking.ties
           };
 
-          console.log('Retrieved event match record from rankings API:', eventRecord);
+          logger.debug('Retrieved event match record from rankings API:', eventRecord);
           setEventMatchRecord(eventRecord);
         } else {
-          console.log('No ranking found for this team at this event');
+          logger.debug('No ranking found for this team at this event');
           setEventMatchRecord({
             eventWins: 0,
             eventLosses: 0,
@@ -650,7 +653,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
           });
         }
       } else {
-        console.log('No rankings data available for this team at this event');
+        logger.debug('No rankings data available for this team at this event');
         setEventMatchRecord({
           eventWins: 0,
           eventLosses: 0,
@@ -659,7 +662,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
         });
       }
     } catch (error) {
-      console.error('Failed to fetch event match record:', error);
+      logger.error('Failed to fetch event match record:', error);
       setEventMatchRecord({
         eventWins: 0,
         eventLosses: 0,
@@ -702,14 +705,14 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
       );
       setEventsState({ events: sortedEvents, loading: false });
     } catch (error) {
-      console.error('Failed to fetch team events:', error);
+      logger.error('Failed to fetch team events:', error);
       setEventsState({ events: [], loading: false });
     }
   };
 
   const handleRefresh = useCallback(async () => {
     if (isRefreshing) {
-      console.log('[EventTeamInfoScreen] Already refreshing, skipping duplicate call to prevent API exhaustion');
+      logger.debug('Already refreshing, skipping duplicate call to prevent API exhaustion');
       return;
     }
 
@@ -719,7 +722,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
     setIsRefreshing(true);
 
     try {
-      console.log('[EventTeamInfoScreen] Starting pull-to-refresh...');
+      logger.debug('Starting pull-to-refresh...');
 
       // Get program and season info for refresh
       const programId = getProgramId(selectedProgram);
@@ -758,9 +761,9 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
       await fetchMatchRecord(currentTeam.id);
       await fetchEventMatchRecord(currentTeam.id, event.id);
 
-      console.log('[EventTeamInfoScreen] Pull-to-refresh completed successfully');
+      logger.debug('Pull-to-refresh completed successfully');
     } catch (error) {
-      console.error('[EventTeamInfoScreen] Pull-to-refresh failed:', error);
+      logger.error('Pull-to-refresh failed:', error);
       Alert.alert('Refresh Failed', 'Unable to refresh data. Please try again.');
     } finally {
       setIsRefreshing(false);
@@ -798,7 +801,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
 
       const cacheData = getWorldSkills(seasonId, programId, currentTeam.grade);
       if (!cacheData || cacheData.length === 0) {
-        console.log(`[EventTeamInfoScreen] Cache empty for ${currentTeam.grade} on focus, pre-loading...`);
+        logger.debug(`Cache empty for ${currentTeam.grade} on focus, pre-loading...`);
         preloadWorldSkills(seasonId, programId, currentTeam.grade);
       }
     }, [team?.id, team?.grade, teamData?.id, teamData?.grade, selectedSeason, selectedProgram, getWorldSkills, preloadWorldSkills])
@@ -1753,7 +1756,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
         setNewNote('');
         setIsEditing(false);
       } catch (error) {
-        console.error('Failed to save note:', error);
+        logger.error('Failed to save note:', error);
         Alert.alert('Error', 'Failed to save note');
       }
     };
@@ -1762,7 +1765,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
       try {
         await deleteNote(noteId);
       } catch (error) {
-        console.error('Failed to delete note:', error);
+        logger.error('Failed to delete note:', error);
         Alert.alert('Error', 'Failed to delete note');
       }
     };

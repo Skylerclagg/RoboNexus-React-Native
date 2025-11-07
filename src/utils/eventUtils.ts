@@ -5,6 +5,10 @@
  * Used consistently across EventCard, EventLookup, Dashboard, and other components.
  */
 
+import { createLogger } from './logger';
+
+const logger = createLogger('eventUtils');
+
 export interface ExtendedEvent {
   id: number;
   name: string;
@@ -222,19 +226,19 @@ export const filterLiveEvents = (
 
       // Validate dates
       if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        // console.error('[eventUtils] Invalid date for event', event.name, '- Start:', event.start, 'End:', event.end);
+        // logger.error('Invalid date for event', event.name, '- Start:', event.start, 'End:', event.end);
         return false;
       }
 
-      // console.log('[eventUtils] Checking event', event.name, '(ID:', event.id, ')');
-      // console.log('[eventUtils]   Start:', start.toISOString(), 'End:', end.toISOString(), 'Now:', now.toISOString());
+      // logger.debug('Checking event', event.name, '(ID:', event.id, ')');
+      // logger.debug('  Start:', start.toISOString(), 'End:', end.toISOString(), 'Now:', now.toISOString());
 
       // Developer mode: if test event ID is set, only match that event
       if (options?.isDeveloperMode && options?.devTestEventId && options.devTestEventId.trim() !== '') {
         const testEventIdNum = parseInt(options.devTestEventId.trim());
         const isTestEvent = event.id === testEventIdNum;
         if (isTestEvent) {
-          // console.log('[eventUtils] Developer test mode - Event', event.name, 'matches test event ID:', testEventIdNum);
+          // logger.debug('Developer test mode - Event', event.name, 'matches test event ID:', testEventIdNum);
         }
         return isTestEvent;
       }
@@ -244,8 +248,8 @@ export const filterLiveEvents = (
         const oneWeekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
         const oneWeekFromNow = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
         const isSimulatedLive = start >= oneWeekAgo && start <= oneWeekFromNow;
-        console.warn('[eventUtils] ⚠️ DEVELOPER MODE: Live Event Simulation is ENABLED - treating events from past/future 7 days as live');
-        // console.log('[eventUtils] Developer simulation mode - Event', event.name, 'is simulated live:', isSimulatedLive);
+        logger.warn(' ⚠️ DEVELOPER MODE: Live Event Simulation is ENABLED - treating events from past/future 7 days as live');
+        // logger.debug('Developer simulation mode - Event', event.name, 'is simulated live:', isSimulatedLive);
         return isSimulatedLive;
       }
 
@@ -255,16 +259,16 @@ export const filterLiveEvents = (
         const todayString = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
         const eventDates = Object.keys(event.locations);
         const isLeagueCompetitionDay = eventDates.includes(todayString);
-        // console.log('[eventUtils] League event', event.name, '- Competition dates:', eventDates, '- Today:', todayString, '- Is competition day:', isLeagueCompetitionDay);
+        // logger.debug('League event', event.name, '- Competition dates:', eventDates, '- Today:', todayString, '- Is competition day:', isLeagueCompetitionDay);
         return isLeagueCompetitionDay;
       } else {
         // Regular event with continuous date range
         const withinDateRange = start <= now && end >= now;
-        // console.log('[eventUtils] Regular event', event.name, 'is within date range:', withinDateRange);
+        // logger.debug('Regular event', event.name, 'is within date range:', withinDateRange);
         return withinDateRange;
       }
     } catch (error) {
-      // console.error('[eventUtils] Error processing event', event.name, ':', error);
+      // logger.error('Error processing event', event.name, ':', error);
       return false;
     }
   });
@@ -339,7 +343,7 @@ export const selectCurrentLiveEvent = async (
     const testEventIdNum = parseInt(options.devTestEventId.trim());
     const testEvent = liveEvents.find(event => event.id === testEventIdNum);
     if (testEvent) {
-      // console.log('[eventUtils] Developer override active - force-selecting event:', testEvent.name, '(ID:', testEventIdNum, ')');
+      // logger.debug('Developer override active - force-selecting event:', testEvent.name, '(ID:', testEventIdNum, ')');
       return testEvent;
     }
   }
@@ -351,11 +355,11 @@ export const selectCurrentLiveEvent = async (
 
   for (const event of liveEvents) {
     try {
-      // console.log('[eventUtils] Checking event', event.name, '(ID:', event.id, ') for active matches');
+      logger.debug('Checking event', event.name, '(ID:', event.id, ') for active matches');
       const matches = await getMatchesForEvent(event.id);
 
       if (matches.length === 0) {
-        // console.log('[eventUtils] Event', event.name, 'has no matches yet');
+        logger.debug('Event', event.name, 'has no matches yet');
         allEventsComplete = false;
         continue;
       }
@@ -364,10 +368,10 @@ export const selectCurrentLiveEvent = async (
       const unplayedMatches = matches.filter(match => !isMatchPlayed(match, matches));
       const allMatchesPlayed = unplayedMatches.length === 0;
 
-      // console.log('[eventUtils] Event', event.name, '- Total matches:', matches.length, ', Unplayed:', unplayedMatches.length, ', All complete:', allMatchesPlayed);
+      // logger.debug('Event', event.name, '- Total matches:', matches.length, ', Unplayed:', unplayedMatches.length, ', All complete:', allMatchesPlayed);
 
       if (allMatchesPlayed) {
-        // console.log('[eventUtils] Event', event.name, 'is complete - all matches have been scored');
+        // logger.debug('Event', event.name, 'is complete - all matches have been scored');
         // Don't select this event, but continue checking others
         continue;
       }
@@ -379,6 +383,24 @@ export const selectCurrentLiveEvent = async (
       const now = new Date();
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const tomorrowStart = new Date(todayStart.getTime() + (24 * 60 * 60 * 1000));
+
+      // First, check if the team has ANY matches scheduled for today at this event
+      const matchesScheduledToday = matches.filter(match => {
+        const matchScheduled = match.scheduled ? new Date(match.scheduled) : null;
+        if (matchScheduled) {
+          return matchScheduled >= todayStart && matchScheduled < tomorrowStart;
+        }
+        return false;
+      });
+
+      logger.debug('Event', event.name, '- Total matches:', matches.length, ', Matches scheduled for today:', matchesScheduledToday.length);
+
+      // If no matches are scheduled for today, skip this event (important for League events)
+      // The team may be registered but not attending this session
+      if (matchesScheduledToday.length === 0 && matches.some(m => m.scheduled)) {
+        logger.debug('Event', event.name, 'has no matches scheduled for today - team not at this session');
+        continue;
+      }
 
       const activeMatchesCount = matches.filter(match => {
         const matchScheduled = match.scheduled ? new Date(match.scheduled) : null;
@@ -396,7 +418,7 @@ export const selectCurrentLiveEvent = async (
         return isActive;
       }).length;
 
-      // console.log('[eventUtils] Event', event.name, 'has', activeMatchesCount, 'active matches today');
+      // logger.debug('Event', event.name, 'has', activeMatchesCount, 'active matches today');
 
       // Select the event with the most active matches today
       if (activeMatchesCount > maxActiveMatches) {
@@ -404,20 +426,20 @@ export const selectCurrentLiveEvent = async (
         selectedEvent = event;
       }
     } catch (error) {
-      // console.error('[eventUtils] Failed to check matches for event', event.name, ':', error);
+      // logger.error('Failed to check matches for event', event.name, ':', error);
       allEventsComplete = false; // If we can't check, assume not complete
     }
   }
 
   // If all events are complete (all matches scored), return null
   if (allEventsComplete && liveEvents.length > 0) {
-    // console.log('[eventUtils] All live events are complete (all matches scored) - team is no longer at a live event');
+    // logger.debug('All live events are complete (all matches scored) - team is no longer at a live event');
     return null;
   }
 
   // If no event has active matches, use intelligent fallback
   if (!selectedEvent) {
-    // console.log('[eventUtils] No events with active matches found, using intelligent fallback');
+    // logger.debug('No events with active matches found, using intelligent fallback');
 
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -440,9 +462,9 @@ export const selectCurrentLiveEvent = async (
     });
 
     selectedEvent = liveEvents[0];
-    // console.log('[eventUtils] Fallback selected:', selectedEvent.name, 'started', selectedEvent.start);
+    // logger.debug('Fallback selected:', selectedEvent.name, 'started', selectedEvent.start);
   }
 
-  // console.log('[eventUtils] Selected live event:', selectedEvent?.name, '(ID:', selectedEvent?.id, ') with', maxActiveMatches, 'active matches');
+  // logger.debug('Selected live event:', selectedEvent?.name, '(ID:', selectedEvent?.id, ') with', maxActiveMatches, 'active matches');
   return selectedEvent;
 };

@@ -19,6 +19,9 @@
  * - Real-time ranking updates with refresh capability
  */
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('EventDivisionRankingsScreen');
 import {
   View,
   Text,
@@ -138,13 +141,13 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
   const fetchRankings = async (fetchFinalist: boolean = false) => {
     try {
       if (!event?.id || !division?.id) {
-        console.error('Missing event ID or division ID for rankings');
+        logger.error('Missing event ID or division ID for rankings');
         setShowLoading(false);
         setRefreshing(false);
         return;
       }
 
-      console.log(`Fetching division ${fetchFinalist ? 'finalist' : 'qualification'} rankings for event:`, event.id, 'division:', division.id);
+      logger.debug(`Fetching division ${fetchFinalist ? 'finalist' : 'qualification'} rankings for event:`, event.id, 'division:', division.id);
 
       // Fetch rankings data from API (qualification or finalist)
       const rankingsResponse = fetchFinalist
@@ -153,10 +156,10 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
 
       // Ensure rankingsData is an array and handle undefined/null cases
       const safeRankingsData = Array.isArray(rankingsResponse.data) ? rankingsResponse.data : [];
-      console.log(`[Rankings] ${fetchFinalist ? 'Finalist' : 'Qualification'} rankings data received:`, safeRankingsData.length, 'rankings');
+      logger.debug(`${fetchFinalist ? 'Finalist' : 'Qualification'} rankings data received:`, safeRankingsData.length, 'rankings');
 
       if (safeRankingsData.length > 0) {
-        console.log('[Rankings] First ranking sample:', JSON.stringify(safeRankingsData[0], null, 2));
+        logger.debug('First ranking sample:', JSON.stringify(safeRankingsData[0], null, 2));
       }
 
 
@@ -195,7 +198,7 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
           return acc;
         }, {} as { [key: string]: Team });
       } catch (error) {
-        console.error('Failed to fetch event teams:', error);
+        logger.error('Failed to fetch event teams:', error);
       }
 
       // Transform API rankings to UI rankings (convert team IdInfo to Team)
@@ -241,7 +244,7 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
             } as Team
           };
         } catch (error) {
-          console.error('Error processing ranking:', ranking, error);
+          logger.error('Error processing ranking:', ranking, error);
           return null;
         }
       }).filter(Boolean) as TeamRanking[];
@@ -252,11 +255,11 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
         .filter(r => r && r.team && r.rank)
         .sort((a, b) => a.rank - b.rank);
 
-      console.log(`[Rankings] After transformation: ${sortedRankings.length} rankings ready to display`);
+      logger.debug(`After transformation: ${sortedRankings.length} rankings ready to display`);
 
       // Debug: Log first few transformed rankings to verify structure
       if (sortedRankings.length > 0) {
-        console.log('[Rankings] First transformed ranking:', JSON.stringify({
+        logger.debug('First transformed ranking:', JSON.stringify({
           id: sortedRankings[0].id,
           rank: sortedRankings[0].rank,
           teamId: sortedRankings[0].team?.id,
@@ -284,12 +287,12 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
           const finalistData = Array.isArray(finalistResponse.data) ? finalistResponse.data : [];
           setHasFinalistRankings(finalistData.length > 0);
         } catch (error) {
-          console.log('No finalist rankings available or error fetching:', error);
+          logger.debug('No finalist rankings available or error fetching:', error);
           setHasFinalistRankings(false);
         }
       }
     } catch (error) {
-      console.error('Failed to fetch division rankings:', error);
+      logger.error('Failed to fetch division rankings:', error);
       Alert.alert('Error', 'Failed to load division rankings. Please try again.');
     } finally {
       setShowLoading(false);
@@ -384,7 +387,7 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
         </TouchableOpacity>
       );
     } catch (error) {
-      console.error('[Rankings] Error rendering compact ranking item:', item, error);
+      logger.error('Error rendering compact ranking item:', item, error);
       return null;
     }
   };
@@ -461,7 +464,7 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
         </TouchableOpacity>
       );
     } catch (error) {
-      console.error('[Rankings] Error rendering ranking item:', item, error);
+      logger.error('Error rendering ranking item:', item, error);
       return null;
     }
   };

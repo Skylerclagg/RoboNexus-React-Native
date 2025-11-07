@@ -19,6 +19,9 @@
  * - Navigation to individual match details and team information
  */
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('EventDivisionMatchesScreen');
 import {
   View,
   Text,
@@ -514,7 +517,7 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
 
   const fetchMatches = async () => {
     try {
-      console.log('Fetching matches for division:', division.name);
+      logger.debug('Fetching matches for division:', division.name);
 
       // TODO: Implement division matches API call
       // const matchesData = await robotEventsAPI.getEventDivisionMatches(event.id, division.id);
@@ -524,7 +527,7 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
 
       // Ensure matchesData is an array and handle undefined/null cases
       const safeMatchesData = Array.isArray(matchesResponse.data) ? matchesResponse.data : [];
-      console.log('Matches data received:', safeMatchesData.length, 'matches');
+      logger.debug('Matches data received:', safeMatchesData.length, 'matches');
 
       const matchListItems: MatchListItem[] = safeMatchesData.map((match: Match) => {
         const redAlliance = match.alliances.find((alliance: any) => alliance.color === 'red');
@@ -581,9 +584,9 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
       });
 
       setMatches(matchListItems);
-      console.log('Fetch complete –', matchListItems.length, 'matches loaded.');
+      logger.debug('Fetch complete –', matchListItems.length, 'matches loaded.');
     } catch (error) {
-      console.error('Failed to fetch division matches:', error);
+      logger.error('Failed to fetch division matches:', error);
       Alert.alert('Error', 'Failed to load division matches. Please try again.');
     } finally {
       setShowLoading(false);

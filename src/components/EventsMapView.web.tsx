@@ -1,4 +1,5 @@
 import React from 'react';
+import { createLogger } from '../utils/logger';
 import {
   View,
   Text,
@@ -11,6 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../contexts/SettingsContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { Event } from '../types';
+
+const logger = createLogger('EventsMapView.web');
 
 interface EventsMapViewProps {
   events: Event[];
@@ -34,7 +37,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
         await addEvent(event);
       }
     } catch (error) {
-      console.error('Failed to toggle event favorite:', error);
+      logger.error('Failed to toggle event favorite:', error);
       Alert.alert('Error', 'Failed to update favorite');
     }
   };

@@ -5,16 +5,19 @@
  * Fetches from GitHub, caches locally, and falls back to bundled JSON.
  */
 
+import { createLogger } from '../utils/logger';
 import { storage } from '../utils/webCompatibility';
 import { GameManual, Rule, FavoriteRuleStorage } from '../types/gameManual';
 import { getProgramShortName } from '../utils/programMappings';
+
+const logger = createLogger('gameManualService');
 
 // Flag to check if we should use bundled data only (set by settings)
 let USE_BUNDLED_ONLY = false;
 
 export const setUseBundledGameManuals = (value: boolean) => {
   USE_BUNDLED_ONLY = value;
-  console.log(`[GameManualService] Use bundled manuals only: ${value}`);
+  logger.debug(`Use bundled manuals only: ${value}`);
 };
 
 // Import bundled game manual data as fallback
@@ -70,11 +73,11 @@ class GameManualService {
     const bundledManual = this.loadLocalManual(program, season);
     const bundledVersion = bundledManual?.version;
 
-    console.log(`[GameManualService] Bundled manual version for ${program} ${season}: ${bundledVersion || 'unknown'}`);
+    logger.debug(`Bundled manual version for ${program} ${season}: ${bundledVersion || 'unknown'}`);
 
     // If bundled-only mode is enabled, use bundled data immediately
     if (USE_BUNDLED_ONLY) {
-      console.log(`[GameManualService] Bundled-only mode enabled - using bundled data`);
+      logger.debug(`Bundled-only mode enabled - using bundled data`);
       if (bundledManual) {
         this.manualsCache.set(cacheKey, bundledManual);
       }
@@ -88,7 +91,7 @@ class GameManualService {
 
     // If cached is valid and newer than bundled, use cached
     if (cachedManual && cacheValid && this.isNewerVersion(cachedVersion, bundledVersion)) {
-      console.log(`[GameManualService] Using cached manual (v${cachedVersion}) - newer than bundled (v${bundledVersion})`);
+      logger.debug(`Using cached manual (v${cachedVersion}) - newer than bundled (v${bundledVersion})`);
       this.manualsCache.set(cacheKey, cachedManual);
       return cachedManual;
     }
@@ -100,20 +103,20 @@ class GameManualService {
 
       // Only use GitHub version if it's newer than bundled
       if (githubManual && this.isNewerVersion(githubVersion, bundledVersion)) {
-        console.log(`[GameManualService] Using GitHub manual (v${githubVersion}) - newer than bundled (v${bundledVersion})`);
+        logger.debug(`Using GitHub manual (v${githubVersion}) - newer than bundled (v${bundledVersion})`);
         await this.cacheManual(program, season, githubManual);
         this.manualsCache.set(cacheKey, githubManual);
         return githubManual;
       } else if (githubManual) {
-        console.log(`[GameManualService] GitHub manual (v${githubVersion}) not newer than bundled (v${bundledVersion}) - using bundled`);
+        logger.debug(`GitHub manual (v${githubVersion}) not newer than bundled (v${bundledVersion}) - using bundled`);
       }
     } catch (error) {
-      console.warn(`[GameManualService] Failed to fetch from GitHub:`, error);
+      logger.warn(`Failed to fetch from GitHub:`, error);
     }
 
     // Use bundled data (either no GitHub data, or bundled is newer/same)
     if (bundledManual) {
-      console.log(`[GameManualService] Using bundled data (v${bundledVersion})`);
+      logger.debug(`Using bundled data (v${bundledVersion})`);
       this.manualsCache.set(cacheKey, bundledManual);
     }
 
@@ -128,7 +131,7 @@ class GameManualService {
     const filename = `${shortName.toLowerCase()}-${season.replace(/\//g, '-')}.json`;
     const url = `${GITHUB_BASE_URL}/${filename}`;
 
-    console.log(`[GameManualService] Fetching from ${url}`);
+    logger.debug(`Fetching from ${url}`);
 
     const response = await fetch(url, {
       headers: {
@@ -176,7 +179,7 @@ class GameManualService {
         return JSON.parse(cached) as GameManual;
       }
     } catch (error) {
-      console.error('[GameManualService] Error loading cached manual:', error);
+      logger.error('Error loading cached manual:', error);
     }
     return null;
   }
@@ -193,9 +196,9 @@ class GameManualService {
       await storage.setItem(cacheKey, JSON.stringify(manual));
       await storage.setItem(timestampKey, Date.now().toString());
 
-      console.log(`[GameManualService] Cached manual for ${program} ${season}`);
+      logger.debug(`Cached manual for ${program} ${season}`);
     } catch (error) {
-      console.error('[GameManualService] Error caching manual:', error);
+      logger.error('Error caching manual:', error);
     }
   }
 
@@ -310,7 +313,7 @@ class GameManualService {
         return this.favoritesCache!;
       }
     } catch (error) {
-      console.error('[GameManualService] Error loading favorites:', error);
+      logger.error('Error loading favorites:', error);
     }
 
     this.favoritesCache = {};
@@ -325,7 +328,7 @@ class GameManualService {
       await storage.setItem(this.FAVORITES_KEY, JSON.stringify(favorites));
       this.favoritesCache = favorites;
     } catch (error) {
-      console.error('[GameManualService] Error saving favorites:', error);
+      logger.error('Error saving favorites:', error);
       throw error;
     }
   }
@@ -451,13 +454,13 @@ class GameManualService {
     await storage.removeItem(storageCacheKey);
     await storage.removeItem(timestampKey);
 
-    console.log(`[GameManualService] Cleared cache for ${program} ${season}, fetching fresh data from GitHub...`);
+    logger.debug(`Cleared cache for ${program} ${season}, fetching fresh data from GitHub...`);
 
     try {
       const manual = await this.getManual(program, season, onProgress);
 
       if (!manual && oldCachedData) {
-        console.log(`[GameManualService] Failed to fetch new data, restoring previous cache for ${program} ${season}`);
+        logger.debug(`Failed to fetch new data, restoring previous cache for ${program} ${season}`);
         await storage.setItem(storageCacheKey, oldCachedData);
         if (oldTimestamp) {
           await storage.setItem(timestampKey, oldTimestamp);
@@ -469,7 +472,7 @@ class GameManualService {
     } catch (error) {
       // On error, restore old cache
       if (oldCachedData) {
-        console.log(`[GameManualService] Error during refresh, restoring previous cache for ${program} ${season}:`, error);
+        logger.debug(`Error during refresh, restoring previous cache for ${program} ${season}:`, error);
         await storage.setItem(storageCacheKey, oldCachedData);
         if (oldTimestamp) {
           await storage.setItem(timestampKey, oldTimestamp);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createLogger } from '../utils/logger';
 import {
   View,
   Text,
@@ -10,6 +11,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../contexts/SettingsContext';
 import DropdownPicker from './DropdownPicker';
+
+const logger = createLogger('WorldSkillsFiltersModal');
 
 interface WorldSkillsFilters {
   season: string;
@@ -44,7 +47,7 @@ const WorldSkillsFiltersModal: React.FC<WorldSkillsFiltersModalProps> = ({
   }, [filters]);
 
   const handleApplyFilters = () => {
-    console.log('WorldSkillsFiltersModal: Applying filters:', localFilters);
+    logger.debug('Applying filters:', localFilters);
 
     // Update global season when applying filters
     if (localFilters.season) {

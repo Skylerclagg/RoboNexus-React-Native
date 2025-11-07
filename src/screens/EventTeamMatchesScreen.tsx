@@ -19,6 +19,9 @@
  * - Navigation to detailed match information and opponent analysis
  */
 import React, { useState, useEffect, useMemo } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('EventTeamMatchesScreen');
 import {
   View,
   Text,
@@ -238,17 +241,17 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
 
   const fetchTeamMatches = async () => {
     try {
-      console.log('Fetching matches for team:', teamNumber, 'ID:', teamId);
+      logger.debug('Fetching matches for team:', teamNumber, 'ID:', teamId);
 
       if (!teamId) {
-        console.error('Team ID is undefined, cannot fetch matches');
+        logger.error('Team ID is undefined, cannot fetch matches');
         Alert.alert('Error', 'Team ID not found, cannot load matches');
         return;
       }
 
       // Use the correct API to get team matches at this event
       const teamMatchesResponse = await robotEventsAPI.getTeamMatches(teamId, { event: [event.id] });
-      console.log('Found', teamMatchesResponse.data.length, 'matches for team', teamNumber || 'Unknown', 'at event', event.id || 'Unknown');
+      logger.debug('Found', teamMatchesResponse.data.length, 'matches for team', teamNumber || 'Unknown', 'at event', event.id || 'Unknown');
 
       const matchListItems: MatchListItem[] = teamMatchesResponse.data.map((match) => {
         const redTeams: string[] = [];
@@ -311,7 +314,7 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
 
       setMatches(matchListItems);
     } catch (error) {
-      console.error('Failed to fetch team matches:', error);
+      logger.error('Failed to fetch team matches:', error);
       Alert.alert('Error', 'Failed to load team matches. Please try again.');
     } finally {
       setShowLoading(false);
@@ -324,9 +327,9 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
       // Fetch team notes using the notes context
       const notes = getNotesByTeam(teamId, event.id);
       setTeamMatchNotes(notes);
-      console.log('Loaded', notes.length, 'notes for team', teamNumber || 'Unknown');
+      logger.debug('Loaded', notes.length, 'notes for team', teamNumber || 'Unknown');
     } catch (error) {
-      console.error('Failed to fetch team notes:', error);
+      logger.error('Failed to fetch team notes:', error);
     }
   };
 

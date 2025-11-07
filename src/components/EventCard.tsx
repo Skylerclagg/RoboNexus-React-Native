@@ -6,6 +6,9 @@
  */
 
 import React from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('EventCard');
 import {
   View,
   Text,
@@ -50,7 +53,7 @@ const EventCard: React.FC<EventCardProps> = ({
         await addEvent(eventForFavorites);
       }
     } catch (error) {
-      console.error('Failed to toggle event favorite:', error);
+      logger.error('Failed to toggle event favorite:', error);
       Alert.alert('Error', 'Failed to update favorite status');
     }
   };

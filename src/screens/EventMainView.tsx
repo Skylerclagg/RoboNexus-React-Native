@@ -21,6 +21,9 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('EventMainView');
 import {
   View,
   Text,
@@ -91,19 +94,19 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
       if (eventId && !event) {
         setEventLoading(true);
         try {
-          console.log('[EventDetail] Fetching event data for eventId:', eventId);
+         logger.debug(' Fetching event data for eventId:', eventId);
           const eventData = await robotEventsAPI.getEventById(eventId);
 
           if (eventData) {
-            console.log('[EventDetail] Successfully fetched event:', eventData.name, 'with', eventData.divisions?.length || 0, 'divisions');
+           logger.debug(' Successfully fetched event:', eventData.name, 'with', eventData.divisions?.length || 0, 'divisions');
             setEvent(eventData as any);
           } else {
-            console.error('[EventDetail] Event not found for ID:', eventId);
+           logger.error(' Event not found for ID:', eventId);
             Alert.alert('Error', 'Event not found');
             navigation.goBack();
           }
         } catch (error) {
-          console.error('[EventDetail] Failed to load event:', error);
+         logger.error(' Failed to load event:', error);
           Alert.alert('Error', 'Failed to load event data. Please check your internet connection.');
           navigation.goBack();
         } finally {
@@ -196,11 +199,11 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
 
   const fetchEventData = async (isRefresh = false) => {
     if (!event) {
-      console.log('[EventDetail] fetchEventData called but event is null');
+     logger.debug(' fetchEventData called but event is null');
       return;
     }
 
-    console.log('[EventDetail] Fetching event teams for event:', event.name, 'ID:', event.id);
+   logger.debug(' Fetching event teams for event:', event.name, 'ID:', event.id);
     if (isRefresh) {
       setRefreshing(true);
     } else {
@@ -210,7 +213,7 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
     try {
       // Fetch real event teams data
       const eventTeamsResponse = await robotEventsAPI.getEventTeams(event.id);
-      console.log('[EventDetail] Successfully fetched', eventTeamsResponse.data?.length || 0, 'teams');
+     logger.debug(' Successfully fetched', eventTeamsResponse.data?.length || 0, 'teams');
 
       // Transform API teams to UI teams (ensure organization is not undefined and program has code)
       const uiTeams = eventTeamsResponse.data.map(team => ({
@@ -240,7 +243,7 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
       await fetchFavoriteTeamsMatchData(uiTeams);
 
     } catch (error) {
-      console.error('Failed to fetch event data:', error);
+     logger.error('Failed to fetch event data:', error);
       Alert.alert('Error', 'Failed to load event data. Please check your internet connection.');
     } finally {
       setLoading(false);
@@ -254,7 +257,7 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
     const favoriteEventTeams = teams.filter(t => favoriteTeams.includes(t.number));
     if (favoriteEventTeams.length === 0) return;
 
-    console.log('[EventDetail] Fetching match data for', favoriteEventTeams.length, 'favorite teams');
+   logger.debug(' Fetching match data for', favoriteEventTeams.length, 'favorite teams');
 
     // Helper function to extract match number for comparison
     const extractMatchNumber = (matchName: string) => {
@@ -275,12 +278,12 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
           allMatchesSet.set(match.id.toString(), match);
         });
       } catch (error) {
-        console.error('[EventDetail] Failed to fetch matches for team', favTeam.number, ':', error);
+       logger.error(' Failed to fetch matches for team', favTeam.number, ':', error);
       }
     }
 
     const allEventMatches = Array.from(allMatchesSet.values());
-    console.log('[EventDetail] Collected', allEventMatches.length, 'unique matches from favorite teams');
+   logger.debug(' Collected', allEventMatches.length, 'unique matches from favorite teams');
 
     const matchDataPromises = favoriteEventTeams.map(async (favTeam) => {
       try {
@@ -289,13 +292,13 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
         });
 
         const matches = matchesResponse.data || [];
-        console.log('[EventDetail] Found', matches.length, 'matches for team', favTeam.number);
+       logger.debug(' Found', matches.length, 'matches for team', favTeam.number);
 
         // Log match statuses for debugging
         if (matches.length > 0) {
-          console.log('[EventDetail] Match statuses for team', favTeam.number, ':');
+         logger.debug(' Match statuses for team', favTeam.number, ':');
           matches.forEach((match, index) => {
-            console.log(`[EventDetail] Match ${index + 1}: ${match.name} - scored: ${match.scored}, started: ${match.started}, scores: ${match.alliances?.map(a => a.score)}`);
+            logger.debug(` Match ${index + 1}: ${match.name} - scored: ${match.scored}, started: ${match.started}, scores: ${match.alliances?.map(a => a.score)}`);
           });
         }
 
@@ -338,7 +341,7 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
             });
 
             if (laterMatchScored) {
-              console.log('[EventDetail] Match', match.name, 'has 0-0 but later match scored, considering it played');
+             logger.debug(' Match', match.name, 'has 0-0 but later match scored, considering it played');
               return true;
             }
 
@@ -352,7 +355,7 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
               const isPlayed = isMatchPlayed(match);
               const isUnplayed = !isPlayed;
 
-              console.log('[EventDetail] Match', match.name, '- scored:', match.scored, ', started:', match.started, ', scores:',
+             logger.debug(' Match', match.name, '- scored:', match.scored, ', started:', match.started, ', scores:',
                 match.alliances?.map(a => a.score), ', isPlayed:', isPlayed, ', isUnplayed:', isUnplayed);
 
               return isUnplayed;
@@ -373,7 +376,7 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
               }
             });
 
-          console.log('[EventDetail] Team', favTeam.number, 'has', upcomingMatches.length, 'unplayed matches');
+         logger.debug(' Team', favTeam.number, 'has', upcomingMatches.length, 'unplayed matches');
 
           if (upcomingMatches.length > 0) {
             const nextMatch = upcomingMatches[0];
@@ -394,13 +397,13 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
                 matchInfo.nextMatchAlliance = 'blue';
               }
 
-              console.log('[EventDetail] Team', favTeam.number, 'alliance:', matchInfo.nextMatchAlliance);
+             logger.debug(' Team', favTeam.number, 'alliance:', matchInfo.nextMatchAlliance);
             }
 
             const scheduleInfo = nextMatch.scheduled ? `at ${nextMatch.scheduled}` : 'TBD';
-            console.log('[EventDetail] Next match for team', favTeam.number, ':', matchInfo.nextMatchNumber, scheduleInfo);
+           logger.debug(' Next match for team', favTeam.number, ':', matchInfo.nextMatchNumber, scheduleInfo);
           } else {
-            console.log('[EventDetail] No upcoming matches for team', favTeam.number, '. All', matches.length, 'matches are complete');
+           logger.debug(' No upcoming matches for team', favTeam.number, '. All', matches.length, 'matches are complete');
             matchInfo.isComplete = true;
           }
         } else {
@@ -410,7 +413,7 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
 
         return { teamNumber: favTeam.number, matchInfo };
       } catch (error) {
-        console.error('[EventDetail] Failed to fetch matches for team', favTeam.number, ':', error);
+       logger.error(' Failed to fetch matches for team', favTeam.number, ':', error);
         return {
           teamNumber: favTeam.number,
           matchInfo: { team: favTeam, isComplete: false },
@@ -425,7 +428,7 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
     }, {} as { [teamNumber: string]: TeamMatchInfo });
 
     setTeamMatchData(matchDataMap);
-    console.log('[EventDetail] Match data fetched for favorite teams:', matchDataMap);
+   logger.debug(' Match data fetched for favorite teams:', matchDataMap);
   };
 
   const onRefresh = useCallback(() => {
@@ -436,12 +439,12 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
   useFocusEffect(
     useCallback(() => {
       if (event && eventTeams.length > 0) {
-        console.log('[EventDetail] Screen focused, refreshing favorite teams match data');
+       logger.debug(' Screen focused, refreshing favorite teams match data');
         fetchFavoriteTeamsMatchData(eventTeams);
 
         // Set up auto-refresh every 2 minutes (120000ms)
         const interval = setInterval(() => {
-          console.log('[EventDetail] Auto-refreshing favorite teams match data');
+         logger.debug(' Auto-refreshing favorite teams match data');
           fetchFavoriteTeamsMatchData(eventTeams);
         }, 120000);
 
@@ -449,7 +452,7 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
 
         // Cleanup: clear interval when screen loses focus
         return () => {
-          console.log('[EventDetail] Screen unfocused, clearing auto-refresh interval');
+         logger.debug(' Screen unfocused, clearing auto-refresh interval');
           clearInterval(interval);
           setAutoRefreshInterval(null);
         };
@@ -467,7 +470,7 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
         await addEvent(event);
       }
     } catch (error) {
-      console.error('Failed to toggle event favorite:', error);
+     logger.error('Failed to toggle event favorite:', error);
       Alert.alert('Error', 'Failed to update favorite status');
     }
   };
@@ -488,7 +491,7 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
   };
 
   const navigateToTeamMatches = (selectedTeam: Team) => {
-    console.log('Navigating to team matches for team:', selectedTeam.number, 'ID:', selectedTeam.id);
+   logger.debug('Navigating to team matches for team:', selectedTeam.number, 'ID:', selectedTeam.id);
     navigation.navigate('EventTeamMatches', {
       event,
       teamNumber: selectedTeam.number,
@@ -569,7 +572,7 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
         const matchA = parseMatch(matchInfoA.nextMatchNumber);
         const matchB = parseMatch(matchInfoB.nextMatchNumber);
 
-        console.log('[EventDetail] Comparing matches:', matchInfoA.nextMatchNumber, '→', matchA, 'vs', matchInfoB.nextMatchNumber, '→', matchB);
+       logger.debug(' Comparing matches:', matchInfoA.nextMatchNumber, '→', matchA, 'vs', matchInfoB.nextMatchNumber, '→', matchB);
 
         // Compare primary numbers first
         if (matchA.primary !== matchB.primary) {
@@ -639,7 +642,7 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
 
     // Add divisions section
     if (event && event.divisions && event.divisions.length > 0) {
-      console.log('[EventDetail] Adding', event.divisions.length, 'divisions to sections');
+     logger.debug(' Adding', event.divisions.length, 'divisions to sections');
       sections.push({
         title: 'Divisions',
         data: event.divisions.map(division => ({
@@ -650,7 +653,7 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
         })),
       });
     } else {
-      console.log('[EventDetail] No divisions found for event:', event?.name);
+     logger.debug(' No divisions found for event:', event?.name);
     }
 
     // Add favorite teams section if there are favorites

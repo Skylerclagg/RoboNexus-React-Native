@@ -13,6 +13,9 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('TeamsContext');
 import { robotEventsAPI } from '../services/apiRouter';
 import { Team } from '../types';
 import { useSettings } from './SettingsContext';
@@ -109,12 +112,12 @@ export const TeamsProvider: React.FC<TeamsProviderProps> = ({ children }) => {
 
     // Skip if already loaded
     if (loadedKeys.current.has(key)) {
-      console.log(`[TeamsContext] Teams already loaded for ${key}`);
+      logger.debug(`Teams already loaded for ${key}`);
       return allTeams[key] || [];
     }
 
     try {
-      console.log(`[TeamsContext] Loading teams for ${program}, season ${seasonId}`);
+      logger.debug(`Loading teams for ${program}, season ${seasonId}`);
       setLoadingProgress(prev => ({
         ...prev,
         status: `Loading ${program} teams...`
@@ -141,7 +144,7 @@ export const TeamsProvider: React.FC<TeamsProviderProps> = ({ children }) => {
           batch.push(currentPage + i);
         }
 
-        console.log(`[TeamsContext] Fetching batch of pages ${batch[0]}-${batch[batch.length - 1]} for ${key}`);
+        logger.debug(`Fetching batch of pages ${batch[0]}-${batch[batch.length - 1]} for ${key}`);
 
         try {
           // Fetch all pages in the batch concurrently using team browser dedicated keys
@@ -157,12 +160,12 @@ export const TeamsProvider: React.FC<TeamsProviderProps> = ({ children }) => {
           let foundEmptyPage = false;
           for (const result of batchResults) {
             if ('error' in result) {
-              console.error(`[TeamsContext] Error fetching page ${result.page} for ${key}:`, result.error);
+              logger.error(`Error fetching page ${result.page} for ${key}:`, result.error);
               continue;
             }
 
             const { page, response } = result;
-            console.log(`[TeamsContext] Page ${page} response:`, {
+            logger.debug(`Page ${page} response:`, {
               dataLength: response.data?.length || 0,
               total: response.meta?.total || 'unknown'
             });
@@ -181,11 +184,11 @@ export const TeamsProvider: React.FC<TeamsProviderProps> = ({ children }) => {
 
               // Check if this page had fewer results than expected (indicates end)
               if (response.data.length < 250) {
-                console.log(`[TeamsContext] Page ${page} returned ${response.data.length} teams (less than 250), stopping pagination`);
+                logger.debug(`Page ${page} returned ${response.data.length} teams (less than 250), stopping pagination`);
                 foundEmptyPage = true;
               }
             } else {
-              console.log(`[TeamsContext] No teams found on page ${page}`);
+              logger.debug(`No teams found on page ${page}`);
               foundEmptyPage = true;
             }
           }
@@ -206,12 +209,12 @@ export const TeamsProvider: React.FC<TeamsProviderProps> = ({ children }) => {
           }
 
         } catch (batchError) {
-          console.error(`[TeamsContext] Error processing batch starting at page ${currentPage} for ${key}:`, batchError);
+          logger.error(`Error processing batch starting at page ${currentPage} for ${key}:`, batchError);
           hasMore = false;
         }
       }
 
-      console.log(`[TeamsContext] Loaded ${allAPITeams.length} teams for ${key}`);
+      logger.debug(`Loaded ${allAPITeams.length} teams for ${key}`);
 
       // Cache the results
       setAllTeams(prev => ({
@@ -223,7 +226,7 @@ export const TeamsProvider: React.FC<TeamsProviderProps> = ({ children }) => {
       return allAPITeams;
 
     } catch (error) {
-      console.error(`[TeamsContext] Error loading teams for ${key}:`, error);
+      logger.error(`Error loading teams for ${key}:`, error);
       throw error;
     }
   };
@@ -260,7 +263,7 @@ export const TeamsProvider: React.FC<TeamsProviderProps> = ({ children }) => {
         setLastUpdated(new Date());
       }
     } catch (error) {
-      console.error('[TeamsContext] Error loading initial teams:', error);
+      logger.error('Error loading initial teams:', error);
       setError(error instanceof Error ? error.message : 'Failed to load teams');
     } finally {
       setIsLoading(false);
@@ -298,7 +301,7 @@ export const TeamsProvider: React.FC<TeamsProviderProps> = ({ children }) => {
 
       setLastUpdated(new Date());
     } catch (error) {
-      console.error('[TeamsContext] Error refreshing teams:', error);
+      logger.error('Error refreshing teams:', error);
       setError(error instanceof Error ? error.message : 'Failed to refresh teams');
     } finally {
       setIsLoading(false);

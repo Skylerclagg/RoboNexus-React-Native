@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createLogger } from '../utils/logger';
 import {
   View,
   Text,
@@ -11,6 +12,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../contexts/SettingsContext';
 import DropdownPicker from './DropdownPicker';
+
+const logger = createLogger('EventFiltersModal');
 
 interface EventFilters {
   season: string;
@@ -186,7 +189,7 @@ const EventFiltersModal: React.FC<EventFiltersModalProps> = ({
   const filteredRegionOptions = getFilteredRegions();
 
   const applyFilters = () => {
-    console.log('[EventFiltersModal] Applying filters:', localFilters);
+    logger.debug('Applying filters:', localFilters);
     onFiltersChange(localFilters);
     onClose();
   };

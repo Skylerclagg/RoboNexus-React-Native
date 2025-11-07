@@ -18,6 +18,9 @@
  * - Cross-platform compatibility (native and web)
  */
 import React, { useState, useRef, useEffect } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('GameManualScreen');
 import {
   View,
   Text,
@@ -172,7 +175,7 @@ const GameManualScreen: React.FC<Props> = ({ navigation }) => {
 
   const openInExternalBrowser = () => {
     Linking.openURL(manual.url).catch(err => {
-      console.error('Failed to open manual:', err);
+      logger.error('Failed to open manual:', err);
       Alert.alert('Error', 'Failed to open the game manual. Please check your internet connection.');
     });
   };
@@ -259,12 +262,12 @@ const GameManualScreen: React.FC<Props> = ({ navigation }) => {
             style={styles.webview}
             onError={(syntheticEvent) => {
               const { nativeEvent } = syntheticEvent;
-              console.error('WebView error: ', nativeEvent);
+              logger.error('WebView error: ', nativeEvent);
 
               const manual = getManualData();
               // Try fallback URL if available and not already using it
               if (manual.fallbackUrl && !usesFallback) {
-                console.log('Trying fallback URL for manual');
+                logger.debug('Trying fallback URL for manual');
                 setUsesFallback(true);
                 return;
               }
@@ -280,7 +283,7 @@ const GameManualScreen: React.FC<Props> = ({ navigation }) => {
             }}
             onHttpError={(syntheticEvent) => {
               const { nativeEvent } = syntheticEvent;
-              console.error('WebView HTTP error: ', nativeEvent);
+              logger.error('WebView HTTP error: ', nativeEvent);
             }}
             allowsBackForwardNavigationGestures={true}
             scalesPageToFit={manual.type === 'html'}

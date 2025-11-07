@@ -18,6 +18,9 @@
  */
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('SettingsScreen');
 import {
   View,
   Text,
@@ -98,7 +101,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
         }));
       setSeasons(formattedSeasons);
     } catch (error) {
-      console.error('Failed to load seasons:', error);
+      logger.error('Failed to load seasons:', error);
     } finally {
       setIsLoadingSeasons(false);
     }
@@ -163,7 +166,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
             await clearAllNotes();
             Alert.alert('Success', 'All match notes and team notes cleared!');
           } catch (error) {
-            console.error('Failed to clear notes:', error);
+            logger.error('Failed to clear notes:', error);
             Alert.alert('Error', 'Failed to clear notes');
           }
         }},

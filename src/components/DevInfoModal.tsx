@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createLogger } from '../utils/logger';
 import {
   View,
   Text,
@@ -13,6 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSettings, getProgramTheme, ProgramType } from '../contexts/SettingsContext';
 import { robotEventsAPI } from '../services/apiRouter';
 import { PROGRAM_CONFIGS, getAllProgramNames } from '../utils/programMappings';
+
+const logger = createLogger('DevInfoModal');
 
 interface DevInfoModalProps {
   visible: boolean;
@@ -81,7 +84,7 @@ const DevInfoModal: React.FC<DevInfoModalProps> = ({ visible, onClose }) => {
               const registeredTeamsResponse = await robotEventsAPI.getTeams({ program: [config.id], registered: true, per_page: 1 });
               totalRegisteredTeams = registeredTeamsResponse.meta?.total || null;
             } catch (error) {
-              console.error(`Failed to fetch registered team count for ${program}:`, error);
+              logger.error(`Failed to fetch registered team count for ${program}:`, error);
             }
 
             // Get total all-time teams count (registered and unregistered)
@@ -90,7 +93,7 @@ const DevInfoModal: React.FC<DevInfoModalProps> = ({ visible, onClose }) => {
               const allTeamsResponse = await robotEventsAPI.getTeams({ program: [config.id], per_page: 1 });
               totalAllTimeTeams = allTeamsResponse.meta?.total || null;
             } catch (error) {
-              console.error(`Failed to fetch all-time team count for ${program}:`, error);
+              logger.error(`Failed to fetch all-time team count for ${program}:`, error);
             }
 
             // Get breakdown by grade level
@@ -120,7 +123,7 @@ const DevInfoModal: React.FC<DevInfoModalProps> = ({ visible, onClose }) => {
                   totalCount
                 });
               } catch (error) {
-                console.error(`Failed to fetch team counts for ${program} - ${grade}:`, error);
+                logger.error(`Failed to fetch team counts for ${program} - ${grade}:`, error);
               }
             }
 
@@ -135,7 +138,7 @@ const DevInfoModal: React.FC<DevInfoModalProps> = ({ visible, onClose }) => {
               gradeBreakdown
             };
           } catch (error) {
-            console.error(`Failed to fetch data for ${program}:`, error);
+            logger.error(`Failed to fetch data for ${program}:`, error);
             programSeasonsData[program] = {
               seasons: [],
               activeSeason: null,
@@ -149,7 +152,7 @@ const DevInfoModal: React.FC<DevInfoModalProps> = ({ visible, onClose }) => {
 
       setProgramSeasons(programSeasonsData);
     } catch (error) {
-      console.error('Failed to fetch programs and seasons:', error);
+      logger.error('Failed to fetch programs and seasons:', error);
     } finally {
       setLoading(false);
     }

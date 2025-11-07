@@ -18,6 +18,9 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('TeamEventsScreen');
 import {
   View,
   Text,
@@ -105,9 +108,9 @@ const TeamEventsScreen: React.FC<any> = ({ route, navigation }) => {
     try {
       const seasonId = await robotEventsAPI.getCurrentSeasonId(settings.selectedProgram);
       setCurrentSeasonId(seasonId);
-      console.log(`[TeamEventsScreen] Current active season ID: ${seasonId}`);
+      logger.debug(`Current active season ID: ${seasonId}`);
     } catch (error) {
-      console.error('[TeamEventsScreen] Failed to get current season ID:', error);
+      logger.error('Failed to get current season ID:', error);
     }
   };
 
@@ -118,7 +121,7 @@ const TeamEventsScreen: React.FC<any> = ({ route, navigation }) => {
       let teamToUse = team;
       if (!teamToUse) {
         const apiTeam = await robotEventsAPI.getTeamByNumber(teamNumber);
-        console.log('Fetched team data:', apiTeam);
+        logger.debug('Fetched team data:', apiTeam);
 
         // Transform API team to UI team type
         if (apiTeam) {
@@ -136,14 +139,14 @@ const TeamEventsScreen: React.FC<any> = ({ route, navigation }) => {
       }
 
       if (teamToUse) {
-        console.log('Team to use:', teamToUse);
-        console.log('Team ID:', teamToUse.id);
-        console.log('Team ID type:', typeof teamToUse.id);
-        console.log('About to call getTeamEvents with ID:', teamToUse.id);
+        logger.debug('Team to use:', teamToUse);
+        logger.debug('Team ID:', teamToUse.id);
+        logger.debug('Team ID type:', typeof teamToUse.id);
+        logger.debug('About to call getTeamEvents with ID:', teamToUse.id);
 
         // Ensure we have a valid team ID
         if (!teamToUse.id) {
-          console.error('Team ID is undefined, cannot fetch events');
+          logger.error('Team ID is undefined, cannot fetch events');
           Alert.alert('Error', 'Team ID not found, cannot load events');
           return;
         }
@@ -180,7 +183,7 @@ const TeamEventsScreen: React.FC<any> = ({ route, navigation }) => {
         Alert.alert('Error', `Team ${teamNumber} not found`);
       }
     } catch (error) {
-      console.error('Failed to fetch team events:', error);
+      logger.error('Failed to fetch team events:', error);
       Alert.alert('Error', 'Failed to load team events. Please check your internet connection.');
     } finally {
       setLoading(false);

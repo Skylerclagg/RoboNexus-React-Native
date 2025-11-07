@@ -19,6 +19,9 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('WorldSkillsScreen');
 import {
   View,
   Text,
@@ -155,18 +158,18 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
 
   const loadSeasons = async () => {
     try {
-      console.log('Loading seasons for program:', selectedProgram);
+      logger.debug('Loading seasons for program:', selectedProgram);
       // Get program ID for filtering
       const programId = getProgramId(selectedProgram);
 
       const seasonsResponse = await robotEventsAPI.getSeasons({ program: [programId] });
-      console.log('Raw seasons response:', seasonsResponse);
+      logger.debug('Raw seasons response:', seasonsResponse);
 
       const formattedSeasons = seasonsResponse.data.map(season => ({
         label: season.name,
         value: season.id.toString()
       }));
-      console.log('Formatted seasons:', formattedSeasons);
+      logger.debug('Formatted seasons:', formattedSeasons);
       setSeasons(formattedSeasons);
 
       // Set current season as default if not already set
@@ -176,28 +179,28 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
         if (globalSeasonEnabled && globalSeason) {
           // Use global season if global mode is enabled
           defaultSeasonId = globalSeason;
-          console.log('Using global season as default:', defaultSeasonId);
+          logger.debug('Using global season as default:', defaultSeasonId);
         } else {
           // Use current season from API
           const currentSeasonFromAPI = await robotEventsAPI.getCurrentSeasonId();
           defaultSeasonId = currentSeasonFromAPI.toString();
-          console.log('Using current season from API as default:', defaultSeasonId);
+          logger.debug('Using current season from API as default:', defaultSeasonId);
           setCurrentSeason(currentSeasonFromAPI);
         }
 
         // Validate that the default season exists in the seasons list
         const seasonExists = formattedSeasons.some(season => season.value === defaultSeasonId);
         if (!seasonExists && formattedSeasons.length > 0) {
-          console.log('Default season not found in list, using first available season');
+          logger.debug('Default season not found in list, using first available season');
           defaultSeasonId = formattedSeasons[0].value;
         }
 
-        console.log('Setting selectedSeasonId to:', defaultSeasonId);
+        logger.debug('Setting selectedSeasonId to:', defaultSeasonId);
         setSelectedSeasonId(defaultSeasonId);
         updateGlobalSeason(defaultSeasonId);
       }
     } catch (error) {
-      console.error('Failed to load seasons:', error);
+      logger.error('Failed to load seasons:', error);
     }
   };
 
@@ -217,7 +220,7 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
         value: region
       }));
 
-    console.log('Generated regions from rankings:', regions.length, 'regions');
+    logger.debug('Generated regions from rankings:', regions.length, 'regions');
     return regions;
   };
 
@@ -238,25 +241,25 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
 
       const programId = getProgramId(selectedProgram);
 
-      console.log('Loading rankings for season ID:', seasonId, 'division:', selectedDivision, 'program:', selectedProgram);
+      logger.debug('Loading rankings for season ID:', seasonId, 'division:', selectedDivision, 'program:', selectedProgram);
 
       // Cache-first approach: try to get from cache first
       let skillsData = getWorldSkills(seasonId, programId, selectedDivision);
 
       // If cache is empty, pre-load it and use returned data
       if (!skillsData || skillsData.length === 0) {
-        console.log('Cache empty, pre-loading World Skills data...');
+        logger.debug('Cache empty, pre-loading World Skills data...');
         skillsData = await preloadWorldSkills(seasonId, programId, selectedDivision);
       }
 
-      console.log('Loaded rankings count:', skillsData.length);
+      logger.debug('Loaded rankings count:', skillsData.length);
       setRankings(skillsData);
 
       // Generate regions from loaded rankings
       const regions = generateRegionsFromRankings(skillsData);
       setAvailableRegions(regions);
     } catch (error) {
-      console.error('Failed to load rankings:', error);
+      logger.error('Failed to load rankings:', error);
       Alert.alert(
         'Error',
         `Failed to load rankings for ${selectedProgram}. Please check your internet connection and try again.`
@@ -272,7 +275,7 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
     setRefreshing(true);
     try {
       if (!selectedSeasonId) {
-        console.error('No season ID available for refresh');
+        logger.error('No season ID available for refresh');
         Alert.alert('Error', 'No season selected. Please select a season first.');
         return;
       }
@@ -280,21 +283,21 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
       const seasonId = parseInt(selectedSeasonId);
       const programId = getProgramId(selectedProgram);
 
-      console.log('Refreshing rankings for season:', seasonId, 'division:', selectedDivision, 'program:', selectedProgram);
+      logger.debug('Refreshing rankings for season:', seasonId, 'division:', selectedDivision, 'program:', selectedProgram);
 
       // Force refresh cache
       await forceRefreshWorldSkills(seasonId, programId, selectedDivision);
 
       // Get refreshed data from cache
       const skillsData = getWorldSkills(seasonId, programId, selectedDivision);
-      console.log('Refresh successful, loaded:', skillsData.length, 'teams');
+      logger.debug('Refresh successful, loaded:', skillsData.length, 'teams');
       setRankings(skillsData);
 
       // Generate regions from refreshed rankings
       const regions = generateRegionsFromRankings(skillsData);
       setAvailableRegions(regions);
     } catch (error) {
-      console.error('Failed to refresh rankings:', error);
+      logger.error('Failed to refresh rankings:', error);
       Alert.alert(
         'Refresh Failed',
         'Unable to refresh rankings. Please check your internet connection and try again.'
@@ -331,21 +334,21 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
   }, [showFiltersModal]);
 
   const handleSeasonChange = useCallback(async (seasonId: string) => {
-    console.log('Season changed to:', seasonId);
+    logger.debug('Season changed to:', seasonId);
     setSelectedSeasonId(seasonId);
     updateGlobalSeason(seasonId);
 
     // Reload rankings with new season
     const newSeasonId = parseInt(seasonId);
     if (isNaN(newSeasonId)) {
-      console.error('Invalid season ID:', seasonId);
+      logger.error('Invalid season ID:', seasonId);
       Alert.alert('Error', 'Invalid season selected.');
       return;
     }
 
     const programId = getProgramId(selectedProgram);
 
-    console.log('Loading rankings for season:', newSeasonId, 'division:', selectedDivision);
+    logger.debug('Loading rankings for season:', newSeasonId, 'division:', selectedDivision);
     setIsLoading(true);
     try {
       // Cache-first approach
@@ -353,18 +356,18 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
 
       // If cache is empty, pre-load it and use returned data
       if (!skillsData || skillsData.length === 0) {
-        console.log('Cache empty for new season, pre-loading...');
+        logger.debug('Cache empty for new season, pre-loading...');
         skillsData = await preloadWorldSkills(newSeasonId, programId, selectedDivision);
       }
 
-      console.log('Loaded rankings:', skillsData.length, 'teams');
+      logger.debug('Loaded rankings:', skillsData.length, 'teams');
       setRankings(skillsData);
 
       // Generate regions from loaded rankings
       const regions = generateRegionsFromRankings(skillsData);
       setAvailableRegions(regions);
     } catch (error) {
-      console.error('Failed to load rankings for new season:', error);
+      logger.error('Failed to load rankings for new season:', error);
       Alert.alert('Error', 'Failed to load rankings for selected season.');
     } finally {
       setIsLoading(false);
@@ -429,7 +432,7 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   useEffect(() => {
-    console.log('Program changed to:', selectedProgram, '- clearing data and reloading seasons');
+    logger.debug('Program changed to:', selectedProgram, '- clearing data and reloading seasons');
     setRankings([]);
     setSelectedSeasonId(''); // Clear selected season when program changes
     setAvailableRegions([]); // Clear regions when program changes
@@ -440,7 +443,7 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
   // Sync with global season when global mode is enabled
   useEffect(() => {
     if (globalSeasonEnabled && globalSeason && globalSeason !== selectedSeasonId) {
-      console.log('Syncing to global season:', {
+      logger.debug('Syncing to global season:', {
         globalSeason,
         previousSeasonId: selectedSeasonId,
         globalSeasonEnabled
@@ -452,14 +455,14 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
   // Sync worldSkillsFilters with selectedSeasonId
   useEffect(() => {
     if (selectedSeasonId && selectedSeasonId !== worldSkillsFilters.season) {
-      console.log('Syncing worldSkillsFilters season with selectedSeasonId:', selectedSeasonId);
+      logger.debug('Syncing worldSkillsFilters season with selectedSeasonId:', selectedSeasonId);
       setWorldSkillsFilters(prev => ({ ...prev, season: selectedSeasonId }));
     }
   }, [selectedSeasonId]); // Only depend on selectedSeasonId to avoid loops
 
   useEffect(() => {
     if (selectedSeasonId && selectedDivision) {
-      console.log('Auto-loading rankings due to dependency change:', {
+      logger.debug('Auto-loading rankings due to dependency change:', {
         selectedDivision,
         selectedSeasonId,
         selectedProgram
@@ -498,7 +501,7 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
       // Check if cache is empty and pre-load if needed
       const cacheData = getWorldSkills(seasonId, programId, selectedDivision);
       if (!cacheData || cacheData.length === 0) {
-        console.log(`[WorldSkills] Cache empty for ${selectedDivision} on focus, pre-loading...`);
+        logger.debug(`Cache empty for ${selectedDivision} on focus, pre-loading...`);
         preloadWorldSkills(seasonId, programId, selectedDivision);
       }
     }, [selectedSeasonId, selectedDivision, selectedProgram, getWorldSkills, preloadWorldSkills])
@@ -581,7 +584,7 @@ const WorldSkillsScreen: React.FC<Props> = ({ navigation }) => {
                 await addTeam(teamObj);
               }
             } catch (error) {
-              console.error('Failed to toggle team favorite:', error);
+              logger.error('Failed to toggle team favorite:', error);
               Alert.alert('Error', 'Failed to update favorite status');
             }
           }}

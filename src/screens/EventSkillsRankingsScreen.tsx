@@ -19,6 +19,9 @@
  * - Navigation to detailed team skills information
  */
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('EventSkillsRankingsScreen');
 import {
   View,
   Text,
@@ -406,13 +409,13 @@ const EventSkillsRankingsScreen = ({ route, navigation }: Props) => {
   const fetchSkillsRankings = async () => {
     try {
       if (!event?.id) {
-        console.error('No event ID available for skills rankings');
+       logger.error('No event ID available for skills rankings');
         setShowLoading(false);
         setRefreshing(false);
         return;
       }
 
-      console.log('Fetching skills rankings for event:', event.id);
+     logger.debug('Fetching skills rankings for event:', event.id);
 
       // Fetch both skills data AND team data to get full team information
       const [skillsResponse, teamsResponse] = await Promise.all([
@@ -423,8 +426,8 @@ const EventSkillsRankingsScreen = ({ route, navigation }: Props) => {
       // Ensure skillsData is an array and handle undefined/null cases
       const safeSkillsData = Array.isArray(skillsResponse.data) ? skillsResponse.data : [];
       const teamsData = Array.isArray(teamsResponse.data) ? teamsResponse.data : [];
-      console.log('Skills data received:', safeSkillsData.length, 'skills entries');
-      console.log('Teams data received:', teamsData.length, 'teams');
+     logger.debug('Skills data received:', safeSkillsData.length, 'skills entries');
+     logger.debug('Teams data received:', teamsData.length, 'teams');
 
       // Create a map of team ID to full team data
       const teamsById = new Map(teamsData.map(team => [team.id, team]));
@@ -476,7 +479,7 @@ const EventSkillsRankingsScreen = ({ route, navigation }: Props) => {
 
           teamSkillsMap.set(teamId, existing);
         } catch (error) {
-          console.error('Error processing skill entry:', skill, error);
+         logger.error('Error processing skill entry:', skill, error);
         }
       });
 
@@ -499,12 +502,12 @@ const EventSkillsRankingsScreen = ({ route, navigation }: Props) => {
         ranking.rank = index + 1;
       });
 
-      console.log('Processed skills rankings:', rankingsArray.length, 'teams');
+     logger.debug('Processed skills rankings:', rankingsArray.length, 'teams');
 
       setSkillsRankings(rankingsArray);
       setFilteredRankings(rankingsArray);
     } catch (error) {
-      console.error('Failed to fetch skills rankings:', error);
+     logger.error('Failed to fetch skills rankings:', error);
       Alert.alert('Error', 'Failed to load skills rankings. Please try again.');
     } finally {
       setShowLoading(false);

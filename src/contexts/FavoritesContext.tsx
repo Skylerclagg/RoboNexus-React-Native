@@ -1,7 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createLogger } from '../utils/logger';
 import { Event, Team } from '../types';
 import { storage } from '../utils/webCompatibility';
 import { useSettings, ProgramType } from './SettingsContext';
+
+const logger = createLogger('FavoritesContext');
 
 interface FavoriteItem {
   id: string;
@@ -71,20 +74,20 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
 
     // After filtering completes, if we were loading, mark as done
     if (favoritesLoading) {
-      console.log('[FavoritesContext] Filtering complete, setting favoritesLoading to false');
+      logger.debug('Filtering complete, setting favoritesLoading to false');
       setFavoritesLoading(false);
     }
   }, [settings.selectedProgram, allFavorites]);
 
   const filterFavoritesByProgram = () => {
-    console.log('[FavoritesContext] Filtering favorites for program:', settings.selectedProgram);
-    console.log('[FavoritesContext] Total favorites:', allFavorites.length);
+    logger.debug('Filtering favorites for program:', settings.selectedProgram);
+    logger.debug('Total favorites:', allFavorites.length);
 
     const programFavorites = allFavorites.filter(
       item => item.program === settings.selectedProgram
     );
 
-    console.log('[FavoritesContext] Program favorites:', programFavorites.length);
+    logger.debug('Program favorites:', programFavorites.length);
     setFavorites(programFavorites);
 
     // Extract team numbers and event SKUs for quick lookup (program-specific)
@@ -98,19 +101,19 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
       .map(item => item.sku!)
       .filter(Boolean);
 
-    console.log('[FavoritesContext] Filtered teams:', teams.length, ', events:', events.length);
+    logger.debug('Filtered teams:', teams.length, ', events:', events.length);
     setFavoriteTeams(teams);
     setFavoriteEvents(events);
   };
 
   const loadFavorites = async () => {
     try {
-      console.log('[FavoritesContext] Loading favorites from storage...');
+      logger.debug('Loading favorites from storage...');
       setFavoritesLoading(true);
       const savedFavorites = await storage.getItem('favorites');
       if (savedFavorites) {
         const parsedFavorites: FavoriteItem[] = JSON.parse(savedFavorites);
-        console.log('[FavoritesContext] Loaded', parsedFavorites.length, 'favorites from storage');
+        logger.debug('Loaded', parsedFavorites.length, 'favorites from storage');
 
         // Migrate old favorites without program field to current program
         const migratedFavorites = parsedFavorites.map(item => {
@@ -125,7 +128,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
         });
 
         setAllFavorites(migratedFavorites);
-        console.log('[FavoritesContext] Set allFavorites with', migratedFavorites.length, 'items');
+        logger.debug('Set allFavorites with', migratedFavorites.length, 'items');
 
         // Save migrated favorites back to storage if there were any changes
         const needsSave = migratedFavorites.some((item, index) => {
@@ -137,12 +140,12 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
           await storage.setItem('favorites', JSON.stringify(migratedFavorites));
         }
       } else {
-        console.log('[FavoritesContext] No saved favorites found in storage');
+        logger.debug('No saved favorites found in storage');
         // No favorites to filter, safe to set loading to false immediately
         setFavoritesLoading(false);
       }
     } catch (error) {
-      console.error('[FavoritesContext] Failed to load favorites:', error);
+      logger.error('Failed to load favorites:', error);
       setFavoritesLoading(false);
     }
     // Don't set favoritesLoading to false here - let the filter useEffect do it after filtering completes
@@ -153,7 +156,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
       await storage.setItem('favorites', JSON.stringify(newAllFavorites));
       setAllFavorites(newAllFavorites);
     } catch (error) {
-      console.error('Failed to save favorites:', error);
+      logger.error('Failed to save favorites:', error);
       throw error;
     }
   };
@@ -179,7 +182,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
       const newAllFavorites = [...allFavorites, favoriteItem];
       await saveFavorites(newAllFavorites);
     } catch (error) {
-      console.error('Failed to add team to favorites:', error);
+      logger.error('Failed to add team to favorites:', error);
       throw error;
     }
   };
@@ -191,7 +194,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
       );
       await saveFavorites(newAllFavorites);
     } catch (error) {
-      console.error('Failed to remove team from favorites:', error);
+      logger.error('Failed to remove team from favorites:', error);
       throw error;
     }
   };
@@ -229,7 +232,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
       const newAllFavorites = [...allFavorites, favoriteItem];
       await saveFavorites(newAllFavorites);
     } catch (error) {
-      console.error('Failed to add event to favorites:', error);
+      logger.error('Failed to add event to favorites:', error);
       throw error;
     }
   };
@@ -262,7 +265,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
       });
       await saveFavorites(newAllFavorites);
     } catch (error) {
-      console.error('Failed to remove event from favorites:', error);
+      logger.error('Failed to remove event from favorites:', error);
       throw error;
     }
   };
@@ -306,7 +309,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
       );
       await saveFavorites(newAllFavorites);
     } catch (error) {
-      console.error('Failed to clear favorite teams:', error);
+      logger.error('Failed to clear favorite teams:', error);
       throw error;
     }
   };
@@ -318,7 +321,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
       );
       await saveFavorites(newAllFavorites);
     } catch (error) {
-      console.error('Failed to clear favorite events:', error);
+      logger.error('Failed to clear favorite events:', error);
       throw error;
     }
   };
@@ -347,7 +350,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
       const newAllFavorites = [...otherFavorites, ...reorderedTeams];
       await saveFavorites(newAllFavorites);
     } catch (error) {
-      console.error('Failed to reorder teams:', error);
+      logger.error('Failed to reorder teams:', error);
       throw error;
     }
   };
@@ -376,7 +379,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
       const newAllFavorites = [...otherFavorites, ...reorderedEvents];
       await saveFavorites(newAllFavorites);
     } catch (error) {
-      console.error('Failed to reorder events:', error);
+      logger.error('Failed to reorder events:', error);
       throw error;
     }
   };

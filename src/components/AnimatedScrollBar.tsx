@@ -11,6 +11,9 @@
  */
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('AnimatedScrollBar');
 import { View, Animated, StyleSheet, PanResponder } from 'react-native';
 
 interface AnimatedScrollBarProps {
@@ -154,7 +157,7 @@ const AnimatedScrollBar: React.FC<AnimatedScrollBarProps> = ({
               scrollViewRef.current.scrollTo({ y: newScrollY, animated: true });
             }
           } catch (error) {
-            console.error('Scroll error:', error);
+            logger.error('Scroll error:', error);
           }
         },
         onPanResponderRelease: () => {

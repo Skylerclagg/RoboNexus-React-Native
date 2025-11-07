@@ -19,6 +19,9 @@
  * - Loading states and empty state handling
  */
 import React, { useState, useEffect } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('AwardsScreen');
 import {
   View,
   Text,
@@ -96,7 +99,7 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
 
       setSeasons(formattedSeasons);
     } catch (error) {
-      console.error('Failed to load seasons:', error);
+      logger.error('Failed to load seasons:', error);
     }
   };
 
@@ -125,7 +128,7 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
           const processedAwards = [];
 
           for (const award of (awardsResponse.data || [])) {
-            console.log('[Awards] Raw award data:', JSON.stringify(award, null, 2));
+            logger.debug('Raw award data:', JSON.stringify(award, null, 2));
 
             // Try to extract event information from various possible locations
             let eventInfo = {
@@ -147,16 +150,16 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
 
             if (eventInfo.id > 0 && !eventInfo.start) {
               try {
-                console.log('[Awards] Fetching event details for missing date, event ID:', eventInfo.id || 'Unknown');
+                logger.debug('Fetching event details for missing date, event ID:', eventInfo.id || 'Unknown');
                 const eventDetails = await robotEventsAPI.getEventDetails(eventInfo.id);
                 if (eventDetails) {
                   eventInfo.name = eventDetails.name || eventInfo.name;
                   eventInfo.start = eventDetails.start || '';
                   eventInfo.end = eventDetails.end || '';
-                  console.log('[Awards] Updated event info from API:', eventInfo);
+                  logger.debug('Updated event info from API:', eventInfo);
                 }
               } catch (error) {
-                console.error('[Awards] Failed to fetch event details for ID', eventInfo.id || 'Unknown', ':', error);
+                logger.error('Failed to fetch event details for ID', eventInfo.id || 'Unknown', ':', error);
               }
             }
 
@@ -169,7 +172,7 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
             } else if (eventInfo.id > 0) {
               // Fetch event awards to get qualification data
               try {
-                console.log('[Awards] Fetching event awards for qualification data, event ID:', eventInfo.id || 'Unknown');
+                logger.debug('Fetching event awards for qualification data, event ID:', eventInfo.id || 'Unknown');
                 const eventAwardsResponse = await robotEventsAPI.getEventAwards(eventInfo.id);
 
                 // Find matching award by title or ID
@@ -182,17 +185,17 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
 
                 if (matchingEventAward && Array.isArray(matchingEventAward.qualifications)) {
                   qualifications = matchingEventAward.qualifications;
-                  console.log('[Awards] Found qualification data from event awards:', qualifications);
+                  logger.debug('Found qualification data from event awards:', qualifications);
                 } else {
-                  console.log('[Awards] No matching event award found for', award.title || 'Unknown');
+                  logger.debug('No matching event award found for', award.title || 'Unknown');
                 }
               } catch (error) {
-                console.error('[Awards] Failed to fetch event awards for qualification data:', error);
+                logger.error('Failed to fetch event awards for qualification data:', error);
               }
             }
 
-            console.log('[Awards] Final processed event info:', eventInfo);
-            console.log('[Awards] Processed qualifications:', qualifications);
+            logger.debug('Final processed event info:', eventInfo);
+            logger.debug('Processed qualifications:', qualifications);
 
             processedAwards.push({
               id: award.id,
@@ -208,7 +211,7 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
             awards: processedAwards,
           };
         } catch (error) {
-          console.error('Failed to load awards for team', team.number || 'Unknown', ':', error);
+          logger.error('Failed to load awards for team', team.number || 'Unknown', ':', error);
           return {
             teamNumber: team.number || 'Unknown',
             teamName: 'Unknown Team',
@@ -221,7 +224,7 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
       const validAwards = results.filter((data): data is TeamAwardData => data !== null);
       setAwardsData(validAwards);
     } catch (error) {
-      console.error('Failed to load awards data:', error);
+      logger.error('Failed to load awards data:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -255,7 +258,7 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
         year: 'numeric',
       });
     } catch (error) {
-      console.log('[Awards] Date formatting error for "' + (dateString || 'Unknown') + '":', error);
+      logger.debug('Date formatting error for "' + (dateString || 'Unknown') + '":', error);
       return 'Invalid Date';
     }
   };
@@ -271,19 +274,19 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
 
   const navigateToEvent = async (eventId: number, eventName?: string) => {
     try {
-      console.log('[Awards] Attempting to navigate to event ID:', eventId || 'Unknown', ', name:', eventName || 'Unknown');
+      logger.debug('Attempting to navigate to event ID:', eventId || 'Unknown', ', name:', eventName || 'Unknown');
 
       if (!eventId || eventId === 0) {
-        console.error('[Awards] Invalid event ID:', eventId || 'Unknown');
+        logger.error('Invalid event ID:', eventId || 'Unknown');
         return;
       }
 
-      console.log('[Awards] Using helper function to fetch event for navigation');
+      logger.debug('Using helper function to fetch event for navigation');
       const eventForNavigation = await robotEventsAPI.getEventById(eventId);
 
       if (eventForNavigation) {
-        console.log('[Awards] Successfully found event:', eventForNavigation.name || 'Unknown');
-        console.log('[Awards] Event data for navigation:', {
+        logger.debug('Successfully found event:', eventForNavigation.name || 'Unknown');
+        logger.debug('Event data for navigation:', {
           id: eventForNavigation.id,
           name: eventForNavigation.name,
           sku: eventForNavigation.sku,
@@ -292,17 +295,17 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
         });
         navigation.navigate('EventMainView', { event: eventForNavigation });
       } else {
-        console.error('[Awards] No event found for ID:', eventId || 'Unknown', 'using navigation helper');
-        console.log('[Awards] The event with ID', eventId || 'Unknown', 'may no longer exist or may be from a different season');
+        logger.error('No event found for ID:', eventId || 'Unknown', 'using navigation helper');
+        logger.debug('The event with ID', eventId || 'Unknown', 'may no longer exist or may be from a different season');
 
         // Could try searching by name as fallback if eventName is available
       }
     } catch (error) {
-      console.error('[Awards] Failed to fetch event for navigation (ID', eventId || 'Unknown', '):', error);
+      logger.error('Failed to fetch event for navigation (ID', eventId || 'Unknown', '):', error);
 
       // The event might exist but there could be an API error
       // Log additional context to help debug
-      console.log('[Awards] Error context - Event ID:', eventId || 'Unknown', ', Event Name:', eventName || 'Unknown');
+      logger.debug('Error context - Event ID:', eventId || 'Unknown', ', Event Name:', eventName || 'Unknown');
     }
   };
 
@@ -319,7 +322,7 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
   const renderAwardItem = (award: TeamAward) => {
     // Add safety checks for award data
     if (!award || !award.event) {
-      console.error('[Awards] Invalid award data:', award);
+      logger.error('Invalid award data:', award);
       return null;
     }
 
@@ -442,7 +445,7 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
 
           return dateB - dateA; // Most recent first
         } catch (error) {
-          console.error('[Awards] Error sorting by date:', error);
+          logger.error('Error sorting by date:', error);
           return 0; // Maintain original order if sorting fails
         }
       });
@@ -486,13 +489,13 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
       <TouchableOpacity
         style={[styles.emptyButton, { backgroundColor: settings.buttonColor }]}
         onPress={() => {
-          console.log('[AwardsScreen] Find Teams button pressed');
-          console.log('[AwardsScreen] Navigation object:', navigation ? 'exists' : 'null');
-          console.log('[AwardsScreen] Navigation keys:', navigation ? Object.keys(navigation) : 'none');
+          logger.debug('Find Teams button pressed');
+          logger.debug('Navigation object:', navigation ? 'exists' : 'null');
+          logger.debug('Navigation keys:', navigation ? Object.keys(navigation) : 'none');
 
           // Navigate to the Lookup tab with Teams tab selected
           try {
-            console.log('[AwardsScreen] Attempting nested navigation to Main -> Lookup');
+            logger.debug('Attempting nested navigation to Main -> Lookup');
 
             // Method 1: Navigate to the Main screen (TabNavigator) and specify the Lookup tab
             navigation.navigate('Main', {
@@ -500,12 +503,12 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
               params: { initialTab: 'team' }
             });
 
-            console.log('[AwardsScreen] Navigation attempt completed');
+            logger.debug('Navigation attempt completed');
           } catch (error) {
-            console.error('[AwardsScreen] Navigation error:', error);
+            logger.error('Navigation error:', error);
 
             try {
-              console.log('[AwardsScreen] Trying fallback navigation');
+              logger.debug('Trying fallback navigation');
               if (navigation.getParent) {
                 const parentNav = navigation.getParent();
                 if (parentNav) {
@@ -513,7 +516,7 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
                 }
               }
             } catch (fallbackError) {
-              console.error('[AwardsScreen] Fallback navigation also failed:', fallbackError);
+              logger.error('Fallback navigation also failed:', fallbackError);
             }
           }
         }}

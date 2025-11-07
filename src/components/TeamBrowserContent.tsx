@@ -6,6 +6,9 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('TeamBrowserContent');
 import {
   View,
   Text,
@@ -196,7 +199,7 @@ const TeamBrowserContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) 
         }));
       setSeasons(seasonOptions);
     } catch (error) {
-      console.error('[TeamsMapContent] Error loading seasons:', error);
+      logger.error('Error loading seasons:', error);
     }
   };
 
@@ -206,7 +209,7 @@ const TeamBrowserContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) 
       try {
         await refreshTeams(settings.selectedProgram, currentSeason);
       } catch (error) {
-        console.error('[TeamsMapContent] Error refreshing teams:', error);
+        logger.error('Error refreshing teams:', error);
         Alert.alert('Error', 'Failed to refresh teams. Please try again.');
       }
     }
@@ -241,7 +244,7 @@ const TeamBrowserContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) 
 
   // Apply filters (like EventFiltersModal)
   const applyFilters = () => {
-    console.log('[TeamsMapContent] Applying filters:', localFilters);
+    logger.debug('Applying filters:', localFilters);
     setFilters(localFilters);
     setShowFilters(false);
   };
@@ -273,7 +276,7 @@ const TeamBrowserContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) 
         await addTeam(team);
       }
     } catch (error) {
-      console.error('Error toggling favorite:', error);
+      logger.error('Error toggling favorite:', error);
     }
   };
 

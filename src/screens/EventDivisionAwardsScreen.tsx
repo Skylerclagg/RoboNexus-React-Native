@@ -19,6 +19,9 @@
  * - Integration with team profiles and performance data
  */
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('EventDivisionAwardsScreen');
 import {
   View,
   Text,
@@ -1020,7 +1023,7 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
       }
 
     } catch (error) {
-      console.error('Error loading data:', error);
+      logger.error('Error loading data:', error);
       alerts.showAlert('Error', 'Failed to load event data. Please try again.');
     } finally {
       setShowLoading(false);

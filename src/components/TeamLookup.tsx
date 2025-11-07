@@ -14,6 +14,9 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('TeamLookup');
 import {
   View,
   Text,
@@ -112,13 +115,13 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
   // Refetch team data when season changes
   useEffect(() => {
     if (teamData && selectedSeason) {
-      console.log('Season changed, refetching team data for season:', selectedSeason);
+      logger.debug('Season changed, refetching team data for season:', selectedSeason);
       Promise.all([
         fetchWorldSkillsData(teamData),
         fetchTeamAwards(teamData),
         fetchMatchRecord(teamData),
       ]).catch(error => {
-        console.error('Failed to refetch team data for new season:', error);
+        logger.error('Failed to refetch team data for new season:', error);
       });
     }
   }, [selectedSeason, teamData?.id]);
@@ -129,7 +132,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
     const isPastSeason = selectedSeason && currentSeasonId && selectedSeason !== currentSeasonId;
 
     if (isPastSeason && searchResults.length > 0 && showSearchResults) {
-      console.log('Past season detected, checking event registrations for', searchResults.length, 'teams');
+      logger.debug('Past season detected, checking event registrations for', searchResults.length, 'teams');
       checkTeamRegistrations(searchResults, selectedSeason);
     } else if (!isPastSeason) {
       // For current season, clear the status map (use team.registered instead)
@@ -162,7 +165,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
         updateGlobalSeason(defaultSeason);
       }
     } catch (error) {
-      console.error('Failed to load seasons:', error);
+      logger.error('Failed to load seasons:', error);
     }
   };
 
@@ -197,7 +200,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
           const hasEvents = eventsResponse.data && eventsResponse.data.length > 0;
           return { teamId: team.id.toString(), hasEvents };
         } catch (error) {
-          console.error(`Error checking events for team ${team.number}:`, error);
+          logger.error(`Error checking events for team ${team.number}:`, error);
           return { teamId: team.id.toString(), hasEvents: false };
         }
       });
@@ -214,7 +217,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
 
       setTeamRegistrationStatus(statusMap);
     } catch (error) {
-      console.error('Error checking team registrations:', error);
+      logger.error('Error checking team registrations:', error);
     } finally {
       setCheckingRegistrations(false);
     }
@@ -268,13 +271,13 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
     setShowSearchResults(false);
 
     try {
-      console.log('Looking up team', searchNumber, 'in program:', selectedProgram);
+      logger.debug('Looking up team', searchNumber, 'in program:', selectedProgram);
 
       // First try exact match with program filtering
       const exactTeam = await robotEventsAPI.getTeamByNumber(searchNumber, selectedProgram);
 
       if (exactTeam) {
-        console.log('Exact match found:', exactTeam.number, '-', exactTeam.team_name);
+        logger.debug('Exact match found:', exactTeam.number, '-', exactTeam.team_name);
 
         // Transform API team to UI team
         const uiTeam = {
@@ -299,7 +302,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
         const isNumericOnly = /^\d+$/.test(searchNumber);
 
         if (isNumericOnly) {
-          console.log('No exact match, checking all letter combinations for', searchNumber);
+          logger.debug('No exact match, checking all letter combinations for', searchNumber);
 
           // Create an array of letters A-Z
           const letters = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
@@ -313,7 +316,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
           const foundTeams = results.filter(team => team !== null) as Team[];
 
           if (foundTeams.length > 0) {
-            console.log('Found', foundTeams.length, 'teams with letter combinations');
+            logger.debug('Found', foundTeams.length, 'teams with letter combinations');
 
             // Transform API teams to UI teams
             const uiTeams = foundTeams.map(team => ({
@@ -329,16 +332,16 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
             setSearchResults(uiTeams);
             setShowSearchResults(true);
           } else {
-            console.log('No teams found with any letter combinations');
+            logger.debug('No teams found with any letter combinations');
             Alert.alert('No Teams Found', `No teams found matching "${searchNumber}" in ${selectedProgram}.`);
           }
         } else {
-          console.log('No exact match found for', searchNumber);
+          logger.debug('No exact match found for', searchNumber);
           Alert.alert('Team Not Found', `Team "${searchNumber}" not found in ${selectedProgram}.`);
         }
       }
     } catch (error) {
-      console.error('Failed to fetch team:', error);
+      logger.error('Failed to fetch team:', error);
       Alert.alert('Error', 'Failed to fetch team information. Please try again.');
     } finally {
       setTeamLoading(false);
@@ -348,10 +351,10 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
   const fetchWorldSkillsData = async (team: Team) => {
     try {
       setIsWorldSkillsLoading(true);
-      console.log('Fetching world skills data for team:', team.number);
+      logger.debug('Fetching world skills data for team:', team.number);
 
       if (!team || !team.grade) {
-        console.log('No team data or grade available for world skills lookup');
+        logger.debug('No team data or grade available for world skills lookup');
         setWorldSkillsData(null);
         setIsWorldSkillsLoading(false);
         return;
@@ -367,7 +370,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
 
       // Search for team by ID across ALL grade caches for this program/season
       const programId = getProgramId(selectedProgram);
-      console.log(`[TeamLookup] Searching for team ID ${team.id} in World Skills caches`);
+      logger.debug(`Searching for team ID ${team.id} in World Skills caches`);
 
       let teamSkillsData = null;
       const programConfig = getProgramConfig(selectedProgram);
@@ -379,7 +382,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
 
         // If cache is empty, try to preload it and use returned data
         if (gradeCache.length === 0) {
-          console.log(`[TeamLookup] Cache empty for ${grade}, preloading...`);
+          logger.debug(`Cache empty for ${grade}, preloading...`);
           gradeCache = await preloadWorldSkills(targetSeasonId, programId, grade);
         }
 
@@ -393,7 +396,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
           );
 
           if (teamSkillsData) {
-            console.log(`[TeamLookup] ✓ Found team in ${grade} World Skills rankings`);
+            logger.debug(`✓ Found team in ${grade} World Skills rankings`);
             break;
           }
         }
@@ -401,10 +404,10 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
 
       // Calculate total teams from collected caches
       const totalTeams = allGradeCaches.length;
-      console.log('[TeamLookup] Total teams across all grades:', totalTeams);
+      logger.debug('Total teams across all grades:', totalTeams);
 
       if (teamSkillsData) {
-        console.log('Found team in rankings');
+        logger.debug('Found team in rankings');
         setWorldSkillsData({
           ranking: teamSkillsData.rank || 0,
           combined: teamSkillsData.scores?.score || 0,
@@ -428,7 +431,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
       }
       setIsWorldSkillsLoading(false);
     } catch (error) {
-      console.error('Failed to fetch world skills data:', error);
+      logger.error('Failed to fetch world skills data:', error);
       setWorldSkillsData({
         ranking: 0,
         combined: 0,
@@ -444,7 +447,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
 
   const fetchTeamAwards = async (team: Team) => {
     try {
-      console.log('Fetching awards for team:', team.number);
+      logger.debug('Fetching awards for team:', team.number);
 
       // Get season ID to fetch awards for
       let targetSeasonId;
@@ -468,7 +471,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
 
       setAwardCounts(awardCounts);
     } catch (error) {
-      console.error('Failed to fetch award counts:', error);
+      logger.error('Failed to fetch award counts:', error);
       setAwardCounts({});
     }
   };
@@ -476,7 +479,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
   const fetchMatchRecord = async (team: Team) => {
     try {
       setMatchRecordLoading(true);
-      console.log('Fetching match record for team:', team.number);
+      logger.debug('Fetching match record for team:', team.number);
 
       // Get season ID to fetch rankings for
       let targetSeasonId;
@@ -502,7 +505,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
       });
 
       const totalMatches = totalWins + totalLosses + totalTies;
-      console.log('Match record from rankings:', { totalWins, totalLosses, totalTies, totalMatches });
+      logger.debug('Match record from rankings:', { totalWins, totalLosses, totalTies, totalMatches });
 
       setMatchRecord({
         wins: totalWins,
@@ -511,7 +514,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
         totalMatches
       });
     } catch (error) {
-      console.error('Failed to fetch match record:', error);
+      logger.error('Failed to fetch match record:', error);
       setMatchRecord(null);
     } finally {
       setMatchRecordLoading(false);
@@ -546,7 +549,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
 
       setTeamLoading(false);
     } catch (error) {
-      console.error('Failed to fetch team details:', error);
+      logger.error('Failed to fetch team details:', error);
       Alert.alert('Error', 'Failed to load team details');
       setTeamLoading(false);
     }
@@ -597,7 +600,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
                   await addTeam(item);
                 }
               } catch (error) {
-                console.error('Failed to toggle team favorite:', error);
+                logger.error('Failed to toggle team favorite:', error);
                 Alert.alert('Error', 'Failed to update favorite status');
               }
             }}
@@ -712,7 +715,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
                     await addTeam(teamData);
                   }
                 } catch (error) {
-                  console.error('Failed to toggle team favorite:', error);
+                  logger.error('Failed to toggle team favorite:', error);
                 }
               }}
             >

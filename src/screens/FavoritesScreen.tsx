@@ -19,6 +19,9 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('FavoritesScreen');
 import {
   View,
   Text,
@@ -60,7 +63,7 @@ const FavoritesScreen: React.FC<Props> = ({ navigation }) => {
         await removeEvent(item.sku);
       }
     } catch (error) {
-      console.error('Failed to remove favorite:', error);
+      logger.error('Failed to remove favorite:', error);
       Alert.alert('Error', 'Failed to remove favorite');
     }
   };
@@ -87,28 +90,28 @@ const FavoritesScreen: React.FC<Props> = ({ navigation }) => {
 
         // First, try to use the stored event ID for direct navigation
         if (item.eventApiId) {
-          console.log('Using stored event ID:', item.eventApiId || 'Unknown');
+          logger.debug('Using stored event ID:', item.eventApiId || 'Unknown');
           try {
             eventToNavigate = await robotEventsAPI.getEventDetails(item.eventApiId);
-            console.log('Found event by ID:', eventToNavigate?.name, 'ID:', eventToNavigate?.id);
+            logger.debug('Found event by ID:', eventToNavigate?.name, 'ID:', eventToNavigate?.id);
           } catch (error) {
-            console.log('Failed to get event by ID, falling back to SKU search:', error);
+            logger.debug('Failed to get event by ID, falling back to SKU search:', error);
           }
         }
 
         if (!eventToNavigate && item.sku) {
-          console.log('Falling back to SKU search for:', item.sku || 'Unknown');
+          logger.debug('Falling back to SKU search for:', item.sku || 'Unknown');
 
           const events = await robotEventsAPI.searchEvents({
             sku: [item.sku],
           });
-          console.log('SKU search returned', events.length, 'events for SKU', item.sku || 'Unknown');
+          logger.debug('SKU search returned', events.length, 'events for SKU', item.sku || 'Unknown');
 
           if (events.length > 0) {
             // Filter to find exact SKU match
             const exactMatch = events.find(e => e.sku === item.sku);
             eventToNavigate = exactMatch || events[0];
-            console.log('Found event by SKU:', eventToNavigate.name, 'ID:', eventToNavigate.id);
+            logger.debug('Found event by SKU:', eventToNavigate.name, 'ID:', eventToNavigate.id);
           }
         }
 
@@ -117,7 +120,7 @@ const FavoritesScreen: React.FC<Props> = ({ navigation }) => {
           navigation.navigate('EventMainView', { event: eventToNavigate });
         } else {
           // Final fallback: create a minimal event object
-          console.log('Creating fallback event object');
+          logger.debug('Creating fallback event object');
           const event = {
             id: item.eventApiId || 0,
             sku: item.sku || '',
@@ -133,7 +136,7 @@ const FavoritesScreen: React.FC<Props> = ({ navigation }) => {
           navigation.navigate('EventMainView', { event });
         }
       } catch (error) {
-        console.error('Failed to fetch event:', error);
+        logger.error('Failed to fetch event:', error);
         Alert.alert('Error', 'Failed to load event details');
       }
     }

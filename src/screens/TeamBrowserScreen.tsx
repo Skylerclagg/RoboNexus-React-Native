@@ -15,6 +15,9 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('TeamBrowserScreen');
 import {
   View,
   Text,
@@ -150,7 +153,7 @@ const TeamBrowserScreen: React.FC<Props> = ({ navigation }) => {
         }));
       setSeasons(seasonOptions);
     } catch (error) {
-      console.error('[TeamsMap] Error loading seasons:', error);
+      logger.error('Error loading seasons:', error);
     }
   };
 
@@ -160,7 +163,7 @@ const TeamBrowserScreen: React.FC<Props> = ({ navigation }) => {
       try {
         await refreshTeams(settings.selectedProgram, currentSeason);
       } catch (error) {
-        console.error('[TeamsMap] Error refreshing teams:', error);
+        logger.error('Error refreshing teams:', error);
         Alert.alert('Error', 'Failed to refresh teams. Please try again.');
       }
     }
@@ -202,7 +205,7 @@ const TeamBrowserScreen: React.FC<Props> = ({ navigation }) => {
         await addTeam(team);
       }
     } catch (error) {
-      console.error('Error toggling favorite:', error);
+      logger.error('Error toggling favorite:', error);
     }
   };
 

@@ -19,6 +19,9 @@
  * - Navigation to individual team detail screens
  */
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('EventTeamListScreen');
 import {
   View,
   Text,
@@ -104,9 +107,9 @@ const EventTeamListScreen = ({ route, navigation }: Props) => {
       const exportEventName = event.name;
       const exportDivisionName = division?.name || 'All Divisions';
 
-      console.log(`[EventTeams] Exporting ${teamsToExport.length} teams from ${exportEventName}`);
-      console.log(`[EventTeams] Export scope: ${exportScope}`);
-      console.log(`[EventTeams] Event awards scope: ${eventAwardsScope}`);
+      logger.debug(`Exporting ${teamsToExport.length} teams from ${exportEventName}`);
+      logger.debug(`Export scope: ${exportScope}`);
+      logger.debug(`Event awards scope: ${eventAwardsScope}`);
 
       // Initialize progress with total and start time
       setExportProgress({ current: 0, total: teamsToExport.length, startTime });
@@ -126,7 +129,7 @@ const EventTeamListScreen = ({ route, navigation }: Props) => {
         exportData,
         { selectedFields, eventAwardsScope },
         (current, total) => {
-          console.log(`[EventTeams] Exporting team ${current} of ${total}`);
+          logger.debug(`Exporting team ${current} of ${total}`);
           setExportProgress({ current, total, startTime });
         }
       );
@@ -134,7 +137,7 @@ const EventTeamListScreen = ({ route, navigation }: Props) => {
       setShowExportModal(false);
       Alert.alert('Success', `Exported data for ${teamsToExport.length} teams successfully!`);
     } catch (error) {
-      console.error('Export error:', error);
+      logger.error('Export error:', error);
       setShowExportModal(false);
       Alert.alert(
         'Export Failed',
@@ -202,7 +205,7 @@ const EventTeamListScreen = ({ route, navigation }: Props) => {
       // Using the same logic as Swift: try rankings first, then matches, then all teams
       if (division) {
         try {
-          console.log(`Fetching division rankings to filter teams for division: ${division.name}`);
+          logger.debug(`Fetching division rankings to filter teams for division: ${division.name}`);
 
           // Fetch division rankings to get list of teams in this division
           const rankingsResponse = await robotEventsAPI.getEventDivisionRankings(event.id, division.id);
@@ -212,14 +215,14 @@ const EventTeamListScreen = ({ route, navigation }: Props) => {
             // Get set of team IDs that are in this division's rankings
             const divisionTeamIds = new Set(rankings.map((ranking: any) => ranking.team.id));
 
-            console.log(`Division ${division.name} has ${divisionTeamIds.size} teams in rankings`);
+            logger.debug(`Division ${division.name} has ${divisionTeamIds.size} teams in rankings`);
 
             // Filter teams to only those in the division rankings
             teamsToDisplay = uiTeams.filter(team => divisionTeamIds.has(team.id));
 
-            console.log(`Filtered from ${uiTeams.length} total teams to ${teamsToDisplay.length} division teams`);
+            logger.debug(`Filtered from ${uiTeams.length} total teams to ${teamsToDisplay.length} division teams`);
           } else {
-            console.log(`No rankings found for division ${division.name}, falling back to matches`);
+            logger.debug(`No rankings found for division ${division.name}, falling back to matches`);
 
             // Fall back to using matches if rankings are empty
             try {
@@ -239,14 +242,14 @@ const EventTeamListScreen = ({ route, navigation }: Props) => {
                 });
               });
 
-              console.log(`Division ${division.name} has ${divisionTeamIds.size} teams from matches`);
+              logger.debug(`Division ${division.name} has ${divisionTeamIds.size} teams from matches`);
               teamsToDisplay = uiTeams.filter(team => divisionTeamIds.has(team.id));
             } catch (matchError) {
-              console.error('Failed to fetch division matches, showing all teams:', matchError);
+              logger.error('Failed to fetch division matches, showing all teams:', matchError);
             }
           }
         } catch (error) {
-          console.error('Failed to fetch division data for filtering, showing all teams:', error);
+          logger.error('Failed to fetch division data for filtering, showing all teams:', error);
         }
       }
 
@@ -269,7 +272,7 @@ const EventTeamListScreen = ({ route, navigation }: Props) => {
       setTeams(teamListItems);
       setFilteredTeams(teamListItems);
     } catch (error) {
-      console.error('Failed to fetch event teams:', error);
+      logger.error('Failed to fetch event teams:', error);
       Alert.alert('Error', 'Failed to load event teams. Please try again.');
     } finally {
       setShowLoading(false);
@@ -327,7 +330,7 @@ const EventTeamListScreen = ({ route, navigation }: Props) => {
         }
       }
     } catch (error) {
-      console.error('Failed to toggle team favorite:', error);
+      logger.error('Failed to toggle team favorite:', error);
       Alert.alert('Error', 'Failed to update favorite status');
     }
   };

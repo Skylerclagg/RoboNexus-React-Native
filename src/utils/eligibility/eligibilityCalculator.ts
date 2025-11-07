@@ -1,3 +1,4 @@
+import { createLogger } from '../logger';
 import {
   TeamSkills,
   RawSkill,
@@ -9,6 +10,8 @@ import {
 } from './types';
 import { Team } from '../../types';
 import { applyProgramSpecificRounding, getDynamicLabel } from './common';
+
+const logger = createLogger('eligibilityCalculator');
 
 /**
  * Main eligibility calculation function that mirrors the Dart tableRecords getter exactly
@@ -33,7 +36,7 @@ export const calculateEligibility = (
     return rawRankings.some(ranking => (ranking.team?.id || ranking.teamId) === team.id && ranking.rank > 0);
   });
 
-  console.log('Eligibility calculation:', teams.length, 'total teams,', attendingTeams.length, 'attending teams with qualification rankings');
+  logger.debug('Eligibility calculation:', teams.length, 'total teams,', attendingTeams.length, 'attending teams with qualification rankings');
 
   const teamMap = new Map<number, Team>();
   attendingTeams.forEach(team => {
