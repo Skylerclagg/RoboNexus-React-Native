@@ -731,9 +731,9 @@ const EventMainView = ({ route, navigation }: EventMainViewProps) => {
     // Get alliance color for subtitle
     const getAllianceColor = () => {
       if (item.allianceColor === 'red') {
-        return '#FF3B30'; // Red alliance color
+        return settings.redAllianceColor;
       } else if (item.allianceColor === 'blue') {
-        return '#007AFF'; // Blue alliance color
+        return settings.blueAllianceColor;
       }
       return settings.secondaryTextColor; // Default color
     };

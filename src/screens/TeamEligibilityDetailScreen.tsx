@@ -147,13 +147,13 @@ export const TeamEligibilityDetailScreen = ({ route, navigation }: Props) => {
       <Ionicons
         name={met ? "checkmark-circle" : "close-circle"}
         size={20}
-        color={met ? '#22c55e' : '#ef4444'}
+        color={met ? settings.successColor : settings.errorColor}
         style={styles.requirementIcon}
       />
       <View style={styles.requirementText}>
         <Text style={[
           styles.requirementLabel,
-          { color: met ? '#22c55e' : '#ef4444' }
+          { color: met ? settings.successColor : settings.errorColor }
         ]}>
           {requirement}
         </Text>
@@ -245,11 +245,11 @@ export const TeamEligibilityDetailScreen = ({ route, navigation }: Props) => {
               <Ionicons
                 name={teamSkills.eligible ? "checkmark-circle" : "close-circle"}
                 size={32}
-                color={teamSkills.eligible ? '#22c55e' : '#ef4444'}
+                color={teamSkills.eligible ? settings.successColor : settings.errorColor}
               />
               <Text style={[
                 styles.eligibilityText,
-                { color: teamSkills.eligible ? '#22c55e' : '#ef4444' }
+                { color: teamSkills.eligible ? settings.successColor : settings.errorColor }
               ]}>
                 {teamSkills.eligible ? 'ELIGIBLE' : 'NOT ELIGIBLE'}
               </Text>
@@ -328,17 +328,17 @@ export const TeamEligibilityDetailScreen = ({ route, navigation }: Props) => {
         {/* Overall Result */}
         <View style={[
           styles.resultCard,
-          { backgroundColor: teamSkills.eligible ? '#dcfce7' : '#fee2e2' }
+          { backgroundColor: teamSkills.eligible ? (settings.successColor + '20') : (settings.errorColor + '20') }
         ]}>
           <View style={styles.resultHeader}>
             <Ionicons
               name={teamSkills.eligible ? "trophy" : "alert-circle"}
               size={24}
-              color={teamSkills.eligible ? '#22c55e' : '#ef4444'}
+              color={teamSkills.eligible ? settings.successColor : settings.errorColor}
             />
             <Text style={[
               styles.resultTitle,
-              { color: teamSkills.eligible ? '#22c55e' : '#ef4444' }
+              { color: teamSkills.eligible ? settings.successColor : settings.errorColor }
             ]}>
               {teamSkills.eligible
                 ? `Team ${team.number} is eligible for ${programConfig?.awardName || 'the award'}!`
@@ -450,10 +450,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   positiveValue: {
-    color: '#22c55e',
+    // Color will be applied dynamically via settings.successColor
   },
   negativeValue: {
-    color: '#ef4444',
+    // Color will be applied dynamically via settings.errorColor
   },
   requirementRow: {
     flexDirection: 'row',

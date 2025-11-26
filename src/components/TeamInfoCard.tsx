@@ -1,5 +1,5 @@
 /**
- * Reusable Team Info Card Component
+ * Reusable Team Info Card Component - BACKUP COPY
  *
  * Modern team information card design used across multiple screens (TeamLookup, TeamInfo, EventTeamView)
  * for consistent team display with statistics, World Skills, awards, and match records.
@@ -22,6 +22,7 @@ import { useFavorites } from '../contexts/FavoritesContext';
 import { Team } from '../types';
 import { getSkillsDisplayInfo } from '../utils/matchDisplay';
 import { getProgramConfig } from '../utils/programMappings';
+import { VRCDataAnalysisTeam } from '../services/vrcDataAnalysisAPI';
 
 interface MatchRecord {
   wins: number;
@@ -74,6 +75,10 @@ interface TeamInfoCardProps {
   eventSkillsRanking?: any | null;
   eventSkillsLoading?: boolean;
 
+  // TrueSkill data (from VRC Data Analysis)
+  trueSkillData?: VRCDataAnalysisTeam | null;
+  trueSkillLoading?: boolean;
+
   // Configuration
   showFavoriteButton?: boolean;
   showHeader?: boolean;
@@ -94,6 +99,8 @@ const TeamInfoCard: React.FC<TeamInfoCardProps> = ({
   awardCountsLoading = false,
   eventSkillsRanking,
   eventSkillsLoading = false,
+  trueSkillData,
+  trueSkillLoading = false,
   showFavoriteButton = true,
   showHeader = true,
   compactMode = false,
@@ -104,6 +111,7 @@ const TeamInfoCard: React.FC<TeamInfoCardProps> = ({
 
   const [isWorldSkillsExpanded, setIsWorldSkillsExpanded] = useState(false);
   const [isAwardsExpanded, setIsAwardsExpanded] = useState(false);
+  const [isTrueSkillExpanded, setIsTrueSkillExpanded] = useState(false);
 
   // Get skills display info using format-aware system
   const skillsDisplayInfo = getSkillsDisplayInfo(selectedProgram);
@@ -234,6 +242,112 @@ const TeamInfoCard: React.FC<TeamInfoCardProps> = ({
                 )}
               </View>
             </View>
+          </View>
+        )}
+
+        {/* TrueSkill Section (from VRC Data Analysis) */}
+        {trueSkillData && (
+          <View style={styles.skillsSection}>
+            <TouchableOpacity
+              style={styles.modernInfoRow}
+              onPress={() => trueSkillData && trueSkillData.trueskill && setIsTrueSkillExpanded(!isTrueSkillExpanded)}
+              disabled={!trueSkillData || !trueSkillData.trueskill}
+            >
+              <Text style={[styles.modernInfoLabel, { color: settings.secondaryTextColor }]}>TrueSkill Rating</Text>
+              <View style={styles.scoreWithChevron}>
+                {trueSkillLoading ? (
+                  <ActivityIndicator size="small" color={settings.buttonColor} />
+                ) : (
+                  <>
+                    <Text style={[styles.modernInfoValue, { color: settings.textColor }]}>
+                      {trueSkillData.trueskill ? trueSkillData.trueskill.toFixed(2) : 'N/A'}
+                    </Text>
+                    {trueSkillData && trueSkillData.trueskill && (
+                      <Ionicons
+                        name={isTrueSkillExpanded ? "chevron-up" : "chevron-down"}
+                        size={16}
+                        color={settings.iconColor}
+                        style={styles.chevronIcon}
+                      />
+                    )}
+                  </>
+                )}
+              </View>
+            </TouchableOpacity>
+
+            {/* TrueSkill Metrics Breakdown */}
+            {trueSkillData && trueSkillData.trueskill && isTrueSkillExpanded && (
+              <View style={styles.modernSkillsBreakdown}>
+                {/* TrueSkill Ranking */}
+                <View style={[styles.modernSkillsBreakdownRow, { borderBottomColor: settings.borderColor }]}>
+                  <Text style={[styles.modernSkillsLabel, { color: settings.secondaryTextColor }]}>
+                    TrueSkill Rank
+                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={[styles.modernSkillsValue, { color: settings.textColor }]}>
+                      #{trueSkillData.ts_ranking || 'N/A'}
+                    </Text>
+                    {trueSkillData.ranking_change !== 0 && (
+                      <Text style={{
+                        fontSize: 12,
+                        fontWeight: '600',
+                        color: trueSkillData.ranking_change > 0 ? '#4CAF50' : '#FF6B6B'
+                      }}>
+                        {trueSkillData.ranking_change > 0 ? '↑' : '↓'}{Math.abs(trueSkillData.ranking_change)}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+
+                {/* CCWM */}
+                <View style={[styles.modernSkillsBreakdownRow, { borderBottomColor: settings.borderColor }]}>
+                  <Text style={[styles.modernSkillsLabel, { color: settings.secondaryTextColor }]}>
+                    CCWM
+                  </Text>
+                  <Text style={[styles.modernSkillsValue, { color: settings.textColor }]}>
+                    {trueSkillData.ccwm !== undefined && trueSkillData.ccwm !== null ? trueSkillData.ccwm.toFixed(2) : 'N/A'}
+                  </Text>
+                </View>
+
+                {/* OPR */}
+                <View style={[styles.modernSkillsBreakdownRow, { borderBottomColor: settings.borderColor }]}>
+                  <Text style={[styles.modernSkillsLabel, { color: settings.secondaryTextColor }]}>
+                    OPR
+                  </Text>
+                  <Text style={[styles.modernSkillsValue, { color: settings.textColor }]}>
+                    {trueSkillData.opr !== undefined && trueSkillData.opr !== null ? trueSkillData.opr.toFixed(2) : 'N/A'}
+                  </Text>
+                </View>
+
+                {/* DPR */}
+                <View style={[styles.modernSkillsBreakdownRow, { borderBottomColor: settings.borderColor }]}>
+                  <Text style={[styles.modernSkillsLabel, { color: settings.secondaryTextColor }]}>
+                    DPR
+                  </Text>
+                  <Text style={[styles.modernSkillsValue, { color: settings.textColor }]}>
+                    {trueSkillData.dpr !== undefined && trueSkillData.dpr !== null ? trueSkillData.dpr.toFixed(2) : 'N/A'}
+                  </Text>
+                </View>
+
+                {/* Win Percentage */}
+                <View style={[styles.modernSkillsBreakdownRow, { borderBottomColor: settings.borderColor }]}>
+                  <Text style={[styles.modernSkillsLabel, { color: settings.secondaryTextColor }]}>
+                    Win %
+                  </Text>
+                  <Text style={[styles.modernSkillsValue, { color: settings.textColor }]}>
+                    {(() => {
+                      if (!trueSkillData.total_wins || !trueSkillData.total_losses || !trueSkillData.total_ties) {
+                        return 'N/A';
+                      }
+                      const totalMatches = trueSkillData.total_wins + trueSkillData.total_losses + trueSkillData.total_ties;
+                      if (totalMatches === 0) return '0.0%';
+                      const winPercentage = (trueSkillData.total_wins / totalMatches) * 100;
+                      return `${winPercentage.toFixed(1)}%`;
+                    })()}
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
         )}
 

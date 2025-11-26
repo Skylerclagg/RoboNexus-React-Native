@@ -118,8 +118,8 @@ const AwardsScreen: React.FC<Props> = ({ navigation }) => {
         if (!team.number) return null;
 
         try {
-          // Get basic team info
-          const teamInfo = await robotEventsAPI.getTeamByNumber(team.number);
+          // Get basic team info (use program from favorite item to ensure correct API)
+          const teamInfo = await robotEventsAPI.getTeamByNumber(team.number, team.program);
 
           // Get team awards for current season
           const awardsResponse = await robotEventsAPI.getTeamAwards(teamInfo!.id, { season: [targetSeasonId] });

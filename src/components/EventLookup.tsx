@@ -54,7 +54,7 @@ interface EventLookupProps {
 const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list' }) => {
   logger.debug('Component loading...');
   const settings = useSettings();
-  const { selectedProgram, globalSeasonEnabled, selectedSeason: globalSeason, updateGlobalSeason, isDeveloperMode } = settings;
+  const { selectedProgram, globalSeasonEnabled, selectedSeason: globalSeason, updateGlobalSeason, isDeveloperMode, filterResetTrigger, autoLocationCountryFilter } = settings;
   const { addEvent, removeEvent, isEventFavorited } = useFavorites();
 
   // Events State
@@ -80,6 +80,10 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
   // Location state for nearby filtering
   const [userLocation, setUserLocation] = useState<any | null>(null);
   const [locationPermission, setLocationPermission] = useState<boolean>(false);
+
+  // Detected location info for auto-filtering
+  const [detectedCountry, setDetectedCountry] = useState<string>('');
+  const [autoFiltersApplied, setAutoFiltersApplied] = useState<boolean>(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -119,6 +123,25 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
   useEffect(() => {
     loadSeasons();
   }, [selectedProgram]);
+
+  // Reset all filters when program changes
+  useEffect(() => {
+    if (filterResetTrigger > 0) {
+      logger.debug('Filter reset triggered - clearing all event filters');
+      setEventFilters({
+        season: '',
+        level: '',
+        region: '',
+        state: '',
+        country: '',
+        dateFilter: false,
+        nearbyFilter: false,
+        liveEventsOnly: false,
+      });
+      setEventQuery('');
+      setCurrentPage(1);
+    }
+  }, [filterResetTrigger]);
 
   // Sync with global season when global mode is enabled
   useEffect(() => {
@@ -190,6 +213,50 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
       applyFiltersAndPagination(allEvents, eventFilters, 1);
     }
   }, [eventFilters]);
+
+  // Request location for auto-filtering when enabled
+  useEffect(() => {
+    if (autoLocationCountryFilter && !detectedCountry && !autoFiltersApplied) {
+      logger.debug('Auto-location filter enabled, requesting location...');
+      requestLocationPermission(true);
+    }
+  }, [autoLocationCountryFilter]);
+
+  // Apply auto-filters when detected location and available options are ready
+  useEffect(() => {
+    if (autoFiltersApplied) return; // Only apply once per session
+
+    const shouldApplyCountry = autoLocationCountryFilter && detectedCountry && availableCountries.length > 0;
+
+    if (shouldApplyCountry) {
+      let newFilters = { ...eventFilters };
+      let filtersChanged = false;
+
+      // Match detected country to available countries
+      if (shouldApplyCountry && !eventFilters.country) {
+        const matchedCountry = availableCountries.find(c =>
+          c.toLowerCase() === detectedCountry.toLowerCase() ||
+          detectedCountry.toLowerCase().includes(c.toLowerCase()) ||
+          c.toLowerCase().includes(detectedCountry.toLowerCase())
+        );
+        if (matchedCountry) {
+          logger.debug('Auto-applying country filter:', matchedCountry);
+          newFilters.country = matchedCountry;
+          filtersChanged = true;
+        }
+      }
+
+      if (filtersChanged) {
+        logger.debug('Auto-filter: Setting new filters and applying to events');
+        setEventFilters(newFilters);
+        setAutoFiltersApplied(true);
+        // Directly apply filters to ensure they take effect immediately
+        if (allEvents && allEvents.length > 0) {
+          applyFiltersAndPagination(allEvents, newFilters, 1);
+        }
+      }
+    }
+  }, [detectedCountry, availableCountries, autoLocationCountryFilter, autoFiltersApplied, allEvents]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -502,7 +569,7 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
     }
   };
 
-  const requestLocationPermission = async () => {
+  const requestLocationPermission = async (forAutoFilter: boolean = false) => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status === 'granted') {
@@ -513,32 +580,59 @@ const EventLookup: React.FC<EventLookupProps> = ({ navigation, viewMode = 'list'
             accuracy: Location.Accuracy.Balanced,
           });
           setUserLocation(location);
+
+          // If auto-filters are enabled, do reverse geocoding to get country
+          if (forAutoFilter && autoLocationCountryFilter) {
+            try {
+              const geocodeResults = await Location.reverseGeocodeAsync({
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+              });
+
+              if (geocodeResults && geocodeResults.length > 0) {
+                const result = geocodeResults[0];
+                logger.debug('Reverse geocode result:', result);
+
+                if (result.country) {
+                  setDetectedCountry(result.country);
+                }
+              }
+            } catch (geocodeError) {
+              logger.error('Reverse geocoding failed:', geocodeError);
+            }
+          }
         } catch (locationError) {
           // Disable nearby filter if we can't get location
-          setEventFilters(prev => ({ ...prev, nearbyFilter: false }));
-          Alert.alert(
-            'Location Error',
-            'Unable to get your current location. Please try again or check your location settings.',
-            [{ text: 'OK' }]
-          );
+          if (!forAutoFilter) {
+            setEventFilters(prev => ({ ...prev, nearbyFilter: false }));
+            Alert.alert(
+              'Location Error',
+              'Unable to get your current location. Please try again or check your location settings.',
+              [{ text: 'OK' }]
+            );
+          }
         }
       } else {
         setLocationPermission(false);
-        Alert.alert(
-          'Location Permission Required',
-          'Location permission is needed to filter nearby events. Please enable location permission in settings.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Settings', onPress: () => Linking.openSettings() }
-          ]
-        );
-        // Disable nearby filter if permission denied
-        setEventFilters(prev => ({ ...prev, nearbyFilter: false }));
+        if (!forAutoFilter) {
+          Alert.alert(
+            'Location Permission Required',
+            'Location permission is needed to filter nearby events. Please enable location permission in settings.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Settings', onPress: () => Linking.openSettings() }
+            ]
+          );
+          // Disable nearby filter if permission denied
+          setEventFilters(prev => ({ ...prev, nearbyFilter: false }));
+        }
       }
     } catch (error) {
       logger.error('Failed to get location permission:', error);
       setLocationPermission(false);
-      setEventFilters(prev => ({ ...prev, nearbyFilter: false }));
+      if (!forAutoFilter) {
+        setEventFilters(prev => ({ ...prev, nearbyFilter: false }));
+      }
     }
   };
 

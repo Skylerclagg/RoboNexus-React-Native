@@ -62,10 +62,10 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
         <Text style={[styles.webMapText, { color: settings.textColor }]}>
           Map View
         </Text>
-        <Text style={[styles.webMapSubtext, { color: settings.colorScheme === 'dark' ? '#8E8E93' : '#666' }]}>
+        <Text style={[styles.webMapSubtext, { color: settings.secondaryTextColor }]}>
           Maps are not available in web version
         </Text>
-        <Text style={[styles.webMapSubtext, { color: settings.colorScheme === 'dark' ? '#8E8E93' : '#666' }]}>
+        <Text style={[styles.webMapSubtext, { color: settings.secondaryTextColor }]}>
           {eventMarkers.length} events with coordinates
         </Text>
       </View>
@@ -78,14 +78,14 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
               <Text style={[styles.eventTitle, { color: settings.textColor }]} numberOfLines={2}>
                 {event.name}
               </Text>
-              <Text style={[styles.eventLevel, { color: settings.colorScheme === 'dark' ? '#8E8E93' : '#666' }]}>
+              <Text style={[styles.eventLevel, { color: settings.secondaryTextColor }]}>
                 {event.level} Level
               </Text>
               <View style={styles.eventDetails}>
-                <Text style={[styles.eventLocation, { color: settings.colorScheme === 'dark' ? '#8E8E93' : '#666' }]}>
+                <Text style={[styles.eventLocation, { color: settings.secondaryTextColor }]}>
                   {event.location?.city}, {event.location?.region}
                 </Text>
-                <Text style={[styles.eventDate, { color: settings.colorScheme === 'dark' ? '#8E8E93' : '#666' }]}>
+                <Text style={[styles.eventDate, { color: settings.secondaryTextColor }]}>
                   {formatEventDate(event.start)}
                 </Text>
               </View>
@@ -98,7 +98,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
                 <Ionicons
                   name={isEventFavorited(event.sku) ? 'heart' : 'heart-outline'}
                   size={20}
-                  color={isEventFavorited(event.sku) ? '#FF6B6B' : (settings.colorScheme === 'dark' ? '#8E8E93' : '#666')}
+                  color={isEventFavorited(event.sku) ? settings.errorColor : settings.secondaryTextColor}
                 />
               </TouchableOpacity>
               <TouchableOpacity
@@ -111,7 +111,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
           </View>
         ))}
         {eventMarkers.length > 10 && (
-          <Text style={[styles.moreEventsText, { color: settings.colorScheme === 'dark' ? '#8E8E93' : '#666' }]}>
+          <Text style={[styles.moreEventsText, { color: settings.secondaryTextColor }]}>
             and {eventMarkers.length - 10} more events...
           </Text>
         )}

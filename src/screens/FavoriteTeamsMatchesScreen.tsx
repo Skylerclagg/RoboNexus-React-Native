@@ -56,6 +56,7 @@ interface Match {
   name: string;
   started?: string;
   scheduled?: string;
+  field?: string;
   alliances: Array<{
     color: string;
     score?: number;
@@ -76,6 +77,7 @@ interface MatchListItem {
   redScore: number | null;
   blueScore: number | null;
   time: string;
+  field?: string;
   alliances?: {
     red?: { score: number | null };
     blue?: { score: number | null };
@@ -123,8 +125,8 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
 
   // Determine if we should use themed colors or alliance colors for scores
   const shouldUseThemedColors = useThemedScoreColors(settings.selectedProgram);
-  const redScoreColor = shouldUseThemedColors ? textColor : '#FF3B30';
-  const blueScoreColor = shouldUseThemedColors ? textColor : '#007AFF';
+  const redScoreColor = shouldUseThemedColors ? textColor : settings.redAllianceColor;
+  const blueScoreColor = shouldUseThemedColors ? textColor : settings.blueAllianceColor;
 
   // Helper function to format scores
   const formatScore = (score: number | null, otherScore: number | null) => {
@@ -450,11 +452,11 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
         const winner = getWinningAlliance(item);
         switch (winner) {
           case 'red':
-            return redScoreColor; // Red
+            return settings.redAllianceColor; // Red
           case 'blue':
-            return blueScoreColor; // Blue
+            return settings.blueAllianceColor; // Blue
           case 'tie':
-            return '#FFA500'; // Orange for ties
+            return settings.warningColor; // Tie warning
           default:
             return '#999999'; // Gray default
         }
@@ -468,11 +470,11 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
     const winner = getWinningAlliance(item);
     switch (winner) {
       case 'red':
-        return redScoreColor; // Red
+        return settings.redAllianceColor; // Red
       case 'blue':
-        return blueScoreColor; // Blue
+        return settings.blueAllianceColor; // Blue
       case 'tie':
-        return '#FFA500'; // Orange for ties
+        return settings.warningColor; // Tie warning
       default:
         return borderColor; // Default border color for unplayed matches
     }
@@ -547,7 +549,8 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
             blueTeams,
             redScore: redAlliance?.score ?? null,
             blueScore: blueAlliance?.score ?? null,
-            time: formatTime(match)
+            time: formatTime(match),
+            field: match.field
           };
         });
 
@@ -613,7 +616,8 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
             blueTeams,
             redScore: redAlliance?.score ?? null,
             blueScore: blueAlliance?.score ?? null,
-            time: formatTime(match)
+            time: formatTime(match),
+            field: match.field
           };
         });
 
@@ -700,7 +704,12 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
 
         <View style={styles.compactMatchHeader}>
           <Text style={[styles.compactMatchName, { color: settings.textColor }]}>{item.displayName}</Text>
-          <Text style={[styles.compactMatchTime, { color: settings.secondaryTextColor }]}>{item.time}</Text>
+          <View style={{ alignItems: 'flex-end' }}>
+            {item.field && (
+              <Text style={[styles.compactMatchTime, { color: settings.textColor, fontWeight: '600' }]}>{item.field}</Text>
+            )}
+            <Text style={[styles.compactMatchTime, { color: settings.secondaryTextColor }]}>{item.time}</Text>
+          </View>
         </View>
 
         <View style={styles.compactMatchContent}>
@@ -813,7 +822,12 @@ const FavoriteTeamsMatchesScreen = ({ route, navigation }: Props) => {
       {/* Match Header */}
       <View style={styles.matchHeader}>
         <Text style={styles.matchName}>{item.displayName}</Text>
-        <Text style={styles.matchTime}>{item.time}</Text>
+        <View style={{ alignItems: 'flex-end' }}>
+          {item.field && (
+            <Text style={[styles.matchTime, { fontWeight: '600' }]}>{item.field}</Text>
+          )}
+          <Text style={styles.matchTime}>{item.time}</Text>
+        </View>
       </View>
 
       {/* Teams and Scores */}

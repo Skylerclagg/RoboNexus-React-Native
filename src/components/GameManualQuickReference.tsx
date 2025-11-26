@@ -21,7 +21,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  ActivityIndicator,
   Linking,
   Image,
   Modal,
@@ -34,6 +33,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../contexts/SettingsContext';
 import { GameManual, Rule, RuleGroup } from '../types/gameManual';
 import { gameManualService } from '../services/gameManualService';
+import GameManualQuickReferenceSkeleton from './GameManualQuickReferenceSkeleton';
+import { pdfCacheService, PDFDownloadProgress } from '../services/pdfCacheService';
+import Pdf from 'react-native-pdf';
 
 interface Props {
   navigation?: any;
@@ -47,10 +49,13 @@ export interface GameManualQuickReferenceRef {
 
 const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(({ navigation, program, season }, ref) => {
   const settings = useSettings();
+  const { filterResetTrigger } = settings;
+
+  // Get Q&A URL immediately from bundled data (synchronous)
+  const qnaUrl = gameManualService.getQnAUrl(program, season);
 
   const [manual, setManual] = useState<GameManual | null>(null);
   const [loading, setLoading] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState<{ current: number; total: number } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [expandedRules, setExpandedRules] = useState<Set<string>>(new Set());
@@ -59,6 +64,17 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
   const [refreshing, setRefreshing] = useState(false);
   const [enlargedImage, setEnlargedImage] = useState<string | number | null>(null);
   const [ruleReferenceModal, setRuleReferenceModal] = useState<Rule | null>(null);
+
+  // PDF download states
+  const [downloadedPDFs, setDownloadedPDFs] = useState<Set<string>>(new Set());
+  const [downloadingPDFs, setDownloadingPDFs] = useState<Map<string, number>>(new Map());
+  const [, setForceUpdate] = useState(0); // For forcing re-renders during download progress
+
+  // PDF viewer modal state
+  const [pdfViewerVisible, setPdfViewerVisible] = useState(false);
+  const [currentPdfPath, setCurrentPdfPath] = useState<string>('');
+  const [currentPdfTitle, setCurrentPdfTitle] = useState<string>('');
+  const [pdfLoadError, setPdfLoadError] = useState(false);
 
   // Pan responder for swipe-to-close modal (only on header)
   const modalTranslateY = useRef(new Animated.Value(0)).current;
@@ -103,25 +119,37 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
     loadManual();
   }, [program, season]);
 
+  // Load downloaded PDFs state
+  useEffect(() => {
+    loadDownloadedPDFs();
+  }, []);
+
+  // Reset all filters when program changes
+  useEffect(() => {
+    if (filterResetTrigger > 0) {
+      logger.debug('Filter reset triggered - clearing game manual filters');
+      setFilterRuleGroup(null);
+      setShowFavoritesOnly(false);
+      setSearchQuery('');
+    }
+  }, [filterResetTrigger]);
+
+  const loadDownloadedPDFs = () => {
+    const cachedPDFs = pdfCacheService.getAllCachedPDFs();
+    const downloadedUrls = new Set(cachedPDFs.map(pdf => pdf.url));
+    setDownloadedPDFs(downloadedUrls);
+  };
+
   const loadManual = async (forceRefresh: boolean = false) => {
     setLoading(true);
-    setLoadingProgress(null);
 
     try {
       let manual: GameManual | null;
 
       if (forceRefresh) {
-        manual = await gameManualService.refreshManual(
-          program,
-          season,
-          (current, total) => setLoadingProgress({ current, total })
-        );
+        manual = await gameManualService.refreshManual(program, season);
       } else {
-        manual = await gameManualService.getManual(
-          program,
-          season,
-          (current, total) => setLoadingProgress({ current, total })
-        );
+        manual = await gameManualService.getManual(program, season);
       }
 
       setManual(manual);
@@ -134,7 +162,6 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
       logger.error('Error loading manual:', error);
     } finally {
       setLoading(false);
-      setLoadingProgress(null);
       setRefreshing(false);
     }
   };
@@ -182,13 +209,13 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
     const elements = [];
     let key = 0;
 
-    // Split by tables, callouts, and images
-    const combinedRegex = /\{\{TABLE\}\}([\s\S]*?)\{\{\/TABLE\}\}|\{\{CALLOUT\}\}([\s\S]*?)\{\{\/CALLOUT\}\}|\{\{IMAGE:(.*?)\}\}/g;
+    // Split by tables, callouts, violation notes, and images
+    const combinedRegex = /\{\{TABLE\}\}([\s\S]*?)\{\{\/TABLE\}\}|\{\{CALLOUT\}\}([\s\S]*?)\{\{\/CALLOUT\}\}|\{\{VIOLATION_NOTES\}\}([\s\S]*?)\{\{\/VIOLATION_NOTES\}\}|\{\{IMAGE:(.*?)\}\}/g;
     let lastIndex = 0;
     let match;
 
     while ((match = combinedRegex.exec(text)) !== null) {
-      // Render text before table/callout/image
+      // Render text before table/callout/violation notes/image
       if (match.index > lastIndex) {
         const textBefore = text.substring(lastIndex, match.index);
         elements.push(
@@ -198,7 +225,7 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
         );
       }
 
-      // Check if this is a table, callout, or image
+      // Check if this is a table, callout, violation notes, or image
       if (match[1]) {
         // It's a table
         elements.push(renderTable(match[1], key++));
@@ -206,8 +233,11 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
         // It's a callout
         elements.push(renderCallout(match[2], key++, highlightQuery));
       } else if (match[3]) {
+        // It's violation notes
+        elements.push(renderViolationNotes(match[3], key++, highlightQuery));
+      } else if (match[4]) {
         // It's an image
-        const imageUrl = match[3];
+        const imageUrl = match[4];
         elements.push(
           <TouchableOpacity
             key={`image-${key++}`}
@@ -269,6 +299,7 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
       consecutiveEmptyLines = 0;
 
       const formattedParts = parseFormattedLine(line, highlightQuery);
+
       // Wrap in a Text component to maintain proper text flow
       // Nested Text components with onPress will still work as long as they're direct children
       renderedLines.push(
@@ -282,23 +313,29 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
   };
 
   // Helper function to convert rule references to clickable buttons
-  const parseRuleReferences = (text: string, formatStack: string[], partKey: number, highlightQuery?: string) => {
+  const parseRuleReferences = (text: string, formatStack: string[], partKey: number, highlightQuery?: string, useBlueLinks?: boolean, baseColor?: string) => {
     const parts = [];
-    // Match rule references like <SC1>, <VUR11>, etc.
-    const ruleRefRegex = /<([A-Z]+\d+)>/g;
+    // Match rule references like <SC1>, <VUR11>, <R3d>, etc.
+    // Pattern: < followed by uppercase letters, digits, and optional lowercase letters >
+    const ruleRefRegex = /<([A-Z]+\d+[a-z]?)>/g;
     let lastIndex = 0;
     let match;
     let localKey = partKey;
+
+    // Determine link color based on context
+    const linkColor = useBlueLinks ? settings.linkColor : settings.buttonColor;
 
     while ((match = ruleRefRegex.exec(text)) !== null) {
       // Add text before the rule reference
       if (match.index > lastIndex) {
         const textBefore = text.substring(lastIndex, match.index);
-        parts.push(renderStyledText(textBefore, formatStack, null, localKey++, highlightQuery));
+        parts.push(renderStyledText(textBefore, formatStack, null, localKey++, highlightQuery, baseColor));
       }
 
       // Add the rule reference as a clickable button-styled text
       const ruleCode = `<${match[1]}>`;
+      // Strip suffix (e.g., 'R3d' -> 'R3') to find the base rule
+      const baseRuleCode = `<${match[1].replace(/[a-z]+$/, '')}>`;
 
       parts.push(
         <Text
@@ -307,14 +344,18 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
             styles.ruleRefButtonText,
             {
               backgroundColor: settings.cardBackgroundColor,
-              borderColor: settings.borderColor,
-              color: settings.buttonColor,
+              borderColor: linkColor,
+              color: linkColor,
             }
           ]}
           onPress={() => {
             // Find the rule and show it in a modal
             const allRules = manual?.ruleGroups.flatMap(g => g.rules) || [];
-            const targetRule = allRules.find(r => r.rule === ruleCode);
+            // Try to find with suffix first, then fall back to base rule
+            let targetRule = allRules.find(r => r.rule === ruleCode);
+            if (!targetRule && baseRuleCode !== ruleCode) {
+              targetRule = allRules.find(r => r.rule === baseRuleCode);
+            }
             if (targetRule) {
               setRuleReferenceModal(targetRule);
             }
@@ -330,17 +371,20 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
     // Add remaining text
     if (lastIndex < text.length) {
       const remaining = text.substring(lastIndex);
-      parts.push(renderStyledText(remaining, formatStack, null, localKey++, highlightQuery));
+      parts.push(renderStyledText(remaining, formatStack, null, localKey++, highlightQuery, baseColor));
     }
 
-    return parts.length > 0 ? parts : [renderStyledText(text, formatStack, null, partKey, highlightQuery)];
+    return parts.length > 0 ? parts : [renderStyledText(text, formatStack, null, partKey, highlightQuery, baseColor)];
   };
 
   // Parse a single line of formatted text
-  const parseFormattedLine = (line: string, highlightQuery?: string) => {
+  const parseFormattedLine = (line: string, highlightQuery?: string, useBlueLinks?: boolean, baseColor?: string) => {
     const parts = [];
     let currentPos = 0;
     let partKey = 0;
+
+    // Determine link color based on context
+    const linkColor = useBlueLinks ? settings.linkColor : settings.buttonColor;
 
     // First, extract all links with their positions
     const linkRegex = /\{\{LINK:([^}]+)\}\}(.*?)\{\{\/LINK\}\}/g;
@@ -375,8 +419,8 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
               styles.ruleRefButtonText,
               {
                 backgroundColor: settings.cardBackgroundColor,
-                borderColor: settings.borderColor,
-                color: settings.buttonColor,
+                borderColor: linkColor,
+                color: linkColor,
               }
             ]}
             onPress={() => {
@@ -402,7 +446,7 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
       // Add text before next special position
       if (nextPos > currentPos) {
         const textContent = line.substring(currentPos, nextPos);
-        const parsedParts = parseRuleReferences(textContent, formatStack, partKey, highlightQuery);
+        const parsedParts = parseRuleReferences(textContent, formatStack, partKey, highlightQuery, useBlueLinks, baseColor);
         parts.push(...parsedParts);
         partKey += parsedParts.length;
       }
@@ -425,14 +469,14 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
   };
 
   // Render text with accumulated styles
-  const renderStyledText = (text: string, formatStack: string[], linkUrl: string | null, key: number, highlightQuery?: string) => {
+  const renderStyledText = (text: string, formatStack: string[], linkUrl: string | null, key: number, highlightQuery?: string, baseColor?: string) => {
     if (!text) return null;
 
-    const style: any = { color: settings.textColor };
+    const style: any = { color: baseColor || settings.textColor };
 
     // Apply formatting from stack
     for (const format of formatStack) {
-      if (format.includes('RED')) style.color = '#FF0000';
+      if (format.includes('RED')) style.color = settings.errorColor;
       if (format.includes('BOLD')) style.fontWeight = 'bold';
       if (format.includes('ITALIC')) style.fontStyle = 'italic';
       if (format === 'SMALL') style.fontSize = 11;
@@ -510,6 +554,44 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
         </Text>
       </View>
     );
+  };
+
+  // Render violation notes (red italic text with spacing and blue links)
+  const renderViolationNotes = (violationText: string, key: number, highlightQuery?: string) => {
+    if (!violationText || !violationText.trim()) return null;
+
+    const lines = violationText.split('\n');
+    const renderedLines = [];
+
+    for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+      const line = lines[lineIdx];
+
+      if (!line.trim()) {
+        renderedLines.push(<View key={`vn-space-${lineIdx}`} style={{ height: 8 }} />);
+        continue;
+      }
+
+      // Parse the line, replacing rule references with blue clickable text
+      const formattedParts = parseFormattedLineForViolationNotes(line, highlightQuery);
+
+      renderedLines.push(
+        <Text key={`vn-line-${lineIdx}`} style={[styles.fullText, { color: settings.errorColor, fontStyle: 'italic' as const, marginBottom: 2 }]}>
+          {formattedParts}
+        </Text>
+      );
+    }
+
+    return (
+      <View key={`violation-${key}`} style={{ marginTop: 12, marginBottom: 8 }}>
+        {renderedLines}
+      </View>
+    );
+  };
+
+  // Parse formatted line for violation notes (blue rule references and red text)
+  const parseFormattedLineForViolationNotes = (line: string, highlightQuery?: string) => {
+    // Use the existing parseFormattedLine logic but override rule ref color to blue and base text color to red
+    return parseFormattedLine(line, highlightQuery, true, settings.errorColor);
   };
 
   // Render a table from formatted table text
@@ -627,7 +709,7 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
   // Get display name for rule group section titles
   const getGroupDisplayName = (groupName: string): string => {
     const nameMap: { [key: string]: string } = {
-      'Skills Challenge Rules': 'Scoring Rules',
+      'Skills Challenge Rules': 'Robot Skills Challenge Rules',
       'Scoring Rules': 'Scoring Rules',
       'Safety Rules': 'Safety Rules',
       'General Rules': 'General Rules',
@@ -651,7 +733,7 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
   };
 
   // Get display name for rule category (shown at bottom of each rule card)
-  // Categories are already accurate abbreviations, no mapping needed
+  // Categories are already in display format from the scraper
   const getCategoryDisplayName = (category: string): string => {
     return category;
   };
@@ -754,58 +836,163 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
       });
     }
 
-    // Add Field Reset group at the beginning (all programs except VAIRC)
-    // VAIRC is excluded because we don't have field diagrams for it yet
-    if (manual && !programFilter.includes('ai')) {
-      // Determine field names based on program
-      const isIQ = programFilter.includes('iq');
-      const isVexU = programFilter.includes('vex u') || programFilter.includes('vurc');
-      const mainFieldName = isIQ ? 'Teamwork Field' : 'Main Field';
-      const mainFieldDescription = isIQ ? 'Teamwork Field Reset Diagram' : 'Main Field Reset Diagram';
+    // Add Judging Resources group at the beginning (all programs)
+    // These are universal resources that apply to all VEX Robotics programs
+    if (manual) {
+      // Remove any existing Judging Resources groups to avoid duplication
+      groups = groups.filter(group => group.name !== 'Judging Resources');
 
-      // VEX U uses the same diagram for both, so only show one
-      const rules = isVexU ? [
+      const judgingResources: Rule[] = [
         {
-          id: 'field-reset-vexu',
-          rule: 'Field Reset',
-          title: 'Field Reset Diagram',
-          description: 'Field Reset Diagram (same for Main and Skills)',
-          category: 'Field Reset',
-          vexLink: '',
-          fullText: '',
-          completeText: '',
-        },
-      ] : [
-        {
-          id: 'field-reset-main',
-          rule: mainFieldName,
-          title: 'Field Reset Diagram',
-          description: mainFieldDescription,
-          category: 'Field Reset',
-          vexLink: '',
+          id: 'judging-team-interview-rubric',
+          rule: 'Team Interview Rubric',
+          title: 'Team Interview Rubric',
+          description: '',
+          category: 'Judging Resources',
+          vexLink: 'https://kb.roboticseducation.org/hc/en-us/article_attachments/33154057129751',
           fullText: '',
           completeText: '',
         },
         {
-          id: 'field-reset-skills',
-          rule: 'Skills Field',
-          title: 'Field Reset Diagram',
-          description: 'Skills Field Reset Diagram',
-          category: 'Field Reset',
-          vexLink: '',
+          id: 'judging-engineering-notebook-rubric',
+          rule: 'Engineering Notebook Rubric',
+          title: 'Engineering Notebook Rubric',
+          description: '',
+          category: 'Judging Resources',
+          vexLink: 'https://kb.roboticseducation.org/hc/en-us/article_attachments/34300759847319',
+          fullText: '',
+          completeText: '',
+        },
+        {
+          id: 'judging-reference-sheet',
+          rule: 'Judging Reference Sheet',
+          title: 'Judging Reference Sheet',
+          description: '',
+          category: 'Judging Resources',
+          vexLink: 'https://kb.roboticseducation.org/hc/en-us/article_attachments/33153853812119',
+          fullText: '',
+          completeText: '',
+        },
+        {
+          id: 'judging-award-descriptions',
+          rule: 'Award Descriptions',
+          title: 'Award Descriptions',
+          description: '',
+          category: 'Judging Resources',
+          vexLink: 'https://kb.roboticseducation.org/hc/en-us/article_attachments/34300691647383',
+          fullText: '',
+          completeText: '',
+        },
+        {
+          id: 'judging-kb-volunteers',
+          rule: 'RECF Judging Knowledge Base',
+          title: 'RECF Judging Knowledge Base',
+          description: '',
+          category: 'Judging Resources',
+          vexLink: 'https://kb.roboticseducation.org/hc/en-us/categories/4421404969111-Volunteers?sc=judging',
           fullText: '',
           completeText: '',
         },
       ];
 
-      const fieldResetGroup: RuleGroup = {
-        name: 'Field Reset',
+      const judgingResourcesGroup: RuleGroup = {
+        name: 'Judging Resources',
         programs: [program],
-        rules,
+        rules: judgingResources,
       };
 
-      // Insert at the beginning
-      groups.unshift(fieldResetGroup);
+      // Insert at the end
+      groups.push(judgingResourcesGroup);
+    }
+
+    // Add Field Reset group at the beginning (only for programs with available diagrams)
+    // Available diagrams:
+    // - V5RC: FO-2.png (Main Field) + RSC3-2.png (Skills Field)
+    // - VURC: VURS-2.png (single diagram for both)
+    // - VIQRC: IQMain.png (Teamwork Field) + IQSkills.png (Skills Field)
+    // - VAIRC: No diagrams available
+    if (manual && !programFilter.includes('ai')) {
+      // First, remove any existing Field Reset groups to avoid duplication
+      groups = groups.filter(group => group.name !== 'Field Reset');
+
+      // Only create Field Reset for specific programs with available diagrams
+      let fieldResetRules: Rule[] = [];
+
+      if (programFilter.includes('iq')) {
+        // VIQRC - Two diagrams: Teamwork and Skills
+        fieldResetRules = [
+          {
+            id: 'field-reset-main',
+            rule: 'Teamwork Field',
+            title: 'Field Reset Diagram',
+            description: 'Teamwork Field Reset Diagram',
+            category: 'Field Reset',
+            vexLink: '',
+            fullText: '',
+            completeText: '',
+          },
+          {
+            id: 'field-reset-skills',
+            rule: 'Skills Field',
+            title: 'Field Reset Diagram',
+            description: 'Skills Field Reset Diagram',
+            category: 'Field Reset',
+            vexLink: '',
+            fullText: '',
+            completeText: '',
+          },
+        ];
+      } else if (programFilter.includes('vex u') || programFilter.includes('vurc')) {
+        // VURC - Single diagram for both main and skills
+        fieldResetRules = [
+          {
+            id: 'field-reset-vexu',
+            rule: 'Field Reset',
+            title: 'Field Reset Diagram',
+            description: 'Field Reset Diagram (same for Main and Skills)',
+            category: 'Field Reset',
+            vexLink: '',
+            fullText: '',
+            completeText: '',
+          },
+        ];
+      } else if (programFilter.includes('v5')) {
+        // V5RC - Two diagrams: Main and Skills
+        fieldResetRules = [
+          {
+            id: 'field-reset-main',
+            rule: 'Main Field',
+            title: 'Field Reset Diagram',
+            description: 'Main Field Reset Diagram',
+            category: 'Field Reset',
+            vexLink: '',
+            fullText: '',
+            completeText: '',
+          },
+          {
+            id: 'field-reset-skills',
+            rule: 'Skills Field',
+            title: 'Field Reset Diagram',
+            description: 'Skills Field Reset Diagram',
+            category: 'Field Reset',
+            vexLink: '',
+            fullText: '',
+            completeText: '',
+          },
+        ];
+      }
+
+      // Only add the Field Reset group if we have diagrams for this program
+      if (fieldResetRules.length > 0) {
+        const fieldResetGroup: RuleGroup = {
+          name: 'Field Reset',
+          programs: [program],
+          rules: fieldResetRules,
+        };
+
+        // Insert at the beginning
+        groups.unshift(fieldResetGroup);
+      }
     }
 
     // Filter by rule group
@@ -874,9 +1061,14 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
         return a.localeCompare(b);
       });
 
-    // Add Field Reset at the beginning (all programs except AI)
-    if (!programFilter.includes('ai')) {
+    // Add Field Reset at the beginning if not already present (all programs except AI)
+    if (!programFilter.includes('ai') && !groups.includes('Field Reset')) {
       groups.unshift('Field Reset');
+    }
+
+    // Add Judging Resources at the end if not already present (all programs)
+    if (!groups.includes('Judging Resources')) {
+      groups.push('Judging Resources');
     }
 
     return groups;
@@ -917,16 +1109,81 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
     });
   };
 
+  // Download PDF
+  const handleDownloadPDF = async (url: string, fileName: string) => {
+    try {
+      logger.debug('Starting PDF download:', fileName);
+
+      // Update downloading state
+      setDownloadingPDFs(prev => new Map(prev).set(url, 0));
+
+      await pdfCacheService.downloadPDF(url, (progress: PDFDownloadProgress) => {
+        setDownloadingPDFs(prev => new Map(prev).set(url, progress.progress));
+        setForceUpdate(prev => prev + 1); // Force re-render to show progress
+      });
+
+      // Update downloaded state
+      setDownloadingPDFs(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(url);
+        return newMap;
+      });
+      setDownloadedPDFs(prev => new Set(prev).add(url));
+
+      logger.debug('PDF downloaded successfully:', fileName);
+    } catch (error) {
+      logger.error('Failed to download PDF:', error);
+      setDownloadingPDFs(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(url);
+        return newMap;
+      });
+    }
+  };
+
+  // View downloaded PDF in-app
+  const handleViewPDF = async (url: string, title: string) => {
+    try {
+      const cachedPDF = pdfCacheService.getCachedPDF(url);
+      if (!cachedPDF) {
+        logger.error('PDF not found in cache');
+        return;
+      }
+
+      logger.debug('Opening PDF viewer for:', title);
+
+      // Reset error state and set the PDF path
+      setPdfLoadError(false);
+      setCurrentPdfPath(cachedPDF.localPath);
+      setCurrentPdfTitle(title);
+      setPdfViewerVisible(true);
+    } catch (error) {
+      logger.error('Failed to view PDF:', error);
+    }
+  };
+
+  // Delete downloaded PDF
+  const handleDeletePDF = async (url: string, fileName: string) => {
+    try {
+      logger.debug('Deleting PDF:', fileName);
+      await pdfCacheService.deleteCachedPDF(url);
+      setDownloadedPDFs(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(url);
+        return newSet;
+      });
+      logger.debug('PDF deleted successfully:', fileName);
+    } catch (error) {
+      logger.error('Failed to delete PDF:', error);
+    }
+  };
+
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: settings.backgroundColor }]}>
-        <ActivityIndicator size="large" color={settings.buttonColor} style={styles.loader} />
-        {loadingProgress && (
-          <Text style={[styles.progressText, { color: settings.textColor }]}>
-            Loading rules... {loadingProgress.current}/{loadingProgress.total}
-          </Text>
-        )}
-      </View>
+      <GameManualQuickReferenceSkeleton
+        qnaUrl={qnaUrl}
+        onOpenQnA={qnaUrl ? () => openVexLink(qnaUrl) : undefined}
+      />
     );
   }
 
@@ -996,29 +1253,30 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
 
           {/* Rule Group Filters */}
           {availableRuleGroups.map(groupName => {
-            // Shorten display names for better UI
-            // Note: SC = Scoring, RSC = Robot Skills Challenge (Skills)
-            const displayName = groupName
-              .replace('Skills Challenge Rules', 'Scoring')
-              .replace('Scoring Rules', 'Scoring')
-              .replace('Safety Rules', 'Safety')
-              .replace('General Game Rules', 'General Game')
-              .replace('GG Rules', 'General Game')
-              .replace('General Rules', 'General')
-              .replace('Specific Game Rules', 'Specific Game')
-              .replace('Robot Rules', 'Robot')
-              .replace('Tournament Rules', 'Tournament')
-              .replace('Robot Skills Challenge Rules', 'Skills')
-              .replace('RSC Rules', 'Skills')
-              .replace('VURC General Rules', 'VU General')
-              .replace('VURC Robot Rules', 'VU Robot')
-              .replace('VUT Rules', 'VURC Tournament')
-              .replace('VURS Rules', 'VURC Robot Skills')
-              .replace('VAISC Rules', 'VAIRC Scoring')
-              .replace('VAIG Rules', 'VAIRC Game')
-              .replace('VAIRS Rules', 'VAIRC Robot Skills')
-              .replace('VAIT Rules', 'VAIRC Tournament')
-              .replace('VAIRM Rules', 'VAIRC Robot');
+            // Map full group names (from JSON) to shortened display names for filter buttons
+            // This mapping is based on the actual group names in the game manual JSON files
+            const displayNameMap: { [key: string]: string } = {
+              'Field Reset': 'Field Reset',
+              'Scoring Rules': 'Scoring',
+              'Safety Rules': 'Safety',
+              'General Rules': 'General',
+              'GG Rules': 'General Game',
+              'Specific Game Rules': 'Specific Game',
+              'Robot Rules': 'Robot',
+              'Robot Skills Challenge Rules': 'Skills',
+              'Tournament Rules': 'Tournament',
+              'VURC General Rules': 'VU General',
+              'VURC Robot Rules': 'VU Robot',
+              'VUT Rules': 'VU Tournament',
+              'VURS Rules': 'VU Robot Skills',
+              'VAISC Rules': 'VAIRC Scoring',
+              'VAIG Rules': 'VAIRC Game',
+              'VAIRS Rules': 'VAIRC Robot Skills',
+              'VAIT Rules': 'VAIRC Tournament',
+              'VAIRM Rules': 'VAIRC Robot',
+              'Judging Resources': 'Judging',
+            };
+            const displayName = displayNameMap[groupName] || groupName;
 
             return (
               <TouchableOpacity
@@ -1056,17 +1314,22 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
               {group.rules.map(rule => {
                 const isExpanded = expandedRules.has(rule.id);
                 const isFavorited = favorites.includes(rule.id);
+                const isJudgingResource = rule.category === 'Judging Resources';
 
                 return (
                   <TouchableOpacity
                     key={rule.id}
                     style={[styles.ruleCard, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}
-                    onPress={() => toggleExpanded(rule.id)}
-                    activeOpacity={0.7}
+                    onPress={() => !isJudgingResource && toggleExpanded(rule.id)}
+                    activeOpacity={isJudgingResource ? 1 : 0.7}
+                    disabled={isJudgingResource}
                   >
                     <View style={styles.ruleHeader}>
                       <View style={styles.ruleHeaderLeft}>
-                        <Text style={[styles.ruleCode, { color: settings.buttonColor }]}>{rule.rule}</Text>
+                        {/* Only show red rule code for non-judging resources */}
+                        {!isJudgingResource && (
+                          <Text style={[styles.ruleCode, { color: settings.buttonColor }]}>{rule.rule}</Text>
+                        )}
                         <Text style={[styles.ruleTitle, { color: settings.textColor }]}>{rule.title}</Text>
                       </View>
                       <TouchableOpacity
@@ -1079,54 +1342,172 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
                         <Ionicons
                           name={isFavorited ? "heart" : "heart-outline"}
                           size={24}
-                          color={isFavorited ? "#FF6B6B" : settings.iconColor}
+                          color={isFavorited ? settings.errorColor : settings.iconColor}
                         />
                       </TouchableOpacity>
                     </View>
 
-                    {rule.category && (
-                      <Text style={[styles.category, { color: settings.secondaryTextColor }]}>
-                        {getCategoryDisplayName(rule.category)}
-                      </Text>
-                    )}
+                    {/* Judging Resources: Show category and button directly without expansion */}
+                    {isJudgingResource && (
+                      <>
+                        {rule.category && (
+                          <Text style={[styles.category, { color: settings.secondaryTextColor }]}>
+                            {getCategoryDisplayName(rule.category)}
+                          </Text>
+                        )}
+                        {rule.vexLink && (() => {
+                          const isPDF = rule.id !== 'judging-kb-volunteers';
+                          const isDownloaded = downloadedPDFs.has(rule.vexLink!);
+                          const downloadProgress = downloadingPDFs.get(rule.vexLink!);
+                          const isDownloading = downloadProgress !== undefined;
 
-                    {isExpanded && (
-                      <View style={styles.expandedContent}>
-                        {/* Check if this is a field diagram */}
-                        {rule.id.startsWith('field-reset') ? (
-                          <TouchableOpacity
-                            onPress={() => setEnlargedImage(getFieldDiagramImage(rule.id))}
-                            activeOpacity={0.8}
-                          >
-                            <Image
-                              source={getFieldDiagramImage(rule.id)}
-                              style={styles.fieldDiagramPreview}
-                              resizeMode="contain"
-                            />
-                            <Text style={[styles.fieldDiagramHint, { color: settings.secondaryTextColor }]}>
-                              Tap image to view full screen
-                            </Text>
-                          </TouchableOpacity>
-                        ) : (
-                          <>
-                            {/* Display complete text with formatting, or fallback to description */}
-                            {(rule.completeText || rule.fullText || rule.description) && (
-                              renderFormattedText(rule.completeText || rule.fullText || rule.description, searchQuery)
-                            )}
-
-                            {/* Optional: Still show link but make it secondary */}
-                            {rule.vexLink && (
+                          if (!isPDF) {
+                            // Knowledge Base link - just show open button
+                            return (
                               <TouchableOpacity
-                                style={[styles.linkButton, { backgroundColor: 'transparent', borderWidth: 1, borderColor: settings.buttonColor, marginTop: 16 }]}
+                                style={[styles.linkButton, { backgroundColor: 'transparent', borderWidth: 1, borderColor: settings.buttonColor, marginTop: 12 }]}
                                 onPress={() => openVexLink(rule.vexLink!)}
                               >
-                                <Text style={[styles.linkButtonText, { color: settings.buttonColor }]}>View on VEX Website</Text>
+                                <Text style={[styles.linkButtonText, { color: settings.buttonColor }]}>
+                                  View on RECF Knowledge Base
+                                </Text>
                                 <Ionicons name="open-outline" size={16} color={settings.buttonColor} />
                               </TouchableOpacity>
-                            )}
-                          </>
+                            );
+                          }
+
+                          // Web: Only show "View Online" button (no download/offline capability)
+                          if (Platform.OS === 'web') {
+                            return (
+                              <View style={styles.pdfButtonContainer}>
+                                <TouchableOpacity
+                                  style={[styles.linkButton, { backgroundColor: settings.buttonColor, marginTop: 12 }]}
+                                  onPress={() => openVexLink(rule.vexLink!)}
+                                >
+                                  <Ionicons name="open-outline" size={16} color="#FFFFFF" />
+                                  <Text style={[styles.linkButtonText, { color: '#FFFFFF' }]}>
+                                    View PDF
+                                  </Text>
+                                </TouchableOpacity>
+                              </View>
+                            );
+                          }
+
+                          // Native (iOS/Android): PDF - show download/view/delete buttons
+                          return (
+                            <View style={styles.pdfButtonContainer}>
+                              {isDownloading ? (
+                                // Show download progress
+                                <View style={[styles.linkButton, { backgroundColor: settings.cardBackgroundColor, borderWidth: 1, borderColor: settings.borderColor, marginTop: 12 }]}>
+                                  <Text style={[styles.linkButtonText, { color: settings.secondaryTextColor }]}>
+                                    Downloading... {Math.round(downloadProgress * 100)}%
+                                  </Text>
+                                  <Ionicons name="download-outline" size={16} color={settings.secondaryTextColor} />
+                                </View>
+                              ) : (
+                                // Show buttons in a row
+                                <View style={styles.pdfActionsRow}>
+                                  {/* View Button - primary action */}
+                                  <TouchableOpacity
+                                    style={[styles.pdfActionButton, styles.pdfViewButton, { backgroundColor: settings.buttonColor }]}
+                                    onPress={() => isDownloaded ? handleViewPDF(rule.vexLink!, rule.title) : openVexLink(rule.vexLink!)}
+                                  >
+                                    <Ionicons
+                                      name={isDownloaded ? "document-text" : "open-outline"}
+                                      size={16}
+                                      color="#FFFFFF"
+                                    />
+                                    <Text style={[styles.pdfActionButtonText, { color: '#FFFFFF' }]}>
+                                      View {isDownloaded ? 'Offline' : 'Online'}
+                                    </Text>
+                                  </TouchableOpacity>
+
+                                  {/* Download/Delete Button - secondary action */}
+                                  <TouchableOpacity
+                                    style={[
+                                      styles.pdfActionButton,
+                                      styles.pdfSecondaryButton,
+                                      {
+                                        backgroundColor: 'transparent',
+                                        borderWidth: 1,
+                                        borderColor: isDownloaded ? settings.errorColor : settings.buttonColor
+                                      }
+                                    ]}
+                                    onPress={() => isDownloaded
+                                      ? handleDeletePDF(rule.vexLink!, rule.title)
+                                      : handleDownloadPDF(rule.vexLink!, rule.title)
+                                    }
+                                  >
+                                    <Ionicons
+                                      name={isDownloaded ? "trash-outline" : "download-outline"}
+                                      size={16}
+                                      color={isDownloaded ? settings.errorColor : settings.buttonColor}
+                                    />
+                                    <Text style={[
+                                      styles.pdfActionButtonText,
+                                      { color: isDownloaded ? settings.errorColor : settings.buttonColor }
+                                    ]}>
+                                      {isDownloaded ? 'Delete' : 'Download'}
+                                    </Text>
+                                  </TouchableOpacity>
+                                </View>
+                              )}
+                            </View>
+                          );
+                        })()}
+                      </>
+                    )}
+
+                    {/* Regular rules: Show category and expandable content */}
+                    {!isJudgingResource && (
+                      <>
+                        {rule.category && (
+                          <Text style={[styles.category, { color: settings.secondaryTextColor }]}>
+                            {getCategoryDisplayName(rule.category)}
+                          </Text>
                         )}
-                      </View>
+
+                        {isExpanded && (
+                          <View style={styles.expandedContent}>
+                            {/* Check if this is a field diagram */}
+                            {rule.id.startsWith('field-reset') ? (
+                              <TouchableOpacity
+                                onPress={() => setEnlargedImage(getFieldDiagramImage(rule.id))}
+                                activeOpacity={0.8}
+                              >
+                                <Image
+                                  source={getFieldDiagramImage(rule.id)}
+                                  style={styles.fieldDiagramPreview}
+                                  resizeMode="contain"
+                                />
+                                <Text style={[styles.fieldDiagramHint, { color: settings.secondaryTextColor }]}>
+                                  Tap image to view full screen
+                                </Text>
+                              </TouchableOpacity>
+                            ) : (
+                              <>
+                                {/* Display complete text with formatting, or fallback to description */}
+                                {(rule.completeText || rule.fullText || rule.description) && (
+                                  renderFormattedText(rule.completeText || rule.fullText || rule.description, searchQuery)
+                                )}
+
+                                {/* Optional: Still show link but make it secondary */}
+                                {rule.vexLink && (
+                                  <TouchableOpacity
+                                    style={[styles.linkButton, { backgroundColor: 'transparent', borderWidth: 1, borderColor: settings.buttonColor, marginTop: 16 }]}
+                                    onPress={() => openVexLink(rule.vexLink!)}
+                                  >
+                                    <Text style={[styles.linkButtonText, { color: settings.buttonColor }]}>
+                                      View on VEX Website
+                                    </Text>
+                                    <Ionicons name="open-outline" size={16} color={settings.buttonColor} />
+                                  </TouchableOpacity>
+                                )}
+                              </>
+                            )}
+                          </View>
+                        )}
+                      </>
                     )}
                   </TouchableOpacity>
                 );
@@ -1196,10 +1577,10 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
       {/* Rule Reference Modal */}
       <Modal
         visible={ruleReferenceModal !== null}
-        transparent={true}
         onRequestClose={() => setRuleReferenceModal(null)}
         animationType="slide"
-        presentationStyle="pageSheet"
+        presentationStyle="overFullScreen"
+        transparent={true}
       >
         <Animated.View
           style={[
@@ -1248,6 +1629,66 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
           </ScrollView>
         </Animated.View>
       </Modal>
+
+      {/* PDF Viewer Modal */}
+      <Modal
+        visible={pdfViewerVisible}
+        onRequestClose={() => setPdfViewerVisible(false)}
+        animationType="slide"
+        transparent={false}
+      >
+        <View style={[styles.pdfViewerContainer, { backgroundColor: settings.backgroundColor }]}>
+          {/* Header */}
+          <View style={[styles.pdfViewerHeader, { backgroundColor: settings.topBarColor, borderBottomColor: settings.borderColor }]}>
+            <TouchableOpacity
+              onPress={() => setPdfViewerVisible(false)}
+              style={styles.pdfViewerCloseButton}
+            >
+              <Ionicons name="close" size={28} color={settings.topBarContentColor} />
+            </TouchableOpacity>
+            <Text
+              style={[styles.pdfViewerTitle, { color: settings.topBarContentColor }]}
+              numberOfLines={2}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+            >
+              {currentPdfTitle}
+            </Text>
+            <View style={{ width: 28 }} />
+          </View>
+
+          {/* PDF Content or Error */}
+          {pdfLoadError ? (
+            <View style={styles.pdfErrorContainer}>
+              <Ionicons name="alert-circle" size={64} color={settings.errorColor} />
+              <Text style={[styles.pdfErrorTitle, { color: settings.textColor }]}>
+                PDF Loading Error
+              </Text>
+              <Text style={[styles.pdfErrorMessage, { color: settings.secondaryTextColor }]}>
+                There was a problem loading this PDF. Please close this viewer, delete the file, and redownload it.
+              </Text>
+            </View>
+          ) : currentPdfPath ? (
+            <Pdf
+              source={{ uri: currentPdfPath, cache: true }}
+              style={styles.pdfViewer}
+              onLoadComplete={(numberOfPages) => {
+                logger.debug('PDF loaded with', numberOfPages, 'pages');
+              }}
+              onPageChanged={(page, numberOfPages) => {
+                logger.debug('Current page:', page, '/', numberOfPages);
+              }}
+              onError={(error) => {
+                logger.error('PDF loading error:', error);
+                setPdfLoadError(true);
+              }}
+              trustAllCerts={false}
+              enablePaging={true}
+              enableAnnotationRendering={false}
+            />
+          ) : null}
+        </View>
+      </Modal>
     </View>
   );
 });
@@ -1255,14 +1696,6 @@ const GameManualQuickReference = forwardRef<GameManualQuickReferenceRef, Props>(
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  loader: {
-    marginTop: 50,
-  },
-  progressText: {
-    textAlign: 'center',
-    marginTop: 16,
-    fontSize: 14,
   },
   errorText: {
     textAlign: 'center',
@@ -1397,10 +1830,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   severityMajor: {
-    backgroundColor: '#FF3B30',
+    // backgroundColor applied dynamically with settings.errorColor
   },
   severityMinor: {
-    backgroundColor: '#FF9500',
+    // backgroundColor applied dynamically with settings.warningColor
   },
   category: {
     fontSize: 12,
@@ -1650,6 +2083,89 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
     marginTop: 4,
+  },
+  // PDF download styles
+  pdfButtonContainer: {
+    width: '100%',
+  },
+  pdfActionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  pdfActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    gap: 6,
+  },
+  pdfViewButton: {
+    flex: 1,
+  },
+  pdfSecondaryButton: {
+    minWidth: 100,
+  },
+  pdfActionButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  downloadedButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  viewButton: {
+    // Additional styles for view button if needed
+  },
+  deleteButton: {
+    width: 40,
+    paddingHorizontal: 8,
+  },
+  // PDF Viewer Modal styles
+  pdfViewerContainer: {
+    flex: 1,
+  },
+  pdfViewerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 60,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+  },
+  pdfViewerCloseButton: {
+    padding: 4,
+  },
+  pdfViewerTitle: {
+    flex: 1,
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginHorizontal: 12,
+  },
+  pdfViewer: {
+    flex: 1,
+  },
+  pdfErrorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  pdfErrorTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  pdfErrorMessage: {
+    fontSize: 16,
+    marginTop: 12,
+    textAlign: 'center',
+    lineHeight: 24,
   },
 });
 

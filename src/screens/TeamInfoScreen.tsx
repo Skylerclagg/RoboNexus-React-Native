@@ -46,7 +46,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { robotEventsAPI } from '../services/apiRouter';
+import { robotEventsAPI, vrcDataAnalysisAPI } from '../services/apiRouter';
+import { VRCDataAnalysisTeam } from '../services/vrcDataAnalysisAPI';
 import { useSettings } from '../contexts/SettingsContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { useNotes } from '../contexts/NotesContext';
@@ -151,6 +152,9 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
   const [matchRecordLoading, setMatchRecordLoading] = useState(false);
   const [worldSkillsLoading, setWorldSkillsLoading] = useState(false);
   const [awardCountsLoading, setAwardCountsLoading] = useState(false);
+  // TrueSkill states
+  const [trueSkillData, setTrueSkillData] = useState<VRCDataAnalysisTeam | null>(null);
+  const [trueSkillLoading, setTrueSkillLoading] = useState(false);
   // Live event states
   const [isTeamAtEvent, setIsTeamAtEvent] = useState(false);
   const [currentLiveEvent, setCurrentLiveEvent] = useState<any | null>(null);
@@ -210,8 +214,8 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
 
   // Determine if we should use themed colors or alliance colors for scores
   const shouldUseThemedColors = useThemedScoreColors(selectedProgram);
-  const redScoreColor = shouldUseThemedColors ? settings.textColor : '#FF3B30';
-  const blueScoreColor = shouldUseThemedColors ? settings.textColor : '#007AFF';
+  const redScoreColor = shouldUseThemedColors ? settings.textColor : settings.redAllianceColor;
+  const blueScoreColor = shouldUseThemedColors ? settings.textColor : settings.blueAllianceColor;
 
   // Helper function to get match border color for 2v0 format consistency
   const getMatchBorderColor = (match: any): string => {
@@ -222,11 +226,11 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
       if (redScore !== null && blueScore !== null && redScore !== blueScore) {
         if (redScore > blueScore) return redScoreColor; // Red
         if (blueScore > redScore) return blueScoreColor; // Blue
-        return '#FFA500'; // Orange for ties
+        return settings.warningColor; // Orange for ties
       }
 
       // Default to gray for 2v0 format
-      return '#999999';
+      return settings.secondaryTextColor;
     }
 
     return settings.borderColor;
@@ -272,7 +276,8 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
           // Load all season-specific data in parallel
           const promises = [
             fetchAwardCounts(team.id),
-            fetchMatchRecord(team.id)
+            fetchMatchRecord(team.id),
+            fetchTrueSkillData(team.number)
           ];
 
           if (team.grade) {
@@ -294,7 +299,8 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
 
       loadSeasonData();
     }
-  }, [globalSeasonEnabled, globalSeason, selectedSeason, team?.id, selectedProgram, team?.grade]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [globalSeasonEnabled, globalSeason, selectedSeason, team?.id, team?.number, selectedProgram, team?.grade, apiActiveSeason]);
 
   const loadSeasons = useCallback(async () => {
     try {
@@ -585,7 +591,56 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
     }
   };
 
-  const fetchAwardCounts = async (teamId: number) => {
+  const fetchTrueSkillData = useCallback(async (teamNumber: string) => {
+    setTrueSkillLoading(true);
+    setTrueSkillData(null);
+
+    try {
+      logger.debug('Fetching TrueSkill data for team:', teamNumber);
+
+      // Only fetch TrueSkill data if enabled in settings
+      if (!settings.trueSkillEnabled) {
+        logger.debug('TrueSkill disabled in settings, skipping fetch');
+        setTrueSkillData(null);
+        return;
+      }
+
+      // Only fetch TrueSkill data if viewing the active season and program is V5
+      if (!apiActiveSeason || parseInt(selectedSeason) !== apiActiveSeason.id) {
+        logger.debug('Not active season, skipping TrueSkill data fetch');
+        setTrueSkillData(null);
+        return;
+      }
+
+      if (selectedProgram !== 'VEX V5 Robotics Competition') {
+        logger.debug('Not V5 program, skipping TrueSkill data fetch');
+        setTrueSkillData(null);
+        return;
+      }
+
+      // Fetch all teams data (includes ranking_change field)
+      const allTeams = await vrcDataAnalysisAPI.getAllTeams();
+
+      // Find this team in the data
+      const teamData = vrcDataAnalysisAPI.getTeamByNumber(teamNumber, allTeams);
+
+      if (!teamData) {
+        logger.debug('TrueSkill data not available for team:', teamNumber);
+        setTrueSkillData(null);
+        return;
+      }
+
+      logger.debug('TrueSkill data fetched successfully:', teamData);
+      setTrueSkillData(teamData);
+    } catch (error) {
+      logger.error('Failed to fetch TrueSkill data:', error);
+      setTrueSkillData(null);
+    } finally {
+      setTrueSkillLoading(false);
+    }
+  }, [apiActiveSeason, selectedSeason, selectedProgram, settings.trueSkillEnabled]);
+
+  const fetchAwardCounts = useCallback(async (teamId: number) => {
     setAwardCountsLoading(true);
     try {
       logger.debug('Fetching awards for team:', teamId);
@@ -623,9 +678,9 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
     } finally {
       setAwardCountsLoading(false);
     }
-  };
+  }, [selectedSeason, selectedProgram]);
 
-  const fetchMatchRecord = async (teamId: number) => {
+  const fetchMatchRecord = useCallback(async (teamId: number) => {
     setMatchRecordLoading(true);
     try {
       logger.debug('Fetching match record for team:', teamId);
@@ -676,7 +731,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
     } finally {
       setMatchRecordLoading(false);
     }
-  };
+  }, [selectedSeason, selectedProgram]);
 
   const handleTeamFavorite = async () => {
     try {
@@ -813,7 +868,9 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
         // Awards for specific season
         fetchAwardCounts(team.id),
         // Matches for specific season
-        fetchMatchRecord(team.id)
+        fetchMatchRecord(team.id),
+        // TrueSkill data
+        fetchTrueSkillData(team.number)
       ]);
 
       logger.debug('Pull-to-refresh completed successfully');
@@ -825,6 +882,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
     }
   }, [
     team?.id,
+    team?.number,
     selectedProgram,
     selectedSeason,
     forceRefreshSeasons,
@@ -836,7 +894,8 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
     loadTeamAwards,
     fetchWorldSkillsData,
     fetchAwardCounts,
-    fetchMatchRecord
+    fetchMatchRecord,
+    fetchTrueSkillData
   ]);
 
   const getDynamicLabel = (defaultLabel: string) => {
@@ -1390,28 +1449,32 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
         />
       }
     >
-      {/* Season Selector Card */}
-      <View style={[styles.modernSectionCard, {
+      {/* Season Selector Card - Compact */}
+      <View style={[styles.compactSeasonCard, {
         backgroundColor: settings.cardBackgroundColor,
         borderColor: settings.borderColor,
         shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000'
       }]}>
-        <Text style={[styles.modernSectionTitle, { color: settings.textColor }]}>Season</Text>
-        <DropdownPicker
-          options={seasons}
-          selectedValue={selectedSeason}
-          onValueChange={(season) => {
-            logger.debug('Season changed via dropdown to:', season);
-            setSelectedSeason(season);
-            if (globalSeasonEnabled) {
-              logger.debug('Updating global season to:', season);
-              updateGlobalSeason(season);
-            } else {
-              logger.debug('Global season mode disabled, not updating global season');
-            }
-          }}
-          placeholder="Select Season"
-        />
+        <View style={styles.compactSeasonRow}>
+          <Text style={[styles.compactSeasonLabel, { color: settings.textColor }]}>Season</Text>
+          <View style={styles.compactSeasonPicker}>
+            <DropdownPicker
+              options={seasons}
+              selectedValue={selectedSeason}
+              onValueChange={(season) => {
+                logger.debug('Season changed via dropdown to:', season);
+                setSelectedSeason(season);
+                if (globalSeasonEnabled) {
+                  logger.debug('Updating global season to:', season);
+                  updateGlobalSeason(season);
+                } else {
+                  logger.debug('Global season mode disabled, not updating global season');
+                }
+              }}
+              placeholder="Select Season"
+            />
+          </View>
+        </View>
       </View>
 
       {/* Team Information Card */}
@@ -1425,6 +1488,8 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
           worldSkillsLoading={worldSkillsLoading}
           awardCounts={awardCounts}
           awardCountsLoading={awardCountsLoading}
+          trueSkillData={trueSkillData}
+          trueSkillLoading={trueSkillLoading}
           showFavoriteButton={false}
           showHeader={false}
           selectedProgram={selectedProgram}
@@ -1449,7 +1514,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
           <View style={styles.tripleCrownContainer}>
             <View style={styles.tripleCrownLeft}>
               <View style={styles.tripleCrownIconBadge}>
-                <Ionicons name="medal" size={28} color="#FFD700" />
+                <Ionicons name="medal" size={28} color={settings.warningColor} />
               </View>
               <View style={styles.tripleCrownInfo}>
                 <Text style={[styles.modernSectionTitle, { color: settings.textColor, marginBottom: 2 }]}>
@@ -1471,6 +1536,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
           </View>
         </TouchableOpacity>
       )}
+
     </ScrollView>
   );
 
@@ -1640,9 +1706,9 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
                               >
                                 {/* Check if qualifies for worlds or regionals */}
                                 {award.qualifications.some(q => q.toLowerCase().includes('world')) ? (
-                                  <Ionicons name="globe" size={18} color="#4A90E2" />
+                                  <Ionicons name="globe" size={18} color={settings.infoColor} />
                                 ) : (
-                                  <Ionicons name="trophy" size={18} color="#FFD700" />
+                                  <Ionicons name="trophy" size={18} color={settings.warningColor} />
                                 )}
                               </TouchableOpacity>
                             )}
@@ -1841,9 +1907,9 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
             <Text style={[styles.noteDate, { color: settings.textColor }]}>
               {new Date(item.createdAt || item.time).toLocaleDateString()}
             </Text>
-            {item.eventId > 0 && (
+            {item.matchId > 0 && (
               <Text style={[styles.noteEvent, { color: settings.secondaryTextColor }]}>
-                Event: {item.matchName}
+                {item.eventName ? `${item.eventName} - ${item.matchName}` : item.matchName}
               </Text>
             )}
           </View>
@@ -1851,7 +1917,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
             onPress={() => handleDeleteNote(item.id)}
             style={styles.deleteButton}
           >
-            <Ionicons name="trash" size={16} color="#ef4444" />
+            <Ionicons name="trash" size={16} color={settings.errorColor} />
           </TouchableOpacity>
         </View>
         <Text style={[styles.noteText, { color: settings.textColor }]}>{item.note}</Text>
@@ -1927,7 +1993,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
                         style={styles.removeImageButton}
                         onPress={() => setSelectedImage(null)}
                       >
-                        <Ionicons name="close-circle" size={20} color="#ef4444" />
+                        <Ionicons name="close-circle" size={20} color={settings.errorColor} />
                       </TouchableOpacity>
                     </View>
                   )}
@@ -2205,7 +2271,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
                   }}
                   activeOpacity={0.6}
                 >
-                  <Ionicons name="trophy" size={18} color="#FFD700" />
+                  <Ionicons name="trophy" size={18} color={settings.warningColor} />
                 </TouchableOpacity>
               )}
               {currentSeasonQualification.hasWorldsQual && (
@@ -2221,7 +2287,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
                   }}
                   activeOpacity={0.6}
                 >
-                  <Ionicons name="globe" size={18} color="#4A90E2" />
+                  <Ionicons name="globe" size={18} color={settings.infoColor} />
                 </TouchableOpacity>
               )}
               <TouchableOpacity
@@ -2231,7 +2297,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
                 <Ionicons
                   name={isTeamFavorited(teamNumber) ? "heart" : "heart-outline"}
                   size={24}
-                  color={isTeamFavorited(teamNumber) ? "#FF6B6B" : settings.iconColor}
+                  color={isTeamFavorited(teamNumber) ? settings.errorColor : settings.iconColor}
                 />
               </TouchableOpacity>
             </View>
@@ -2417,7 +2483,7 @@ const TeamInfoScreen = ({ route, navigation }: Props) => {
                 <View style={[styles.modalHandle, { backgroundColor: settings.borderColor }]} />
               </View>
               <View style={styles.modalTitleContainer}>
-                <Ionicons name="medal" size={24} color="#FFD700" />
+                <Ionicons name="medal" size={24} color={settings.warningColor} />
                 <Text style={[styles.modalTitle, { color: settings.textColor }]}>
                   Triple Crown Events
                 </Text>
@@ -2673,15 +2739,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginRight: 8,
-  },
-  canceledEvent: {
-    color: '#ff4444',
-  },
-  canceledBadge: {
-    backgroundColor: '#ff4444',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
   },
   canceledBadgeText: {
     fontSize: 10,
@@ -3085,6 +3142,29 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 16,
     letterSpacing: 0.5,
+  },
+  compactSeasonCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  compactSeasonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  compactSeasonLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    minWidth: 60,
+  },
+  compactSeasonPicker: {
+    flex: 1,
   },
   modernTeamCard: {
     borderRadius: 16,

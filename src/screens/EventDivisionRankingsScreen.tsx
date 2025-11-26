@@ -93,6 +93,7 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
   const flatListRef = useRef<any>(null);
   const [showFinalistRankings, setShowFinalistRankings] = useState(false);
   const [hasFinalistRankings, setHasFinalistRankings] = useState(false);
+  const [showAverageStats, setShowAverageStats] = useState(true);
 
   // Use format-aware logic instead of hardcoded program checks
   const matchDisplayConfig = getMatchDisplayConfig(selectedProgram || 'VEX V5 Robotics Competition');
@@ -136,6 +137,17 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
       return '0.0';
     }
     return number.toFixed(1);
+  };
+
+  const calculateMatchesPlayed = (ranking: TeamRanking): number => {
+    return (ranking.wins || 0) + (ranking.losses || 0) + (ranking.ties || 0);
+  };
+
+  const calculateAverage = (total: number, matchesPlayed: number): string => {
+    if (matchesPlayed === 0) {
+      return '0.0';
+    }
+    return (total / matchesPlayed).toFixed(1);
   };
 
   const fetchRankings = async (fetchFinalist: boolean = false) => {
@@ -350,6 +362,7 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
     try {
       const teamNumber = teamsMap[item.team.id.toString()] || item.team.number || '';
       const teamName = item.team.team_name || '';
+      const matchesPlayed = calculateMatchesPlayed(item);
 
       return (
         <TouchableOpacity
@@ -378,9 +391,15 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
                 <Text style={[styles.compactStat, { color: settings.textColor }]}>
                   {item.wins || 0}-{item.losses || 0}-{item.ties || 0}
                 </Text>
-                <Text style={[styles.compactStat, { color: settings.textColor }]}>WP:{item.wp || 0}</Text>
-                <Text style={[styles.compactStat, { color: settings.textColor }]}>AP:{item.ap || 0}</Text>
-                <Text style={[styles.compactStat, { color: settings.textColor }]}>SP:{item.sp || 0}</Text>
+                <Text style={[styles.compactStat, { color: settings.textColor }]}>
+                  WP:{showAverageStats ? calculateAverage(item.wp || 0, matchesPlayed) : (item.wp || 0)}
+                </Text>
+                <Text style={[styles.compactStat, { color: settings.textColor }]}>
+                  AP:{showAverageStats ? calculateAverage(item.ap || 0, matchesPlayed) : (item.ap || 0)}
+                </Text>
+                <Text style={[styles.compactStat, { color: settings.textColor }]}>
+                  SP:{showAverageStats ? calculateAverage(item.sp || 0, matchesPlayed) : (item.sp || 0)}
+                </Text>
               </>
             )}
           </View>
@@ -397,6 +416,7 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
       const teamNumber = teamsMap[item.team.id.toString()] || item.team.number || '';
       const teamName = item.team.team_name || '';
       const isFavorite = false;
+      const matchesPlayed = calculateMatchesPlayed(item);
 
       return (
         <TouchableOpacity
@@ -440,26 +460,35 @@ const EventDivisionRankingsScreen = ({ route, navigation }: Props) => {
             </View>
           ) : (
             // Full stats for competitive formats (2v2, 1v1)
-            <View style={[styles.statsContainer, { borderTopColor: settings.borderColor }]}>
-              <View style={styles.statCard}>
-                <Text style={[styles.statLabel, { color: settings.secondaryTextColor }]}>Record</Text>
-                <Text style={[styles.statValue, { color: settings.textColor }]}>
-                  {item.wins || 0}-{item.losses || 0}-{item.ties || 0}
-                </Text>
+            <>
+              <View style={[styles.statsContainer, { borderTopColor: settings.borderColor }]}>
+                <View style={[styles.statCard]}>
+                  <Text style={[styles.statLabel, { color: settings.secondaryTextColor }]}>Record</Text>
+                  <Text style={[styles.statValue, { color: settings.textColor }]}>
+                    {item.wins || 0}-{item.losses || 0}-{item.ties || 0}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={[styles.statCard, styles.statCardWithBorder, { borderLeftColor: settings.borderColor }]}
+                  onPress={() => setShowAverageStats(!showAverageStats)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.statLabel, { color: settings.secondaryTextColor }]}>WP / AP / SP</Text>
+                  <Text style={[styles.statValue, { color: settings.buttonColor }]}>
+                    {showAverageStats
+                      ? `${calculateAverage(item.wp || 0, matchesPlayed)} / ${calculateAverage(item.ap || 0, matchesPlayed)} / ${calculateAverage(item.sp || 0, matchesPlayed)}`
+                      : `${item.wp || 0} / ${item.ap || 0} / ${item.sp || 0}`
+                    }
+                  </Text>
+                </TouchableOpacity>
+                <View style={[styles.statCard, styles.statCardWithBorder, { borderLeftColor: settings.borderColor }]}>
+                  <Text style={[styles.statLabel, { color: settings.secondaryTextColor }]}>Avg / Total</Text>
+                  <Text style={[styles.statValue, { color: settings.textColor }]}>
+                    {displayRounded(item.average_points)} / {item.total_points || 0}
+                  </Text>
+                </View>
               </View>
-              <View style={[styles.statCard, styles.statCardWithBorder, { borderLeftColor: settings.borderColor }]}>
-                <Text style={[styles.statLabel, { color: settings.secondaryTextColor }]}>WP / AP / SP</Text>
-                <Text style={[styles.statValue, { color: settings.buttonColor }]}>
-                  {item.wp || 0} / {item.ap || 0} / {item.sp || 0}
-                </Text>
-              </View>
-            <View style={[styles.statCard, styles.statCardWithBorder, { borderLeftColor: settings.borderColor }]}>
-              <Text style={[styles.statLabel, { color: settings.secondaryTextColor }]}>Avg / Total</Text>
-              <Text style={[styles.statValue, { color: settings.textColor }]}>
-                {displayRounded(item.average_points)} / {item.total_points || 0}
-              </Text>
-            </View>
-          </View>
+            </>
         )}
         </TouchableOpacity>
       );
@@ -721,7 +750,7 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     alignItems: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 2,
   },
   statCardWithBorder: {
     borderLeftWidth: 1,

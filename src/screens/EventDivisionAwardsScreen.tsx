@@ -601,12 +601,12 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
       alignSelf: 'flex-start',
       paddingVertical: 8,
       paddingHorizontal: 12,
-      backgroundColor: 'rgba(59, 130, 246, 0.08)',
+      backgroundColor: buttonColor + '14', // 08 in hex is about 8% opacity
       borderRadius: 8,
       marginTop: 4,
     },
     compactEligibilityButtonText: {
-      color: '#3b82f6',
+      color: buttonColor,
       fontSize: 14,
       fontWeight: '600',
       letterSpacing: 0.3,
@@ -1164,7 +1164,7 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
                   style={styles.qualificationIconBadge}
                   onPress={() => handleQualificationPress(item.id.toString(), item.qualifications)}
                 >
-                  <Ionicons name="trophy" size={16} color="#FFD700" />
+                  <Ionicons name="trophy" size={16} color={settings.warningColor} />
                 </TouchableOpacity>
               )}
               {qualifiesForWorlds && (
@@ -1172,7 +1172,7 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
                   style={styles.qualificationIconBadge}
                   onPress={() => handleQualificationPress(item.id.toString(), item.qualifications)}
                 >
-                  <Ionicons name="globe" size={16} color="#4A90E2" />
+                  <Ionicons name="globe" size={16} color={settings.infoColor} />
                 </TouchableOpacity>
               )}
             </View>
@@ -1184,7 +1184,7 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
         <View style={styles.tooltipContainer}>
           <View style={styles.tooltip}>
             <View style={styles.tooltipHeader}>
-              <Ionicons name="globe" size={16} color="#4A90E2" />
+              <Ionicons name="globe" size={16} color={settings.infoColor} />
               <Text style={styles.tooltipTitle}>Qualifies For:</Text>
             </View>
             {selectedQualifications.map((qualification, index) => (
@@ -1252,7 +1252,7 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
       >
         <View style={styles.teamCardHeader}>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.teamCardNumber, { color: item.eligible ? '#22c55e' : '#ef4444' }]}>
+            <Text style={[styles.teamCardNumber, { color: item.eligible ? settings.successColor : settings.errorColor }]}>
               {team.number}
             </Text>
             <Text style={[styles.teamCardName, { color: textColor }]} numberOfLines={1}>
@@ -1272,7 +1272,7 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
           <Ionicons
             name={item.eligible ? "checkmark-circle" : "close-circle"}
             size={32}
-            color={item.eligible ? '#22c55e' : '#ef4444'}
+            color={item.eligible ? settings.successColor : settings.errorColor}
           />
         </View>
 
@@ -1424,11 +1424,11 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
               <Ionicons
                 name={selectedTeamSkills.eligible ? "checkmark-circle" : "close-circle"}
                 size={32}
-                color={selectedTeamSkills.eligible ? '#22c55e' : '#ef4444'}
+                color={selectedTeamSkills.eligible ? settings.successColor : settings.errorColor}
               />
               <Text style={[
                 styles.detailEligibilityText,
-                { color: selectedTeamSkills.eligible ? '#22c55e' : '#ef4444' }
+                { color: selectedTeamSkills.eligible ? settings.successColor : settings.errorColor }
               ]}>
                 {selectedTeamSkills.eligible ? 'Eligible' : 'Not Eligible'}
               </Text>
@@ -1481,13 +1481,13 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
               <Ionicons
                 name={req.met ? "checkmark-circle" : "close-circle"}
                 size={20}
-                color={req.met ? '#22c55e' : '#ef4444'}
+                color={req.met ? settings.successColor : settings.errorColor}
                 style={styles.detailRequirementIcon}
               />
               <View style={{ flex: 1 }}>
                 <Text style={[
                   styles.detailRequirementLabel,
-                  { color: req.met ? '#22c55e' : '#ef4444' }
+                  { color: req.met ? settings.successColor : settings.errorColor }
                 ]}>
                   {req.label}
                 </Text>
@@ -1606,7 +1606,7 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
           <View style={styles.requirementsList}>
             {selectedRequirements.map((requirement, index) => (
               <View key={index} style={styles.requirementItem}>
-                <Ionicons name="checkmark-circle" size={20} color="#22c55e" />
+                <Ionicons name="checkmark-circle" size={20} color={settings.successColor} />
                 <Text style={styles.requirementText}>{requirement}</Text>
               </View>
             ))}
@@ -1645,12 +1645,12 @@ const EventDivisionAwardsScreen = ({ route, navigation }: Props) => {
           </View>
           <View style={[styles.summaryDivider, { backgroundColor: borderColor }]} />
           <View style={styles.summaryStatItem}>
-            <Text style={[styles.summaryStatValue, { color: '#22c55e' }]}>{awardStats.awardsWithWinners}</Text>
+            <Text style={[styles.summaryStatValue, { color: settings.successColor }]}>{awardStats.awardsWithWinners}</Text>
             <Text style={[styles.summaryStatLabel, { color: secondaryTextColor }]}>Awarded</Text>
           </View>
           <View style={[styles.summaryDivider, { backgroundColor: borderColor }]} />
           <View style={styles.summaryStatItem}>
-            <Text style={[styles.summaryStatValue, { color: '#f59e0b' }]}>{awardStats.awardsPending}</Text>
+            <Text style={[styles.summaryStatValue, { color: settings.warningColor }]}>{awardStats.awardsPending}</Text>
             <Text style={[styles.summaryStatLabel, { color: secondaryTextColor }]}>Pending</Text>
           </View>
         </View>

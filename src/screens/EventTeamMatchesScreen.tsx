@@ -75,6 +75,7 @@ interface Match {
   started?: Date;
   scheduled?: Date;
   division?: Division;
+  field?: string;
 }
 
 interface MatchListItem {
@@ -89,6 +90,7 @@ interface MatchListItem {
   winningAlliance: 'red' | 'blue' | 'tie' | null;
   scheduledTime?: Date | null;
   startedTime?: Date | null;
+  field?: string;
   alliances?: {
     red?: { score: number | null };
     blue?: { score: number | null };
@@ -117,8 +119,8 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
 
   // Determine if we should use themed colors or alliance colors for scores
   const shouldUseThemedColors = useThemedScoreColors(settings.selectedProgram);
-  const redScoreColor = shouldUseThemedColors ? textColor : '#FF3B30';
-  const blueScoreColor = shouldUseThemedColors ? textColor : '#007AFF';
+  const redScoreColor = shouldUseThemedColors ? textColor : settings.redAllianceColor;
+  const blueScoreColor = shouldUseThemedColors ? textColor : settings.blueAllianceColor;
 
   const [matches, setMatches] = useState<MatchListItem[]>([]);
   const [showLoading, setShowLoading] = useState(true);
@@ -211,9 +213,9 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
         const winner = getWinningAlliance(item);
         switch (winner) {
           case 'red':
-            return '#FF3B30'; // Red
+            return settings.redAllianceColor; // Red
           case 'blue':
-            return '#007AFF'; // Blue
+            return settings.blueAllianceColor; // Blue
           case 'tie':
             return '#FFA500'; // Orange for ties
           default:
@@ -229,9 +231,9 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
     const winner = getWinningAlliance(item);
     switch (winner) {
       case 'red':
-        return '#FF3B30'; // Red
+        return settings.redAllianceColor; // Red
       case 'blue':
-        return '#007AFF'; // Blue
+        return settings.blueAllianceColor; // Blue
       case 'tie':
         return '#FFA500'; // Orange for ties
       default:
@@ -294,6 +296,7 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
           startedTime: match.started ? new Date(match.started) : null,
           teamAlliance,
           winningAlliance: null, // Will be calculated dynamically using getWinningAlliance()
+          field: match.field,
           rawMatch: match, // Store raw match data
         };
       });
@@ -419,10 +422,10 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
       marginRight: 12,
     },
     redIndicator: {
-      backgroundColor: '#FF3B30',
+      backgroundColor: settings.redAllianceColor,
     },
     blueIndicator: {
-      backgroundColor: '#007AFF',
+      backgroundColor: settings.blueAllianceColor,
     },
     teamsContainer: {
       flex: 1,
@@ -575,7 +578,7 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
       fontWeight: '600',
     },
     vexIQScore: {
-      color: '#007AFF',
+      color: settings.blueAllianceColor,
     },
     // Compact View Styles
     compactMatchItem: {
@@ -630,10 +633,10 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
       fontWeight: '500',
     },
     compactRedTeam: {
-      color: '#FF3B30',
+      color: settings.redAllianceColor,
     },
     compactBlueTeam: {
-      color: '#007AFF',
+      color: settings.blueAllianceColor,
     },
     compactWinnerTeam: {
       textDecorationLine: 'underline',
@@ -648,12 +651,12 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
       backgroundColor: cardBackgroundColor,
     },
     compactHighlightedRedTeamButton: {
-      backgroundColor: '#FF3B30',
-      borderColor: '#FF3B30',
+      backgroundColor: settings.redAllianceColor,
+      borderColor: settings.redAllianceColor,
     },
     compactHighlightedBlueTeamButton: {
-      backgroundColor: '#007AFF',
-      borderColor: '#007AFF',
+      backgroundColor: settings.blueAllianceColor,
+      borderColor: settings.blueAllianceColor,
     },
     compactTeamNumberText: {
       fontSize: 13,
@@ -673,10 +676,10 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
       fontWeight: '700',
     },
     compactRedScoreText: {
-      color: shouldUseThemedColors ? textColor : '#FF3B30',
+      color: shouldUseThemedColors ? textColor : settings.redAllianceColor,
     },
     compactBlueScoreText: {
-      color: shouldUseThemedColors ? textColor : '#007AFF',
+      color: shouldUseThemedColors ? textColor : settings.blueAllianceColor,
     },
     compactWinnerScore: {
       fontSize: 18,
@@ -692,9 +695,9 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
 
   const getMatchStatusColor = (item: MatchListItem) => {
     if (!item.winningAlliance) return '#999'; // Not played
-    if (item.winningAlliance === 'tie') return '#FFA500'; // Tie - Orange
-    if (item.winningAlliance === item.teamAlliance) return '#28A745'; // Win - Green
-    return '#DC3545'; // Loss - Red
+    if (item.winningAlliance === 'tie') return settings.warningColor; // Tie - Warning
+    if (item.winningAlliance === item.teamAlliance) return settings.successColor; // Win - Success
+    return settings.errorColor; // Loss - Error
   };
 
   const navigateToMatchNotes = (matchItem: MatchListItem) => {
@@ -771,7 +774,12 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
         {/* Match name and time */}
         <View style={dynamicStyles.compactMatchHeader}>
           <Text style={dynamicStyles.compactMatchName}>{item.displayName}</Text>
-          <Text style={dynamicStyles.compactMatchTime}>{item.time}</Text>
+          <View style={{ alignItems: 'flex-end' }}>
+            {item.field && (
+              <Text style={[dynamicStyles.compactMatchTime, { color: settings.textColor, fontWeight: '600' }]}>{item.field}</Text>
+            )}
+            <Text style={[dynamicStyles.compactMatchTime, { color: settings.secondaryTextColor }]}>{item.time}</Text>
+          </View>
         </View>
 
         {/* Teams and Scores - Red left, Scores center, Blue right */}
@@ -876,7 +884,12 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
       {/* Match Header */}
       <View style={dynamicStyles.matchHeader}>
         <Text style={dynamicStyles.matchName}>{item.displayName}</Text>
-        <Text style={dynamicStyles.matchTime}>{item.time}</Text>
+        <View style={{ alignItems: 'flex-end' }}>
+          {item.field && (
+            <Text style={[dynamicStyles.matchTime, { fontWeight: '600' }]}>{item.field}</Text>
+          )}
+          <Text style={dynamicStyles.matchTime}>{item.time}</Text>
+        </View>
       </View>
 
       {/* Teams and Scores */}
@@ -899,8 +912,8 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
                     style={[
                       dynamicStyles.teamChip,
                       team === teamNumber && {
-                        backgroundColor: '#FF3B30',
-                        borderColor: '#FF3B30'
+                        backgroundColor: settings.redAllianceColor,
+                        borderColor: settings.redAllianceColor
                       }
                     ]}
                     onPress={() => {
@@ -916,8 +929,8 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
                     <Text style={[
                       dynamicStyles.teamNumber,
                       team === teamNumber && dynamicStyles.highlightedTeamNumber,
-                      isRedTeamZero ? { color: '#FF3B30', textDecorationLine: 'line-through' } :
-                      isRedTeamWinner ? { color: '#007AFF' } : null
+                      isRedTeamZero ? { color: settings.redAllianceColor, textDecorationLine: 'line-through' } :
+                      isRedTeamWinner ? { color: settings.blueAllianceColor } : null
                     ]}>
                       {team}
                     </Text>
@@ -939,8 +952,8 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
                     style={[
                       dynamicStyles.teamChip,
                       team === teamNumber && {
-                        backgroundColor: '#007AFF',
-                        borderColor: '#007AFF'
+                        backgroundColor: settings.blueAllianceColor,
+                        borderColor: settings.blueAllianceColor
                       }
                     ]}
                     onPress={() => {
@@ -956,8 +969,8 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
                     <Text style={[
                       dynamicStyles.teamNumber,
                       team === teamNumber && dynamicStyles.highlightedTeamNumber,
-                      isBlueTeamZero ? { color: '#FF3B30', textDecorationLine: 'line-through' } :
-                      isBlueTeamWinner ? { color: '#007AFF' } : null
+                      isBlueTeamZero ? { color: settings.redAllianceColor, textDecorationLine: 'line-through' } :
+                      isBlueTeamWinner ? { color: settings.blueAllianceColor } : null
                     ]}>
                       {team}
                     </Text>
@@ -1011,8 +1024,8 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
                     style={[
                       dynamicStyles.teamChip,
                       team === teamNumber && {
-                        backgroundColor: '#FF3B30',
-                        borderColor: '#FF3B30'
+                        backgroundColor: settings.redAllianceColor,
+                        borderColor: settings.redAllianceColor
                       }
                     ]}
                     onPress={() => {
@@ -1055,8 +1068,8 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
                     style={[
                       dynamicStyles.teamChip,
                       team === teamNumber && {
-                        backgroundColor: '#007AFF',
-                        borderColor: '#007AFF'
+                        backgroundColor: settings.blueAllianceColor,
+                        borderColor: settings.blueAllianceColor
                       }
                     ]}
                     onPress={() => {
@@ -1132,8 +1145,8 @@ const EventTeamMatchesScreen = ({ route, navigation }: Props) => {
                   <Text style={[
                     dynamicStyles.noteMatchName,
                     { color: note.winningAlliance === 0
-                      ? (note.played ? '#FFA500' : '#333')
-                      : (note.winningAlliance === note.teamAlliance ? '#28A745' : '#DC3545')
+                      ? (note.played ? settings.warningColor : '#333')
+                      : (note.winningAlliance === note.teamAlliance ? settings.successColor : settings.errorColor)
                     }
                   ]}>
                     {note.matchName}

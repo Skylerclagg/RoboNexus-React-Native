@@ -70,6 +70,12 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
 
   // Filter favorites when the selected program changes
   useEffect(() => {
+    // Only filter after settings have been loaded from storage
+    if (!settings.settingsLoaded) {
+      logger.debug('Settings not yet loaded, skipping filter');
+      return;
+    }
+
     filterFavoritesByProgram();
 
     // After filtering completes, if we were loading, mark as done
@@ -77,7 +83,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
       logger.debug('Filtering complete, setting favoritesLoading to false');
       setFavoritesLoading(false);
     }
-  }, [settings.selectedProgram, allFavorites]);
+  }, [settings.selectedProgram, allFavorites, settings.settingsLoaded]);
 
   const filterFavoritesByProgram = () => {
     logger.debug('Filtering favorites for program:', settings.selectedProgram);
@@ -102,6 +108,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
       .filter(Boolean);
 
     logger.debug('Filtered teams:', teams.length, ', events:', events.length);
+    logger.debug('Team numbers extracted:', teams);
     setFavoriteTeams(teams);
     setFavoriteEvents(events);
   };
@@ -165,9 +172,11 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
     try {
       // Check if already favorited in current program
       if (favoriteTeams.includes(team.number)) {
+        logger.debug('Team already favorited:', team.number);
         return;
       }
 
+      logger.debug('Adding team to favorites:', team.number, 'for program:', settings.selectedProgram);
       const favoriteItem: FavoriteItem = {
         id: 'team-' + (settings.selectedProgram || 'unknown') + '-' + (team.number || 'unknown'),
         type: 'team',
@@ -178,9 +187,11 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
         location: team.location ? ((team.location.city || '') + ', ' + (team.location.region || '')) : undefined,
         eventId,
       };
+      logger.debug('Created favorite item:', favoriteItem);
 
       const newAllFavorites = [...allFavorites, favoriteItem];
       await saveFavorites(newAllFavorites);
+      logger.debug('Team added successfully. Total favorites:', newAllFavorites.length);
     } catch (error) {
       logger.error('Failed to add team to favorites:', error);
       throw error;

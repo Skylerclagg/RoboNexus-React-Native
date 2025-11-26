@@ -446,6 +446,50 @@ export const location = {
   },
 
   /**
+   * Reverse geocode coordinates to get address information
+   */
+  reverseGeocodeAsync: async (location: { latitude: number; longitude: number }): Promise<Array<{
+    country?: string;
+    region?: string;
+    city?: string;
+    street?: string;
+    postalCode?: string;
+  }>> => {
+    if (isWeb) {
+      // On web, use a free geocoding API (Nominatim from OpenStreetMap)
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${location.latitude}&lon=${location.longitude}&format=json`,
+          { headers: { 'User-Agent': 'RoboNexus App' } }
+        );
+        const data = await response.json();
+        if (data.address) {
+          return [{
+            country: data.address.country,
+            region: data.address.state || data.address.province,
+            city: data.address.city || data.address.town || data.address.village,
+            street: data.address.road,
+            postalCode: data.address.postcode,
+          }];
+        }
+        return [];
+      } catch (e) {
+        logger.error('Web reverse geocode failed:', e);
+        return [];
+      }
+    } else {
+      // Native implementation using expo-location
+      try {
+        const ExpoLocation = require('expo-location');
+        return await ExpoLocation.reverseGeocodeAsync(location);
+      } catch (e) {
+        logger.error('Native reverse geocode failed:', e);
+        return [];
+      }
+    }
+  },
+
+  /**
    * Accuracy constants for compatibility
    */
   Accuracy: {

@@ -371,7 +371,7 @@ const TeamworkScoreCalculatorScreen: React.FC<TeamworkScoreCalculatorScreenProps
                   triggerHaptics();
                 }
               }}
-              accentColor="#FF6347"
+              accentColor={settings.bonusColor}
               settings={settings}
             />
           </View>
@@ -436,7 +436,7 @@ const CounterSection: React.FC<CounterSectionProps & { settings: any }> = ({
         disabled={count <= 0}
         delayLongPress={500}
       >
-        <Ionicons name="remove-circle" size={28} color={count <= 0 ? settings.secondaryTextColor : '#FF4444'} />
+        <Ionicons name="remove-circle" size={28} color={count <= 0 ? settings.secondaryTextColor : settings.errorColor} />
       </TouchableOpacity>
       <Text style={[styles.counterValue, { color: settings.textColor }]}>{count}</Text>
       <TouchableOpacity
@@ -445,11 +445,11 @@ const CounterSection: React.FC<CounterSectionProps & { settings: any }> = ({
         disabled={count >= maxCount}
         delayLongPress={500}
       >
-        <Ionicons name="add-circle" size={28} color={count >= maxCount ? settings.secondaryTextColor : '#44BB44'} />
+        <Ionicons name="add-circle" size={28} color={count >= maxCount ? settings.secondaryTextColor : settings.successColor} />
       </TouchableOpacity>
     </View>
     {showWarning && (
-      <Ionicons name="warning" size={16} color="#FF4444" />
+      <Ionicons name="warning" size={16} color={settings.errorColor} />
     )}
   </View>
 );
@@ -492,7 +492,7 @@ const DroneBox: React.FC<DroneBoxProps & { settings: any }> = ({
   onSelectionChange,
   settings,
 }) => {
-  const droneUIColor = droneColor === 'Red' ? '#FF4444' : '#1E90FF';
+  const droneUIColor = droneColor === 'Red' ? settings.redAllianceColor : settings.blueAllianceColor;
 
   // Function to determine if an option should be disabled
   const isOptionDisabled = (option: string): boolean => {

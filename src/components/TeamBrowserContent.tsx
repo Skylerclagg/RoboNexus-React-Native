@@ -45,6 +45,7 @@ interface TeamFilters {
 
 const TeamBrowserContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) => {
   const settings = useSettings();
+  const { filterResetTrigger } = settings;
   const { addTeam, removeTeam, isTeamFavorited } = useFavorites();
   const {
     getTeamsForProgramSeason,
@@ -175,6 +176,20 @@ const TeamBrowserContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) 
   useEffect(() => {
     loadSeasons();
   }, [settings.selectedProgram]);
+
+  // Reset all filters when program changes
+  useEffect(() => {
+    if (filterResetTrigger > 0) {
+      logger.debug('Filter reset triggered - clearing all team filters');
+      setFilters({
+        region: '',
+        country: '',
+        gradeLevel: '',
+        registeredOnly: false,
+      });
+      setSearchQuery('');
+    }
+  }, [filterResetTrigger]);
 
   // Set default season when seasons load
   useEffect(() => {
@@ -307,7 +322,7 @@ const TeamBrowserContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) 
             <Ionicons
               name={isFavorited ? 'heart' : 'heart-outline'}
               size={20}
-              color={isFavorited ? '#FF3B30' : settings.secondaryTextColor}
+              color={isFavorited ? settings.errorColor : settings.secondaryTextColor}
             />
           </TouchableOpacity>
         </View>
@@ -346,7 +361,7 @@ const TeamBrowserContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) 
 
         <View style={styles.teamFooter}>
           <Text style={[styles.registeredStatus, {
-            color: team.registered ? '#34C759' : settings.secondaryTextColor
+            color: team.registered ? settings.successColor : settings.secondaryTextColor
           }]}>
             {team.registered ? 'Registered' : 'Not Registered'}
           </Text>
@@ -465,8 +480,8 @@ const TeamBrowserContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) 
               <Switch
                 value={localFilters.registeredOnly}
                 onValueChange={(value) => handleLocalFilterChange('registeredOnly', value)}
-                trackColor={{ false: '#767577', true: settings.buttonColor }}
-                thumbColor={localFilters.registeredOnly ? '#FFFFFF' : '#f4f3f4'}
+                trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                thumbColor={localFilters.registeredOnly ? settings.switchThumbColorOn : settings.switchThumbColorOff}
               />
             </View>
           </View>
@@ -603,7 +618,7 @@ const TeamBrowserContent: React.FC<Props> = ({ navigation, viewMode = 'list' }) 
               {filters.registeredOnly && ` (registered only)`}
             </Text>
             {teamsError && (
-              <Text style={[styles.errorText, { color: '#FF3B30' }]}>
+              <Text style={[styles.errorText, { color: settings.errorColor }]}>
                 Error: {teamsError}
               </Text>
             )}
@@ -833,7 +848,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   applyHeaderButtonText: {
-    color: '#FFFFFF',
+    color: '#FFFFFF', // Keep white for button text contrast
     fontSize: 16,
     fontWeight: '600',
   },

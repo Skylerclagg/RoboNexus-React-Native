@@ -15,6 +15,7 @@
 import { createLogger } from '../utils/logger';
 import { comprehensiveRobotEventsAPI } from './robotEventsApi';
 import { recfEventsAPI } from './recfEventsAPI';
+import { vrcDataAnalysisAPI } from './vrcDataAnalysisAPI';
 
 const logger = createLogger('apiRouter');
 import {
@@ -591,11 +592,26 @@ class APIRouter {
   public resetFailureState(): void {
     comprehensiveRobotEventsAPI.resetFailureState();
   }
+
+  // =============================================================================
+  // VRC DATA ANALYSIS API (TRUESKILL) METHODS
+  // =============================================================================
+
+  /**
+   * Get VRC Data Analysis API instance
+   * Provides access to TrueSkill rankings and advanced statistics
+   */
+  public getVRCDataAnalysisAPI() {
+    return vrcDataAnalysisAPI;
+  }
 }
 
 // Export singleton instance
 export const robotEventsAPI = new APIRouter();
 export default robotEventsAPI;
+
+// Export VRC Data Analysis API for direct access if needed
+export { vrcDataAnalysisAPI };
 
 // Re-export types for convenience
 export * from '../types/api';

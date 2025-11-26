@@ -33,7 +33,7 @@ export const MODULE_LOG_CONFIG = {
   TeamEventsScreen: false,
   TeamInfoScreen: false,
   WelcomeScreen: false,
-  WorldSkillsScreen: false,
+  WorldRankingsScreen: false,
 
   // Components
   AnimatedScrollBar: false,
@@ -48,12 +48,14 @@ export const MODULE_LOG_CONFIG = {
   TeamBrowserContent: false,
   TeamInfoCard: false,
   TeamLookup: false,
+  TrueSkillRankings: false,
   WebMapView: false,
   WorldSkillsFiltersModal: false,
+  WorldSkillsRankings: false,
 
   // Contexts
   DataCacheContext: false,
-  FavoritesContext: false,
+  FavoritesContext: true,
   NotesContext: false,
   SettingsContext: false,
   TeamsContext: false,
@@ -63,6 +65,7 @@ export const MODULE_LOG_CONFIG = {
   apiRouter: false,
   gameManualService: false,
   recfEventsAPI: false,
+  vrcDataAnalysisAPI: false,
 } as const;
 
 export enum LogLevel {

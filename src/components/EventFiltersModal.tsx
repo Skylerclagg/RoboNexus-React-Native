@@ -375,7 +375,7 @@ const EventFiltersModal: React.FC<EventFiltersModalProps> = ({
                   setLocalFilters({ ...localFilters, dateFilter: value })
                 }
                 trackColor={{ false: '#ccc', true: settings.buttonColor }}
-                thumbColor={localFilters.dateFilter ? '#fff' : '#f4f3f4'}
+                thumbColor={localFilters.dateFilter ? settings.switchThumbColorOn : settings.switchThumbColorOff}
               />
             </View>
           </View>
@@ -402,7 +402,7 @@ const EventFiltersModal: React.FC<EventFiltersModalProps> = ({
                   setLocalFilters({ ...localFilters, nearbyFilter: value })
                 }
                 trackColor={{ false: '#ccc', true: settings.buttonColor }}
-                thumbColor={localFilters.nearbyFilter ? '#fff' : '#f4f3f4'}
+                thumbColor={localFilters.nearbyFilter ? settings.switchThumbColorOn : settings.switchThumbColorOff}
               />
             </View>
           </View>
@@ -429,7 +429,7 @@ const EventFiltersModal: React.FC<EventFiltersModalProps> = ({
                   setLocalFilters({ ...localFilters, liveEventsOnly: value })
                 }
                 trackColor={{ false: '#ccc', true: settings.buttonColor }}
-                thumbColor={localFilters.liveEventsOnly ? '#fff' : '#f4f3f4'}
+                thumbColor={localFilters.liveEventsOnly ? settings.switchThumbColorOn : settings.switchThumbColorOff}
               />
             </View>
           </View>
@@ -438,13 +438,13 @@ const EventFiltersModal: React.FC<EventFiltersModalProps> = ({
           <TouchableOpacity
             style={[styles.modernClearButton, {
               backgroundColor: settings.cardBackgroundColor,
-              borderColor: '#FF3B30',
+              borderColor: settings.errorColor,
               shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000'
             }]}
             onPress={clearFilters}
           >
-            <Ionicons name="refresh" size={20} color="#FF3B30" />
-            <Text style={[styles.modernClearButtonText, { color: '#FF3B30' }]}>Clear All Filters</Text>
+            <Ionicons name="refresh" size={20} color={settings.errorColor} />
+            <Text style={[styles.modernClearButtonText, { color: settings.errorColor }]}>Clear All Filters</Text>
           </TouchableOpacity>
         </ScrollView>
       </View>

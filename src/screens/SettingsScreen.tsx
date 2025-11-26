@@ -36,7 +36,7 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSettings, ProgramType, ThemeMode } from '../contexts/SettingsContext';
+import { useSettings, ProgramType, ThemeMode, ColorblindMode } from '../contexts/SettingsContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { useNotes } from '../contexts/NotesContext';
 import DropdownPicker from '../components/DropdownPicker';
@@ -46,7 +46,7 @@ import ColorOverrideModal from '../components/ColorOverrideModal';
 import DeveloperModeDisableModal from '../components/DeveloperModeDisableModal';
 import { robotEventsAPI } from '../services/apiRouter';
 import * as Application from 'expo-application';
-import { getProgramId, PROGRAM_CONFIGS, getAllProgramNames, isProgramLimitedMode } from '../utils/programMappings';
+import { getProgramId, PROGRAM_CONFIGS, getAllProgramNames, isProgramLimitedMode, getProgramConfig } from '../utils/programMappings';
 import { alerts } from '../utils/webCompatibility';
 
 interface SettingsScreenProps {
@@ -69,6 +69,15 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
   const [showColorOverrideModal, setShowColorOverrideModal] = useState(false);
   const [showDeveloperModeDisableModal, setShowDeveloperModeDisableModal] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Check if current program supports TrueSkill
+  const programConfig = getProgramConfig(selectedProgram);
+  const showTrueSkillToggle = programConfig.hasTrueSkill;
+
+  // Check if current program has score calculators available
+  // Show haptics if: program has calculators AND (doesn't require dev OR scoringCalculatorsEnabled)
+  const showHapticsToggle = programConfig.hasScoreCalculators &&
+    (!programConfig.scoreCalculatorRequiresDev || settings.scoringCalculatorsEnabled);
 
   // Get list of dev-only programs for display
   const devOnlyPrograms = useMemo(() => {
@@ -280,7 +289,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
         marginTop: 8,
       }]}>
         <View style={styles.supportHeader}>
-          <Ionicons name="heart" size={24} color="#FF6B6B" />
+          <Ionicons name="heart" size={24} color={settings.errorColor} />
           <Text style={[styles.supportTitle, { color: settings.textColor }]}>Support RoboNexus</Text>
         </View>
         <Text style={[styles.supportMessage, { color: settings.secondaryTextColor }]}>
@@ -345,20 +354,25 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
         borderBottomColor: settings.borderColor
       }]}>
         <Text style={[styles.sectionTitle, { color: settings.secondaryTextColor }]}>General</Text>
-        <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}>
-          <View style={styles.optionTextContainer}>
-            <Text style={[styles.optionText, { color: settings.textColor }]}>Enable Haptics</Text>
-            <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
-              Enables vibration for button presses in score calculators
-            </Text>
+
+        {/* Enable Haptics - Only show if program has score calculators (and enabled if dev-required) */}
+        {showHapticsToggle && (
+          <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}>
+            <View style={styles.optionTextContainer}>
+              <Text style={[styles.optionText, { color: settings.textColor }]}>Enable Haptics</Text>
+              <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                Enables vibration for button presses in score calculators
+              </Text>
+            </View>
+            <Switch
+              value={settings.enableHaptics}
+              onValueChange={settings.setEnableHaptics}
+              trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+              thumbColor={settings.enableHaptics ? settings.switchThumbColorOn : settings.switchThumbColorOff}
+            />
           </View>
-          <Switch
-            value={settings.enableHaptics}
-            onValueChange={settings.setEnableHaptics}
-            trackColor={{ false: '#767577', true: settings.buttonColor }}
-            thumbColor={settings.enableHaptics ? '#fff' : '#f4f3f4'}
-          />
-        </View>
+        )}
+
         <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}>
           <View style={styles.optionTextContainer}>
             <Text style={[styles.optionText, { color: settings.textColor }]}>Sort Dashboard by Next Match</Text>
@@ -369,8 +383,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
           <Switch
             value={settings.sortDashboardByNextMatch}
             onValueChange={settings.setSortDashboardByNextMatch}
-            trackColor={{ false: '#767577', true: settings.buttonColor }}
-            thumbColor={settings.sortDashboardByNextMatch ? '#fff' : '#f4f3f4'}
+            trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+            thumbColor={settings.sortDashboardByNextMatch ? settings.switchThumbColorOn : settings.switchThumbColorOff}
           />
         </View>
         <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}>
@@ -421,6 +435,20 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
         </View>
         <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}>
           <View style={styles.optionTextContainer}>
+            <Text style={[styles.optionText, { color: settings.textColor }]}>Auto-Filter by Country</Text>
+            <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+              Automatically apply country filter based on device location
+            </Text>
+          </View>
+          <Switch
+            value={settings.autoLocationCountryFilter}
+            onValueChange={settings.setAutoLocationCountryFilter}
+            trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+            thumbColor={settings.autoLocationCountryFilter ? settings.switchThumbColorOn : settings.switchThumbColorOff}
+          />
+        </View>
+        <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}>
+          <View style={styles.optionTextContainer}>
             <Text style={[styles.optionText, { color: settings.textColor }]}>Global Season Selection</Text>
             <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
               When enabled, changing season on any screen updates all other screens
@@ -429,10 +457,28 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
           <Switch
             value={settings.globalSeasonEnabled}
             onValueChange={settings.setGlobalSeasonEnabled}
-            trackColor={{ false: '#767577', true: settings.buttonColor }}
-            thumbColor={settings.globalSeasonEnabled ? '#fff' : '#f4f3f4'}
+            trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+            thumbColor={settings.globalSeasonEnabled ? settings.switchThumbColorOn : settings.switchThumbColorOff}
           />
         </View>
+
+        {/* TrueSkill Toggle - Only show if current program supports it */}
+        {showTrueSkillToggle && (
+          <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}>
+            <View style={styles.optionTextContainer}>
+              <Text style={[styles.optionText, { color: settings.textColor }]}>TrueSkill Rankings</Text>
+              <Text style={[styles.optionSubtext, { color: settings.secondaryTextColor }]}>
+                Enable TrueSkill rankings and statistics for VEX V5 teams
+              </Text>
+            </View>
+            <Switch
+              value={settings.trueSkillEnabled}
+              onValueChange={settings.setTrueSkillEnabled}
+              trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+              thumbColor={settings.trueSkillEnabled ? settings.switchThumbColorOn : settings.switchThumbColorOff}
+            />
+          </View>
+        )}
       </View>
 
       {/* Notes */}
@@ -463,7 +509,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
         <Text style={[styles.sectionTitle, { color: settings.secondaryTextColor }]}>App Customization</Text>
 
         {/* Theme Mode Selector */}
-        <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor, flexDirection: 'column', alignItems: 'stretch' }]}>
+        <View style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, flexDirection: 'column', alignItems: 'stretch', borderBottomColor: settings.borderColor }]}>
           <Text style={[styles.optionText, { color: settings.textColor, marginBottom: 8 }]}>Theme</Text>
           <DropdownPicker
             options={[
@@ -494,7 +540,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
 
         {/* Scroll Bar Settings */}
         <TouchableOpacity
-          style={[styles.optionRow, styles.lastOptionRow, { backgroundColor: settings.cardBackgroundColor }]}
+          style={[styles.optionRow, { backgroundColor: settings.cardBackgroundColor, borderBottomColor: settings.borderColor }]}
           onPress={() => setShowScrollBarModal(true)}
         >
           <View style={styles.optionTextContainer}>
@@ -505,6 +551,22 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
           </View>
           <Ionicons name="chevron-forward" size={20} color={settings.secondaryTextColor} />
         </TouchableOpacity>
+
+        {/* Colorblind Mode Selector */}
+        <View style={[styles.optionRow, styles.lastOptionRow, { backgroundColor: settings.cardBackgroundColor, flexDirection: 'column', alignItems: 'stretch' }]}>
+          <Text style={[styles.optionText, { color: settings.textColor, marginBottom: 8 }]}>Colorblind Mode</Text>
+          <DropdownPicker
+            options={[
+              { label: 'None', value: 'none' },
+              { label: 'Protanopia/Deuteranopia (Red-Green)', value: 'redgreen' },
+              { label: 'Tritanopia (Blue-Yellow)', value: 'blueyellow' }
+            ]}
+            selectedValue={settings.colorblindMode}
+            onValueChange={(value) => settings.setColorblindMode(value as 'none' | 'redgreen' | 'blueyellow')}
+            placeholder="Select Colorblind Mode"
+            textAlign="center"
+          />
+        </View>
       </View>
 
       {/* Danger */}
@@ -514,13 +576,13 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
         borderBottomColor: settings.borderColor
       }]}>
         <Text style={[styles.sectionTitle, { color: settings.secondaryTextColor }]}>Danger</Text>
-        <TouchableOpacity style={styles.dangerButton} onPress={handleClearFavoriteTeams}>
+        <TouchableOpacity style={[styles.dangerButton, { backgroundColor: settings.buttonColor, shadowColor: settings.buttonColor }]} onPress={handleClearFavoriteTeams}>
           <Text style={styles.dangerButtonText}>Clear favorite teams</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.dangerButton} onPress={handleClearFavoriteEvents}>
+        <TouchableOpacity style={[styles.dangerButton, { backgroundColor: settings.buttonColor, shadowColor: settings.buttonColor }]} onPress={handleClearFavoriteEvents}>
           <Text style={styles.dangerButtonText}>Clear favorite events</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.dangerButton} onPress={handleClearMatchNotes}>
+        <TouchableOpacity style={[styles.dangerButton, { backgroundColor: settings.buttonColor, shadowColor: settings.buttonColor }]} onPress={handleClearMatchNotes}>
           <Text style={styles.dangerButtonText}>Clear all notes</Text>
         </TouchableOpacity>
       </View>
@@ -553,7 +615,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
         >
           <View style={styles.optionTextContainer}>
             <Text style={[styles.optionText, {
-              color: settings.isDeveloperMode ? '#34C759' : (settings.storedDeveloperCode ? '#FFCC00' : '#FF3B30')
+              color: settings.isDeveloperMode ? settings.successColor : (settings.storedDeveloperCode ? settings.warningColor : settings.errorColor)
             }]}>
               Developer Mode
             </Text>
@@ -569,7 +631,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
           <Ionicons
             name={settings.isDeveloperMode ? "power" : settings.storedDeveloperCode ? "lock-open" : "lock-closed"}
             size={20}
-            color={settings.isDeveloperMode ? '#34C759' : (settings.storedDeveloperCode ? '#FFCC00' : '#FF3B30')}
+            color={settings.isDeveloperMode ? settings.successColor : (settings.storedDeveloperCode ? settings.warningColor : settings.errorColor)}
           />
         </TouchableOpacity>
 
@@ -612,7 +674,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
                 <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>Unlock</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.button, { backgroundColor: '#FF3B30', flex: 1, marginHorizontal: 0 }]}
+                style={[styles.button, { backgroundColor: settings.errorColor, flex: 1, marginHorizontal: 0 }]}
                 onPress={() => {
                   setShowDeveloperCodeInput(false);
                   setDeveloperCode('');
@@ -638,8 +700,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
               <Switch
                 value={settings.allAroundEligibilityEnabled}
                 onValueChange={settings.setAllAroundEligibilityEnabled}
-                trackColor={{ false: '#767577', true: settings.buttonColor }}
-                thumbColor={settings.allAroundEligibilityEnabled ? '#FFFFFF' : '#f4f3f4'}
+                trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                thumbColor={settings.allAroundEligibilityEnabled ? settings.switchThumbColorOn : settings.switchThumbColorOff}
               />
             </View>
 
@@ -654,8 +716,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
               <Switch
                 value={settings.testingEligibilityEnabled}
                 onValueChange={settings.setTestingEligibilityEnabled}
-                trackColor={{ false: '#767577', true: settings.buttonColor }}
-                thumbColor={settings.testingEligibilityEnabled ? '#FFFFFF' : '#f4f3f4'}
+                trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                thumbColor={settings.testingEligibilityEnabled ? settings.switchThumbColorOn : settings.switchThumbColorOff}
               />
             </View>
 
@@ -670,8 +732,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
               <Switch
                 value={settings.eligibilityWarningDismissed}
                 onValueChange={settings.setEligibilityWarningDismissed}
-                trackColor={{ false: '#767577', true: settings.buttonColor }}
-                thumbColor={settings.eligibilityWarningDismissed ? '#FFFFFF' : '#f4f3f4'}
+                trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                thumbColor={settings.eligibilityWarningDismissed ? settings.switchThumbColorOn : settings.switchThumbColorOff}
               />
             </View>
 
@@ -686,8 +748,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
               <Switch
                 value={settings.showAwardsSummary}
                 onValueChange={settings.setShowAwardsSummary}
-                trackColor={{ false: '#767577', true: settings.buttonColor }}
-                thumbColor={settings.showAwardsSummary ? '#FFFFFF' : '#f4f3f4'}
+                trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                thumbColor={settings.showAwardsSummary ? settings.switchThumbColorOn : settings.switchThumbColorOff}
               />
             </View>
 
@@ -702,8 +764,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
               <Switch
                 value={settings.devLiveEventSimulation}
                 onValueChange={settings.setDevLiveEventSimulation}
-                trackColor={{ false: '#767577', true: settings.buttonColor }}
-                thumbColor={settings.devLiveEventSimulation ? '#FFFFFF' : '#f4f3f4'}
+                trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                thumbColor={settings.devLiveEventSimulation ? settings.switchThumbColorOn : settings.switchThumbColorOff}
               />
             </View>
 
@@ -752,8 +814,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
               <Switch
                 value={settings.developerTabEnabled}
                 onValueChange={settings.setDeveloperTabEnabled}
-                trackColor={{ false: '#767577', true: settings.buttonColor }}
-                thumbColor={settings.developerTabEnabled ? '#FFFFFF' : '#f4f3f4'}
+                trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                thumbColor={settings.developerTabEnabled ? settings.switchThumbColorOn : settings.switchThumbColorOff}
               />
             </View>
 
@@ -798,8 +860,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
               <Switch
                 value={settings.teamBrowserEnabled}
                 onValueChange={settings.setTeamBrowserEnabled}
-                trackColor={{ false: '#767577', true: settings.buttonColor }}
-                thumbColor={settings.teamBrowserEnabled ? '#FFFFFF' : '#f4f3f4'}
+                trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                thumbColor={settings.teamBrowserEnabled ? settings.switchThumbColorOn : settings.switchThumbColorOff}
               />
             </View>
 
@@ -814,8 +876,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
               <Switch
                 value={settings.useBundledGameManuals}
                 onValueChange={settings.setUseBundledGameManuals}
-                trackColor={{ false: '#767577', true: settings.buttonColor }}
-                thumbColor={settings.useBundledGameManuals ? '#FFFFFF' : '#f4f3f4'}
+                trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                thumbColor={settings.useBundledGameManuals ? settings.switchThumbColorOn : settings.switchThumbColorOff}
               />
             </View>
 
@@ -832,8 +894,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
               <Switch
                 value={settings.devOnlyProgramsEnabled}
                 onValueChange={settings.setDevOnlyProgramsEnabled}
-                trackColor={{ false: '#767577', true: settings.buttonColor }}
-                thumbColor={settings.devOnlyProgramsEnabled ? '#FFFFFF' : '#f4f3f4'}
+                trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                thumbColor={settings.devOnlyProgramsEnabled ? settings.switchThumbColorOn : settings.switchThumbColorOff}
               />
             </View>
 
@@ -848,8 +910,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
               <Switch
                 value={settings.scoringCalculatorsEnabled}
                 onValueChange={settings.setScoringCalculatorsEnabled}
-                trackColor={{ false: '#767577', true: settings.buttonColor }}
-                thumbColor={settings.scoringCalculatorsEnabled ? '#FFFFFF' : '#f4f3f4'}
+                trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                thumbColor={settings.scoringCalculatorsEnabled ? settings.switchThumbColorOn : settings.switchThumbColorOff}
               />
             </View>
 
@@ -871,7 +933,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
         borderBottomColor: settings.borderColor
       }]}>
         <Text style={[styles.creditText, { color: settings.secondaryTextColor }]}>
-          Developed by Skyler Clagg, <Text style={[styles.warningText, { color: '#FF3B30' }]}>Note this app is NOT an OFFICIAL RECF App.</Text> This app takes inspiration from VRC RoboScout.
+          Developed by Skyler Clagg, <Text style={[styles.warningText, { color: settings.errorColor }]}>Note this app is NOT an OFFICIAL RECF App.</Text> This app takes inspiration from VRC RoboScout.
         </Text>
         <TouchableOpacity style={[styles.button, { backgroundColor: settings.buttonColor, marginTop: 16 }]} onPress={openDiscord}>
           <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>Join the Discord Server</Text>
@@ -943,8 +1005,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
                 <Switch
                   value={settings.compactViewAll}
                   onValueChange={settings.setCompactViewAll}
-                  trackColor={{ false: '#767577', true: settings.buttonColor }}
-                  thumbColor={settings.compactViewAll ? '#fff' : '#f4f3f4'}
+                  trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                  thumbColor={settings.compactViewAll ? settings.switchThumbColorOn : settings.switchThumbColorOff}
                 />
               </View>
 
@@ -958,8 +1020,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
                 <Switch
                   value={settings.compactViewMatches}
                   onValueChange={settings.setCompactViewMatches}
-                  trackColor={{ false: '#767577', true: settings.buttonColor }}
-                  thumbColor={settings.compactViewMatches ? '#fff' : '#f4f3f4'}
+                  trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                  thumbColor={settings.compactViewMatches ? settings.switchThumbColorOn : settings.switchThumbColorOff}
                 />
               </View>
 
@@ -973,8 +1035,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
                 <Switch
                   value={settings.compactViewRankings}
                   onValueChange={settings.setCompactViewRankings}
-                  trackColor={{ false: '#767577', true: settings.buttonColor }}
-                  thumbColor={settings.compactViewRankings ? '#fff' : '#f4f3f4'}
+                  trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                  thumbColor={settings.compactViewRankings ? settings.switchThumbColorOn : settings.switchThumbColorOff}
                 />
               </View>
 
@@ -988,8 +1050,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
                 <Switch
                   value={settings.compactViewSkills}
                   onValueChange={settings.setCompactViewSkills}
-                  trackColor={{ false: '#767577', true: settings.buttonColor }}
-                  thumbColor={settings.compactViewSkills ? '#fff' : '#f4f3f4'}
+                  trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                  thumbColor={settings.compactViewSkills ? settings.switchThumbColorOn : settings.switchThumbColorOff}
                 />
               </View>
 
@@ -1003,8 +1065,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
                 <Switch
                   value={settings.compactViewTeams}
                   onValueChange={settings.setCompactViewTeams}
-                  trackColor={{ false: '#767577', true: settings.buttonColor }}
-                  thumbColor={settings.compactViewTeams ? '#fff' : '#f4f3f4'}
+                  trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                  thumbColor={settings.compactViewTeams ? settings.switchThumbColorOn : settings.switchThumbColorOff}
                 />
               </View>
             </View>
@@ -1050,8 +1112,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
                 <Switch
                   value={settings.scrollBarEnabled}
                   onValueChange={settings.setScrollBarEnabled}
-                  trackColor={{ false: '#767577', true: settings.buttonColor }}
-                  thumbColor={settings.scrollBarEnabled ? '#fff' : '#f4f3f4'}
+                  trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                  thumbColor={settings.scrollBarEnabled ? settings.switchThumbColorOn : settings.switchThumbColorOff}
                 />
               </View>
 
@@ -1065,8 +1127,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
                 <Switch
                   value={settings.scrollBarMatches}
                   onValueChange={settings.setScrollBarMatches}
-                  trackColor={{ false: '#767577', true: settings.buttonColor }}
-                  thumbColor={settings.scrollBarMatches ? '#fff' : '#f4f3f4'}
+                  trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                  thumbColor={settings.scrollBarMatches ? settings.switchThumbColorOn : settings.switchThumbColorOff}
                 />
               </View>
 
@@ -1080,8 +1142,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
                 <Switch
                   value={settings.scrollBarRankings}
                   onValueChange={settings.setScrollBarRankings}
-                  trackColor={{ false: '#767577', true: settings.buttonColor }}
-                  thumbColor={settings.scrollBarRankings ? '#fff' : '#f4f3f4'}
+                  trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                  thumbColor={settings.scrollBarRankings ? settings.switchThumbColorOn : settings.switchThumbColorOff}
                 />
               </View>
 
@@ -1095,8 +1157,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
                 <Switch
                   value={settings.scrollBarSkills}
                   onValueChange={settings.setScrollBarSkills}
-                  trackColor={{ false: '#767577', true: settings.buttonColor }}
-                  thumbColor={settings.scrollBarSkills ? '#fff' : '#f4f3f4'}
+                  trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                  thumbColor={settings.scrollBarSkills ? settings.switchThumbColorOn : settings.switchThumbColorOff}
                 />
               </View>
 
@@ -1110,8 +1172,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
                 <Switch
                   value={settings.scrollBarTeams}
                   onValueChange={settings.setScrollBarTeams}
-                  trackColor={{ false: '#767577', true: settings.buttonColor }}
-                  thumbColor={settings.scrollBarTeams ? '#fff' : '#f4f3f4'}
+                  trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                  thumbColor={settings.scrollBarTeams ? settings.switchThumbColorOn : settings.switchThumbColorOff}
                 />
               </View>
 
@@ -1125,8 +1187,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
                 <Switch
                   value={settings.scrollBarWorldSkills}
                   onValueChange={settings.setScrollBarWorldSkills}
-                  trackColor={{ false: '#767577', true: settings.buttonColor }}
-                  thumbColor={settings.scrollBarWorldSkills ? '#fff' : '#f4f3f4'}
+                  trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                  thumbColor={settings.scrollBarWorldSkills ? settings.switchThumbColorOn : settings.switchThumbColorOff}
                 />
               </View>
 
@@ -1143,8 +1205,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onShowWelcome, navigati
                     settings.setScrollBarEventLookup(enabled);
                     settings.setScrollBarTeamBrowser(enabled);
                   }}
-                  trackColor={{ false: '#767577', true: settings.buttonColor }}
-                  thumbColor={(settings.scrollBarEventLookup && settings.scrollBarTeamBrowser) ? '#fff' : '#f4f3f4'}
+                  trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                  thumbColor={(settings.scrollBarEventLookup && settings.scrollBarTeamBrowser) ? settings.switchThumbColorOn : settings.switchThumbColorOff}
                 />
               </View>
             </View>
@@ -1268,10 +1330,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 12,
     alignItems: 'center',
-    backgroundColor: '#FF3B30',
+    // backgroundColor and shadowColor applied dynamically with settings.errorColor
     marginBottom: 12,
     marginHorizontal: 20,
-    shadowColor: '#FF3B30',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,

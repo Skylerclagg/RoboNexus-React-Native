@@ -7,6 +7,7 @@ const logger = createLogger('NotesContext');
 export interface TeamMatchNote {
   id: string; // Generated unique ID for React Native
   eventId: number;
+  eventName?: string; // Optional event name for displaying context
   matchId: number;
   matchName: string;
   note: string;
@@ -126,6 +127,7 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
       const newNote: TeamMatchNote = {
         id: generateNoteId(),
         eventId: noteData.eventId || 0,
+        eventName: noteData.eventName,
         matchId: noteData.matchId || 0,
         matchName: noteData.matchName || '',
         note: noteData.note || '',

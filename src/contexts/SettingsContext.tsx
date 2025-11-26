@@ -18,6 +18,7 @@ export type ProgramType =
   | 'VEX AIR Drone Competition';
 
 export type ThemeMode = 'auto' | 'light' | 'dark';
+export type ColorblindMode = 'none' | 'redgreen' | 'blueyellow';
 
 export type ColorProperty =
   | 'primary'
@@ -29,7 +30,28 @@ export type ColorProperty =
   | 'textColor'
   | 'secondaryTextColor'
   | 'borderColor'
-  | 'iconColor';
+  | 'iconColor'
+  | 'redAlliance'
+  | 'blueAlliance'
+  | 'successColor'
+  | 'errorColor'
+  | 'warningColor'
+  | 'infoColor'
+  | 'skillsColor'
+  | 'phase1Color'
+  | 'phase2Color'
+  | 'phase3Color'
+  | 'bonusColor'
+  | 'switchTrackColorOff'
+  | 'switchThumbColorOn'
+  | 'switchThumbColorOff'
+  | 'worldEventColor'
+  | 'nationalEventColor'
+  | 'regionalEventColor'
+  | 'stateEventColor'
+  | 'signatureEventColor'
+  | 'otherEventColor'
+  | 'linkColor';
 
 export interface ColorOverride {
   property: ColorProperty;
@@ -47,11 +69,13 @@ interface SettingsContextType {
   resetProgramColorOverrides: (programs: ProgramType[], properties?: ColorProperty[]) => void;
   selectedProgram: ProgramType;
   selectedSeason: string;
+  settingsLoaded: boolean;
   enableHaptics: boolean;
   dateFilter: number;
   nearbyRange: number;
   mapViewEnabled: boolean;
   themeMode: ThemeMode;
+  colorblindMode: ColorblindMode;
   topBarColor: string;
   topBarContentColor: string;
   buttonColor: string;
@@ -84,6 +108,10 @@ interface SettingsContextType {
   scrollBarTeamBrowser: boolean;
   storedDeveloperCode: string;
   setStoredDeveloperCode: (code: string) => void;
+  trueSkillEnabled: boolean;
+  setTrueSkillEnabled: (enabled: boolean) => void;
+  autoLocationCountryFilter: boolean;
+  setAutoLocationCountryFilter: (enabled: boolean) => void;
   setCompactViewAll: (enabled: boolean) => void;
   setSortDashboardByNextMatch: (enabled: boolean) => void;
   setCompactViewMatches: (enabled: boolean) => void;
@@ -106,7 +134,29 @@ interface SettingsContextType {
   secondaryTextColor: string;
   iconColor: string;
   borderColor: string;
+  redAllianceColor: string;
+  blueAllianceColor: string;
+  successColor: string;
+  errorColor: string;
+  warningColor: string;
+  infoColor: string;
+  skillsColor: string;
+  phase1Color: string;
+  phase2Color: string;
+  phase3Color: string;
+  bonusColor: string;
+  switchTrackColorOff: string;
+  switchThumbColorOn: string;
+  switchThumbColorOff: string;
+  worldEventColor: string;
+  nationalEventColor: string;
+  regionalEventColor: string;
+  stateEventColor: string;
+  signatureEventColor: string;
+  otherEventColor: string;
+  linkColor: string;
   previewProgram: ProgramType | null;
+  filterResetTrigger: number;
   setPreviewProgram: (program: ProgramType | null) => void;
   setSelectedProgram: (program: ProgramType) => void;
   setSelectedSeason: (season: string) => void;
@@ -115,6 +165,7 @@ interface SettingsContextType {
   setNearbyRange: (miles: number) => void;
   setMapViewEnabled: (enabled: boolean) => void;
   setThemeMode: (mode: ThemeMode) => void;
+  setColorblindMode: (mode: ColorblindMode) => void;
   setIsDeveloperMode: (enabled: boolean) => void;
   setAllAroundEligibilityEnabled: (enabled: boolean) => void;
   setTestingEligibilityEnabled: (enabled: boolean) => void;
@@ -177,6 +228,9 @@ const STORAGE_KEYS = {
   lastWelcomeVersion: 'lastWelcomeVersion',
   programColorOverrides: 'programColorOverrides',
   globalSeasonMigrated: 'globalSeasonMigrated', // One-time migration flag
+  trueSkillEnabled: 'trueSkillEnabled',
+  colorblindMode: 'colorblindMode',
+  autoLocationCountryFilter: 'autoLocationCountryFilter',
 };
 
 // Developer mode security - SHA-256 hashes of valid codes
@@ -192,7 +246,7 @@ const validateDeveloperCode = (code: string): boolean => {
 };
 
 // Program-based theming function with optional override support
-export const getProgramTheme = (program: ProgramType, colorScheme: ColorSchemeName, overrides?: ProgramColorOverrides) => {
+export const getProgramTheme = (program: ProgramType, colorScheme: ColorSchemeName, overrides?: ProgramColorOverrides, colorblindMode?: ColorblindMode) => {
   const isDark = colorScheme === 'dark';
 
   // Get default theme
@@ -247,6 +301,37 @@ export const getProgramTheme = (program: ProgramType, colorScheme: ColorSchemeNa
       };
   }
 
+  // Apply colorblind mode adjustments to primary color
+  if (colorblindMode && colorblindMode !== 'none') {
+    const primaryColor = defaultTheme.primary.toLowerCase();
+
+    if (colorblindMode === 'redgreen') {
+      // Red-Green colorblind: Replace red/green with orange/blue
+      if (primaryColor === '#ff3b30' || primaryColor === '#dc3545') {
+        // V5RC/VURC red -> orange
+        defaultTheme.primary = '#FF8C00';
+      } else if (primaryColor === '#34c759' || primaryColor === '#28a745') {
+        // ADC green -> blue
+        defaultTheme.primary = '#0066CC';
+      } else if (primaryColor === '#007aff') {
+        // VIQRC blue -> saturated blue (keep distinct)
+        defaultTheme.primary = '#0066CC';
+      }
+    } else if (colorblindMode === 'blueyellow') {
+      // Blue-Yellow colorblind: Replace blue/yellow with cyan/red
+      if (primaryColor === '#007aff') {
+        // VIQRC blue -> cyan
+        defaultTheme.primary = '#00CED1';
+      } else if (primaryColor === '#ff9500') {
+        // VAIRC orange/yellow -> more saturated orange
+        defaultTheme.primary = '#FF8C00';
+      } else if (primaryColor === '#ff3b30' || primaryColor === '#dc3545') {
+        // V5RC/VURC red -> saturated red (keep distinct)
+        defaultTheme.primary = '#CC0000';
+      }
+    }
+  }
+
   // Apply overrides if they exist
   if (overrides && overrides[program]) {
     const programOverrides = overrides[program]!;
@@ -270,11 +355,13 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   // All hooks must be called at the top level, before any conditional logic
   const [selectedProgram, setSelectedProgramState] = useState<ProgramType>('VEX V5 Robotics Competition');
   const [selectedSeason, setSelectedSeasonState] = useState('');
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [enableHaptics, setEnableHapticsState] = useState(true);
   const [dateFilter, setDateFilterState] = useState(7);
   const [nearbyRange, setNearbyRangeState] = useState(100);
   const [mapViewEnabled, setMapViewEnabledState] = useState(false);
   const [themeMode, setThemeModeState] = useState<ThemeMode>('auto');
+  const [colorblindMode, setColorblindModeState] = useState<ColorblindMode>('none');
   const [isDeveloperMode, setIsDeveloperModeState] = useState(false);
   const [allAroundEligibilityEnabled, setAllAroundEligibilityEnabledState] = useState(false);
   const [testingEligibilityEnabled, setTestingEligibilityEnabledState] = useState(false);
@@ -286,6 +373,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [developerTabEnabled, setDeveloperTabEnabledState] = useState(false);
   const [devOnlyProgramsEnabled, setDevOnlyProgramsEnabledState] = useState(false);
   const [scoringCalculatorsEnabled, setScoringCalculatorsEnabledState] = useState(false);
+  const [filterResetTrigger, setFilterResetTrigger] = useState(0);
   const [teamBrowserEnabled, setTeamBrowserEnabledState] = useState(false);
   const [useBundledGameManuals, setUseBundledGameManualsState] = useState(false);
   const [compactViewAll, setCompactViewAllState] = useState(false);
@@ -303,6 +391,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [scrollBarEventLookup, setScrollBarEventLookupState] = useState(false);
   const [scrollBarTeamBrowser, setScrollBarTeamBrowserState] = useState(false);
   const [storedDeveloperCode, setStoredDeveloperCodeState] = useState('');
+  const [trueSkillEnabled, setTrueSkillEnabledState] = useState(true);
+  const [autoLocationCountryFilter, setAutoLocationCountryFilterState] = useState(false);
   const [deviceColorScheme, setDeviceColorScheme] = useState<ColorSchemeName>(Appearance.getColorScheme());
   const [previewProgram, setPreviewProgramState] = useState<ProgramType | null>(null);
   const [programColorOverrides, setProgramColorOverridesState] = useState<ProgramColorOverrides>({});
@@ -317,8 +407,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   // Get theme colors based on program and effective color scheme
   // Use preview program if set (for temporary visual preview), otherwise use selected program
   const effectiveProgram = previewProgram || selectedProgram;
-  logger.debug('Getting theme for program:', effectiveProgram, 'themeMode:', themeMode, 'effectiveColorScheme:', colorScheme);
-  const theme = getProgramTheme(effectiveProgram, colorScheme, programColorOverrides);
+  logger.debug('Getting theme for program:', effectiveProgram, 'themeMode:', themeMode, 'effectiveColorScheme:', colorScheme, 'colorblindMode:', colorblindMode);
+  const theme = getProgramTheme(effectiveProgram, colorScheme, programColorOverrides, colorblindMode);
   logger.debug('Theme calculated:', theme);
   const isDark = colorScheme === 'dark';
 
@@ -350,6 +440,76 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const iconColor = getColorWithOverride('iconColor', isDark ? '#8E8E93' : '#666666');
   const borderColor = getColorWithOverride('borderColor', isDark ? '#38383A' : '#E5E5E7');
 
+  // Colorblind mode support - applies to all color-coded elements
+  const getColorblindDefaults = () => {
+    switch (colorblindMode) {
+      case 'redgreen':
+        // Red-Green colorblind: Replace red/green with orange/blue
+        return {
+          redAlliance: '#FF8C00',      // Orange instead of red
+          blueAlliance: '#0066CC',     // Saturated blue
+          successColor: '#0066CC',     // Blue instead of green
+          errorColor: '#FF8C00',       // Orange instead of red
+          warningColor: '#FFD700',     // Yellow (unchanged)
+          infoColor: '#0066CC',        // Saturated blue
+        };
+      case 'blueyellow':
+        // Blue-Yellow colorblind: Replace blue/yellow with cyan/red
+        return {
+          redAlliance: '#CC0000',      // Saturated red
+          blueAlliance: '#00CED1',     // Cyan instead of blue
+          successColor: '#28A745',     // Green (unchanged)
+          errorColor: '#CC0000',       // Saturated red
+          warningColor: '#FF8C00',     // Orange instead of yellow
+          infoColor: '#00CED1',        // Cyan instead of blue
+        };
+      case 'none':
+      default:
+        // Standard VEX colors
+        return {
+          redAlliance: '#DC3545',
+          blueAlliance: '#007AFF',
+          successColor: '#28A745',
+          errorColor: '#DC3545',
+          warningColor: '#FFD700',
+          infoColor: '#007AFF',
+        };
+    }
+  };
+
+  const colorblindDefaults = getColorblindDefaults();
+  const redAllianceColor = getColorWithOverride('redAlliance', colorblindDefaults.redAlliance);
+  const blueAllianceColor = getColorWithOverride('blueAlliance', colorblindDefaults.blueAlliance);
+
+  // Status colors with colorblind mode support
+  const successColor = getColorWithOverride('successColor', colorblindDefaults.successColor);
+  const errorColor = getColorWithOverride('errorColor', colorblindDefaults.errorColor);
+  const warningColor = getColorWithOverride('warningColor', colorblindDefaults.warningColor);
+  const infoColor = getColorWithOverride('infoColor', colorblindDefaults.infoColor);
+
+  // Specialty colors
+  const skillsColor = getColorWithOverride('skillsColor', '#9370DB');
+  const phase1Color = getColorWithOverride('phase1Color', '#32CD32');
+  const phase2Color = getColorWithOverride('phase2Color', '#1E90FF');
+  const phase3Color = getColorWithOverride('phase3Color', '#9370DB');
+  const bonusColor = getColorWithOverride('bonusColor', '#FF6347');
+
+  // Switch colors
+  const switchTrackColorOff = getColorWithOverride('switchTrackColorOff', '#767577');
+  const switchThumbColorOn = getColorWithOverride('switchThumbColorOn', '#FFFFFF');
+  const switchThumbColorOff = getColorWithOverride('switchThumbColorOff', '#f4f3f4');
+
+  // Event level colors
+  const worldEventColor = getColorWithOverride('worldEventColor', '#FFD700');
+  const nationalEventColor = getColorWithOverride('nationalEventColor', '#FF6B6B');
+  const regionalEventColor = getColorWithOverride('regionalEventColor', '#9B59B6');
+  const stateEventColor = getColorWithOverride('stateEventColor', '#4ECDC4');
+  const signatureEventColor = getColorWithOverride('signatureEventColor', '#45B7D1');
+  const otherEventColor = getColorWithOverride('otherEventColor', '#95A5A6');
+
+  // Link color (for hyperlinks and references)
+  const linkColor = getColorWithOverride('linkColor', '#0066CC');
+
   // Define available programs dynamically from program mappings based on devOnly setting
   const availablePrograms: ProgramType[] = useMemo(() => {
     const allPrograms = getAllProgramNames();
@@ -374,6 +534,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         const savedNearbyRange = await storage.getItem(STORAGE_KEYS.nearbyRange);
         const savedMapViewEnabled = await storage.getItem(STORAGE_KEYS.mapViewEnabled);
         const savedThemeMode = await storage.getItem(STORAGE_KEYS.themeMode);
+        const savedColorblindMode = await storage.getItem(STORAGE_KEYS.colorblindMode);
         const savedDeveloperMode = await storage.getItem(STORAGE_KEYS.isDeveloperMode);
         const savedAllAroundEligibility = await storage.getItem(STORAGE_KEYS.allAroundEligibilityEnabled);
         const savedTestingEligibility = await storage.getItem(STORAGE_KEYS.testingEligibilityEnabled);
@@ -402,6 +563,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         const savedScrollBarEventLookup = await storage.getItem(STORAGE_KEYS.scrollBarEventLookup);
         const savedScrollBarTeamBrowser = await storage.getItem(STORAGE_KEYS.scrollBarTeamBrowser);
         const savedStoredDeveloperCode = await storage.getItem(STORAGE_KEYS.storedDeveloperCode);
+        const savedTrueSkillEnabled = await storage.getItem(STORAGE_KEYS.trueSkillEnabled);
+        const savedAutoLocationCountryFilter = await storage.getItem(STORAGE_KEYS.autoLocationCountryFilter);
         const savedProgramColorOverrides = await storage.getItem(STORAGE_KEYS.programColorOverrides);
         const globalSeasonMigrated = await storage.getItem(STORAGE_KEYS.globalSeasonMigrated);
 
@@ -412,6 +575,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         if (savedNearbyRange) setNearbyRangeState(parseInt(savedNearbyRange));
         if (savedMapViewEnabled) setMapViewEnabledState(JSON.parse(savedMapViewEnabled));
         if (savedThemeMode) setThemeModeState(savedThemeMode as ThemeMode);
+        if (savedColorblindMode) setColorblindModeState(savedColorblindMode as ColorblindMode);
         if (savedDeveloperMode) setIsDeveloperModeState(JSON.parse(savedDeveloperMode));
         if (savedAllAroundEligibility) setAllAroundEligibilityEnabledState(JSON.parse(savedAllAroundEligibility));
         if (savedTestingEligibility) setTestingEligibilityEnabledState(JSON.parse(savedTestingEligibility));
@@ -463,9 +627,17 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         if (savedScrollBarEventLookup) setScrollBarEventLookupState(JSON.parse(savedScrollBarEventLookup));
         if (savedScrollBarTeamBrowser) setScrollBarTeamBrowserState(JSON.parse(savedScrollBarTeamBrowser));
         if (savedStoredDeveloperCode) setStoredDeveloperCodeState(savedStoredDeveloperCode);
+        if (savedTrueSkillEnabled !== null) setTrueSkillEnabledState(JSON.parse(savedTrueSkillEnabled));
+        if (savedAutoLocationCountryFilter !== null) setAutoLocationCountryFilterState(JSON.parse(savedAutoLocationCountryFilter));
         if (savedProgramColorOverrides) setProgramColorOverridesState(JSON.parse(savedProgramColorOverrides));
+
+        // Mark settings as loaded after all settings have been loaded from storage
+        logger.debug('Settings loaded from storage, setting settingsLoaded to true');
+        setSettingsLoaded(true);
       } catch (error) {
         logger.error('Failed to load settings:', error);
+        // Even on error, mark as loaded so the app doesn't hang
+        setSettingsLoaded(true);
       }
     };
 
@@ -501,6 +673,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     setSelectedProgramState(program);
     await storage.setItem(STORAGE_KEYS.selectedProgram, program);
     robotEventsAPI.setSelectedProgram(program);
+
+    // Trigger filter reset in all components
+    setFilterResetTrigger(prev => prev + 1);
 
     // Automatically switch to the current season for the new program
     try {
@@ -545,6 +720,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const setThemeMode = async (mode: ThemeMode) => {
     setThemeModeState(mode);
     await storage.setItem(STORAGE_KEYS.themeMode, mode);
+  };
+
+  const setColorblindMode = async (mode: ColorblindMode) => {
+    setColorblindModeState(mode);
+    await storage.setItem(STORAGE_KEYS.colorblindMode, mode);
   };
 
 
@@ -771,6 +951,16 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     await storage.setItem(STORAGE_KEYS.storedDeveloperCode, code);
   };
 
+  const setTrueSkillEnabled = async (enabled: boolean) => {
+    setTrueSkillEnabledState(enabled);
+    await storage.setItem(STORAGE_KEYS.trueSkillEnabled, JSON.stringify(enabled));
+  };
+
+  const setAutoLocationCountryFilter = async (enabled: boolean) => {
+    setAutoLocationCountryFilterState(enabled);
+    await storage.setItem(STORAGE_KEYS.autoLocationCountryFilter, JSON.stringify(enabled));
+  };
+
   const setProgramColorOverrides = async (overrides: ProgramColorOverrides) => {
     setProgramColorOverridesState(overrides);
     await storage.setItem(STORAGE_KEYS.programColorOverrides, JSON.stringify(overrides));
@@ -863,11 +1053,13 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const value: SettingsContextType = {
     selectedProgram,
     selectedSeason,
+    settingsLoaded,
     enableHaptics,
     dateFilter,
     nearbyRange,
     mapViewEnabled,
     themeMode,
+    colorblindMode,
     topBarColor,
     topBarContentColor,
     buttonColor,
@@ -900,6 +1092,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     scrollBarTeamBrowser,
     storedDeveloperCode,
     setStoredDeveloperCode,
+    trueSkillEnabled,
+    setTrueSkillEnabled,
+    autoLocationCountryFilter,
+    setAutoLocationCountryFilter,
     programColorOverrides,
     setProgramColorOverrides,
     resetProgramColorOverrides,
@@ -925,7 +1121,29 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     secondaryTextColor,
     iconColor,
     borderColor,
+    redAllianceColor,
+    blueAllianceColor,
+    successColor,
+    errorColor,
+    warningColor,
+    infoColor,
+    skillsColor,
+    phase1Color,
+    phase2Color,
+    phase3Color,
+    bonusColor,
+    switchTrackColorOff,
+    switchThumbColorOn,
+    switchThumbColorOff,
+    worldEventColor,
+    nationalEventColor,
+    regionalEventColor,
+    stateEventColor,
+    signatureEventColor,
+    otherEventColor,
+    linkColor,
     previewProgram,
+    filterResetTrigger,
     setPreviewProgram: setPreviewProgramState,
     setSelectedProgram,
     setSelectedSeason,
@@ -934,6 +1152,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     setNearbyRange,
     setMapViewEnabled,
     setThemeMode,
+    setColorblindMode,
     setIsDeveloperMode,
     setAllAroundEligibilityEnabled,
     setTestingEligibilityEnabled,

@@ -295,12 +295,12 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
         if (!team.number) return null;
 
         try {
-          // Get basic team info
-          logger.debug('Fetching team info for:', team.number || 'Unknown');
-          const teamInfo = await robotEventsAPI.getTeamByNumber(team.number);
+          // Get basic team info (use program from favorite item to ensure correct API)
+          logger.debug('Fetching team info for:', team.number || 'Unknown', 'program:', team.program);
+          const teamInfo = await robotEventsAPI.getTeamByNumber(team.number, team.program);
 
           if (!teamInfo) {
-            logger.error('No team info returned for team', team.number || 'Unknown');
+            logger.error('No team info returned for team', team.number || 'Unknown', 'program:', team.program);
 
             // Return a fallback team data object with cached info if available
             return {
@@ -812,7 +812,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
-    logger.debug('useEffect triggered - favoriteTeams:', favoriteTeams.length, 'favoriteEvents:', favoriteEvents.length);
+    logger.debug('useEffect triggered - favoriteTeams:', favoriteTeams.length, 'favoriteEvents:', favoriteEvents.length, 'program:', settings.selectedProgram);
 
     if (favoriteTeams.length > 0 || favoriteEvents.length > 0) {
       logger.debug('Calling loadDashboardData()...');
@@ -823,7 +823,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
       setEventData([]);
       setLoading(false);
     }
-  }, [favoriteTeams.length, favoriteEvents.length, selectedSeason, favoritesLoading, loadDashboardData]);
+  }, [favoriteTeams, favoriteEvents, selectedSeason, favoritesLoading, settings.selectedProgram, loadDashboardData]);
 
   // Set up 3-minute interval for refetching data for teams at events
   useEffect(() => {
@@ -930,8 +930,8 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
   const getRankTrend = (current?: number, previous?: number) => {
     if (!current || !previous) return null;
     const change = previous - current; // Positive means improvement (lower rank number)
-    if (change > 0) return { icon: '↗️', text: `+${change}`, color: '#34C759' };
-    if (change < 0) return { icon: '↘️', text: `${change}`, color: '#FF3B30' };
+    if (change > 0) return { icon: '↗️', text: `+${change}`, color: settings.successColor };
+    if (change < 0) return { icon: '↘️', text: `${change}`, color: settings.errorColor };
     return { icon: '➡️', text: '0', color: settings.secondaryTextColor };
   };
 
@@ -987,7 +987,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
         id: 'delete',
         title: 'Remove Favorite',
         icon: 'trash',
-        color: '#FF3B30',
+        color: settings.errorColor,
         onPress: () => handleDeleteTeam(team.teamNumber, team.teamName),
       },
     ];
@@ -1039,7 +1039,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
         id: 'delete',
         title: 'Remove from Favorites',
         icon: 'trash',
-        color: '#FF3B30',
+        color: settings.errorColor,
         onPress: () => handleDeleteEvent(event.sku || '', event.name),
       },
     ];
@@ -1131,7 +1131,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
         style={[
           styles.activeIndicator,
           {
-            backgroundColor: '#FF3B30',
+            backgroundColor: settings.errorColor,
             transform: [{ scale: pulseAnim }],
           },
         ]}
@@ -1169,7 +1169,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                       showQualificationTooltip === `${team.teamNumber}-regionals` ? null : `${team.teamNumber}-regionals`
                     )}
                   >
-                    <Ionicons name="trophy" size={16} color="#FFD700" style={styles.qualificationIcon} />
+                    <Ionicons name="trophy" size={16} color={settings.warningColor} style={styles.qualificationIcon} />
                   </TouchableOpacity>
                 )}
                 {team.qualifiedForWorlds && (
@@ -1179,7 +1179,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                       showQualificationTooltip === `${team.teamNumber}-worlds` ? null : `${team.teamNumber}-worlds`
                     )}
                   >
-                    <Ionicons name="globe" size={16} color="#4A90E2" style={styles.qualificationIcon} />
+                    <Ionicons name="globe" size={16} color={settings.infoColor} style={styles.qualificationIcon} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -1221,11 +1221,14 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                 <Text style={[
                   styles.statValue,
                   {
-                    color: team.currentEvent?.nextMatchAlliance === 'red'
-                      ? '#FF3B30'
-                      : team.currentEvent?.nextMatchAlliance === 'blue'
-                      ? '#007AFF'
-                      : settings.textColor
+                    color: (() => {
+                      if (team.currentEvent?.nextMatchAlliance === 'red') {
+                        return settings.redAllianceColor;
+                      } else if (team.currentEvent?.nextMatchAlliance === 'blue') {
+                        return settings.blueAllianceColor;
+                      }
+                      return settings.textColor;
+                    })()
                   }
                 ]} numberOfLines={1} adjustsFontSizeToFit>
                   {team.currentEvent?.nextMatchNumber || '--'}
@@ -1250,7 +1253,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
               </View>
 
               <View style={styles.statItem}>
-                <Text style={[styles.statLabel, { color: settings.secondaryTextColor }]}>Skills Highest</Text>
+                <Text style={[styles.statLabel, { color: settings.secondaryTextColor }]}>Highest Skills</Text>
                 <Text style={[styles.statValue, { color: settings.textColor }]}>
                   {team.highestSkillsScore ? team.highestSkillsScore : '--'}
                 </Text>
@@ -1299,10 +1302,10 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
             >
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={[styles.eventLinkText, { color: '#FF3B30', flex: 1 }]}>
+                  <Text style={[styles.eventLinkText, { color: settings.errorColor, flex: 1 }]}>
                     {team.currentEvent?.name || 'Unknown Event'}
                   </Text>
-                  <Ionicons name="calendar" size={16} color="#FF3B30" style={{ marginLeft: 4 }} />
+                  <Ionicons name="calendar" size={16} color={settings.errorColor} style={{ marginLeft: 4 }} />
                 </View>
                 {team.currentEvent?.isMultiDivision && team.currentEvent?.divisionName && (
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
@@ -1325,7 +1328,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
             <View style={[styles.tooltip, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
               <View style={styles.tooltipArrow} />
               <View style={styles.tooltipHeader}>
-                <Ionicons name="globe" size={16} color="#4A90E2" />
+                <Ionicons name="globe" size={16} color={settings.infoColor} />
                 <Text style={[styles.tooltipTitle, { color: settings.textColor }]}>World Championship Qualified</Text>
               </View>
               <Text style={[styles.tooltipText, { color: settings.secondaryTextColor }]}>
@@ -1340,7 +1343,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
             <View style={[styles.tooltip, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
               <View style={styles.tooltipArrow} />
               <View style={styles.tooltipHeader}>
-                <Ionicons name="trophy" size={16} color="#FFD700" />
+                <Ionicons name="trophy" size={16} color={settings.warningColor} />
                 <Text style={[styles.tooltipTitle, { color: settings.textColor }]}>Regional Championship Qualified</Text>
               </View>
               <Text style={[styles.tooltipText, { color: settings.secondaryTextColor }]}>
@@ -1534,7 +1537,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
               const alertMatch = part.match(/<alert>(.*?)<\/alert>/);
               if (alertMatch) {
                 return (
-                  <Text key={index} style={{ color: '#FF3B30' }}>
+                  <Text key={index} style={{ color: settings.errorColor }}>
                     {alertMatch[1]}
                   </Text>
                 );

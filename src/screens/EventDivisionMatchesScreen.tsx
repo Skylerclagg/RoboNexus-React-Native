@@ -64,6 +64,7 @@ interface Match {
   }[];
   started?: string;
   scheduled?: string;
+  field?: string;
 }
 
 interface MatchListItem {
@@ -79,6 +80,7 @@ interface MatchListItem {
   scored: boolean;
   matchnum: number;
   started_at: string | null;
+  field?: string;
   alliances?: {
     red?: { score: number | null };
     blue?: { score: number | null };
@@ -104,8 +106,8 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
   // Determine score colors early for use in styles
   const eventProgram = event?.program?.code || event?.program?.name || 'V5RC';
   const shouldUseThemedColors = useThemedScoreColors(eventProgram);
-  const redScoreColor = shouldUseThemedColors ? textColor : '#FF3B30';
-  const blueScoreColor = shouldUseThemedColors ? textColor : '#007AFF';
+  const redScoreColor = shouldUseThemedColors ? textColor : settings.redAllianceColor;
+  const blueScoreColor = shouldUseThemedColors ? textColor : settings.blueAllianceColor;
 
   // Create styles early to avoid hoisting issues
   const styles = StyleSheet.create({
@@ -180,10 +182,10 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
       borderRadius: 2,
     },
     redIndicator: {
-      backgroundColor: '#FF3B30',
+      backgroundColor: settings.redAllianceColor,
     },
     blueIndicator: {
-      backgroundColor: '#007AFF',
+      backgroundColor: settings.blueAllianceColor,
     },
     teamsContainer: {
       flex: 1,
@@ -283,7 +285,7 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
       fontWeight: '600',
     },
     vexIQScore: {
-      color: '#007AFF',
+      color: blueScoreColor,
     },
     // Compact View Styles
     compactMatchItem: {
@@ -348,10 +350,10 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
       fontWeight: '500',
     },
     compactRedTeam: {
-      color: '#FF3B30',
+      color: redScoreColor,
     },
     compactBlueTeam: {
-      color: '#007AFF',
+      color: blueScoreColor,
     },
     compactWinnerTeam: {
       textDecorationLine: 'underline',
@@ -362,10 +364,10 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
       fontWeight: '700',
     },
     compactRedScoreText: {
-      color: '#FF3B30',
+      color: redScoreColor,
     },
     compactBlueScoreText: {
-      color: '#007AFF',
+      color: blueScoreColor,
     },
     compactWinnerScore: {
       fontSize: 18,
@@ -487,11 +489,11 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
         const winner = getWinningAlliance(item);
         switch (winner) {
           case 'red':
-            return '#FF3B30'; // Red
+            return settings.redAllianceColor;
           case 'blue':
-            return '#007AFF'; // Blue
+            return settings.blueAllianceColor;
           case 'tie':
-            return '#FFA500'; // Orange for ties
+            return settings.warningColor;
           default:
             return '#999999'; // Gray for cooperative format
         }
@@ -505,11 +507,11 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
     const winner = getWinningAlliance(item);
     switch (winner) {
       case 'red':
-        return '#FF3B30'; // Red
+        return settings.redAllianceColor;
       case 'blue':
-        return '#007AFF'; // Blue
+        return settings.blueAllianceColor;
       case 'tie':
-        return '#FFA500'; // Orange for ties
+        return settings.warningColor;
       default:
         return borderColor; // Default border color for unplayed matches
     }
@@ -519,10 +521,7 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
     try {
       logger.debug('Fetching matches for division:', division.name);
 
-      // TODO: Implement division matches API call
-      // const matchesData = await robotEventsAPI.getEventDivisionMatches(event.id, division.id);
-
-      // Fetch real matches data from API
+      // Fetch matches data from API
       const matchesResponse = await robotEventsAPI.getEventDivisionMatches(event.id, division.id);
 
       // Ensure matchesData is an array and handle undefined/null cases
@@ -562,6 +561,7 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
           scored: match.scored ?? false,
           matchnum: match.matchnum ?? 0,
           started_at: match.started || null,
+          field: match.field,
           alliances: {
             red: { score: redAlliance?.score ?? null },
             blue: { score: blueAlliance?.score ?? null }
@@ -664,7 +664,12 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
 
         <View style={styles.compactMatchHeader}>
           <Text style={[styles.compactMatchName, { color: settings.textColor }]}>{item.displayName}</Text>
-          <Text style={[styles.compactMatchTime, { color: settings.secondaryTextColor }]}>{item.time}</Text>
+          <View style={{ alignItems: 'flex-end' }}>
+            {item.field && (
+              <Text style={[styles.compactMatchTime, { color: settings.textColor, fontWeight: '600' }]}>{item.field}</Text>
+            )}
+            <Text style={[styles.compactMatchTime, { color: settings.secondaryTextColor }]}>{item.time}</Text>
+          </View>
         </View>
 
         <View style={styles.compactMatchContent}>
@@ -781,7 +786,12 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
               </View>
             )}
           </View>
-          <Text style={styles.matchTime}>{item.time}</Text>
+          <View style={{ alignItems: 'flex-end' }}>
+            {item.field && (
+              <Text style={[styles.matchTime, { fontWeight: '600' }]}>{item.field}</Text>
+            )}
+            <Text style={styles.matchTime}>{item.time}</Text>
+          </View>
         </View>
 
       {/* Teams and Scores */}
@@ -815,8 +825,8 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
                     >
                       <Text style={[
                         styles.teamNumber,
-                        isRedTeamZero ? { color: '#FF3B30', textDecorationLine: 'line-through' } :
-                        isRedTeamWinner ? { color: '#007AFF' } : null
+                        isRedTeamZero ? { color: settings.errorColor, textDecorationLine: 'line-through' } :
+                        isRedTeamWinner ? { color: settings.infoColor } : null
                       ]}>
                         {team}
                       </Text>
@@ -848,8 +858,8 @@ const EventDivisionMatchesScreen = ({ route, navigation }: Props) => {
                     >
                       <Text style={[
                         styles.teamNumber,
-                        isBlueTeamZero ? { color: '#FF3B30', textDecorationLine: 'line-through' } :
-                        isBlueTeamWinner ? { color: '#007AFF' } : null
+                        isBlueTeamZero ? { color: settings.errorColor, textDecorationLine: 'line-through' } :
+                        isBlueTeamWinner ? { color: settings.infoColor } : null
                       ]}>
                         {team}
                       </Text>

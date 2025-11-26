@@ -214,8 +214,8 @@ const PilotingSkillsCalculatorScreen: React.FC<PilotingSkillsCalculatorScreenPro
                 setDidTakeOff(value);
                 triggerHapticsIfEnabled();
               }}
-              trackColor={{ false: '#767577', true: settings.buttonColor }}
-              thumbColor={didTakeOff ? '#f5dd4b' : '#f4f3f4'}
+              trackColor={{ false: settings.secondaryTextColor, true: settings.buttonColor }}
+              thumbColor={didTakeOff ? '#f5dd4b' : settings.cardBackgroundColor}
             />
           </View>
         </View>
@@ -226,7 +226,7 @@ const PilotingSkillsCalculatorScreen: React.FC<PilotingSkillsCalculatorScreenPro
           <View style={[styles.column, styles.leftColumn]}>
             {/* Phase 1 Section */}
             <View style={[styles.phaseCard, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
-              <Text style={[styles.phaseTitleCentered, { color: '#32CD32' }]}>Phase 1</Text>
+              <Text style={[styles.phaseTitleCentered, { color: settings.phase1Color }]}>Phase 1</Text>
               <Text style={[styles.phasePointsCentered, { color: settings.secondaryTextColor }]}>5 points per completion</Text>
               <View style={styles.phaseCounterRowCentered}>
                 <Text style={[styles.phaseCountText, { color: settings.textColor }]}>{phase1Count}</Text>
@@ -239,7 +239,7 @@ const PilotingSkillsCalculatorScreen: React.FC<PilotingSkillsCalculatorScreenPro
                   }}
                   disabled={phase1Count <= 0}
                 >
-                  <Ionicons name="remove-circle" size={24} color={phase1Count <= 0 ? settings.secondaryTextColor : '#FF4444'} />
+                  <Ionicons name="remove-circle" size={24} color={phase1Count <= 0 ? settings.secondaryTextColor : settings.errorColor} />
                 </TouchableOpacity>
               </View>
               <CheckboxItem
@@ -249,7 +249,7 @@ const PilotingSkillsCalculatorScreen: React.FC<PilotingSkillsCalculatorScreenPro
                   setPhase1RedArch(!phase1RedArch);
                   triggerHapticsIfEnabled();
                 }}
-                color="#32CD32"
+                color={settings.phase1Color}
                 settings={settings}
               />
               <CheckboxItem
@@ -259,14 +259,14 @@ const PilotingSkillsCalculatorScreen: React.FC<PilotingSkillsCalculatorScreenPro
                   setPhase1GreenKeyhole(!phase1GreenKeyhole);
                   triggerHapticsIfEnabled();
                 }}
-                color="#32CD32"
+                color={settings.phase1Color}
                 settings={settings}
               />
             </View>
 
             {/* Phase 3 Section */}
             <View style={[styles.phaseCard, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
-              <Text style={[styles.phaseTitleCentered, { color: '#9370DB' }]}>Phase 3</Text>
+              <Text style={[styles.phaseTitleCentered, { color: settings.phase3Color }]}>Phase 3</Text>
               <Text style={[styles.phasePointsCentered, { color: settings.secondaryTextColor }]}>15 points per completion</Text>
               <View style={styles.phaseCounterRowCentered}>
                 <Text style={[styles.phaseCountText, { color: settings.textColor }]}>{phase3Count}</Text>
@@ -279,7 +279,7 @@ const PilotingSkillsCalculatorScreen: React.FC<PilotingSkillsCalculatorScreenPro
                   }}
                   disabled={phase3Count <= 0}
                 >
-                  <Ionicons name="remove-circle" size={24} color={phase3Count <= 0 ? settings.secondaryTextColor : '#FF4444'} />
+                  <Ionicons name="remove-circle" size={24} color={phase3Count <= 0 ? settings.secondaryTextColor : settings.errorColor} />
                 </TouchableOpacity>
               </View>
               <CheckboxItem
@@ -289,7 +289,7 @@ const PilotingSkillsCalculatorScreen: React.FC<PilotingSkillsCalculatorScreenPro
                   setPhase3Tunnel(!phase3Tunnel);
                   triggerHapticsIfEnabled();
                 }}
-                color="#9370DB"
+                color={settings.phase3Color}
                 settings={settings}
               />
               <CheckboxItem
@@ -299,7 +299,7 @@ const PilotingSkillsCalculatorScreen: React.FC<PilotingSkillsCalculatorScreenPro
                   setPhase3YellowKeyhole(!phase3YellowKeyhole);
                   triggerHapticsIfEnabled();
                 }}
-                color="#9370DB"
+                color={settings.phase3Color}
                 settings={settings}
               />
               <CheckboxItem
@@ -309,7 +309,7 @@ const PilotingSkillsCalculatorScreen: React.FC<PilotingSkillsCalculatorScreenPro
                   setPhase3BlueArch(!phase3BlueArch);
                   triggerHapticsIfEnabled();
                 }}
-                color="#9370DB"
+                color={settings.phase3Color}
                 settings={settings}
               />
             </View>
@@ -319,7 +319,7 @@ const PilotingSkillsCalculatorScreen: React.FC<PilotingSkillsCalculatorScreenPro
           <View style={[styles.column, styles.rightColumn]}>
             {/* Phase 2 Section */}
             <View style={[styles.phaseCard, { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor }]}>
-              <Text style={[styles.phaseTitleCentered, { color: '#1E90FF' }]}>Phase 2</Text>
+              <Text style={[styles.phaseTitleCentered, { color: settings.phase2Color }]}>Phase 2</Text>
               <Text style={[styles.phasePointsCentered, { color: settings.secondaryTextColor }]}>10 points per completion</Text>
               <View style={styles.phaseCounterRowCentered}>
                 <Text style={[styles.phaseCountText, { color: settings.textColor }]}>{phase2Count}</Text>
@@ -332,7 +332,7 @@ const PilotingSkillsCalculatorScreen: React.FC<PilotingSkillsCalculatorScreenPro
                   }}
                   disabled={phase2Count <= 0}
                 >
-                  <Ionicons name="remove-circle" size={24} color={phase2Count <= 0 ? settings.secondaryTextColor : '#FF4444'} />
+                  <Ionicons name="remove-circle" size={24} color={phase2Count <= 0 ? settings.secondaryTextColor : settings.errorColor} />
                 </TouchableOpacity>
               </View>
               <CheckboxItem
@@ -342,13 +342,13 @@ const PilotingSkillsCalculatorScreen: React.FC<PilotingSkillsCalculatorScreenPro
                   setPhase2FlyThrough(!phase2FlyThrough);
                   triggerHapticsIfEnabled();
                 }}
-                color="#1E90FF"
+                color={settings.phase2Color}
                 settings={settings}
               />
 
               {/* Small Hole Bonus nested under Phase 2 */}
               <View style={styles.bonusSection}>
-                <Text style={[styles.bonusTitleCentered, { color: '#FF6347' }]}>Small Hole Bonus</Text>
+                <Text style={[styles.bonusTitleCentered, { color: settings.bonusColor }]}>Small Hole Bonus</Text>
                 <Text style={[styles.bonusPointsCentered, { color: settings.secondaryTextColor }]}>10 points per completion</Text>
                 <View style={styles.bonusCounterRowCentered}>
                   <Text style={[styles.bonusCountText, { color: settings.textColor }]}>{smallHoleBonusCount}</Text>
@@ -361,7 +361,7 @@ const PilotingSkillsCalculatorScreen: React.FC<PilotingSkillsCalculatorScreenPro
                     }}
                     disabled={smallHoleBonusCount <= 0}
                   >
-                    <Ionicons name="remove-circle" size={20} color={smallHoleBonusCount <= 0 ? settings.secondaryTextColor : '#FF4444'} />
+                    <Ionicons name="remove-circle" size={20} color={smallHoleBonusCount <= 0 ? settings.secondaryTextColor : settings.errorColor} />
                   </TouchableOpacity>
                 </View>
                 <CheckboxItem
@@ -371,7 +371,7 @@ const PilotingSkillsCalculatorScreen: React.FC<PilotingSkillsCalculatorScreenPro
                     setPhase2SmallHoleIn(!phase2SmallHoleIn);
                     triggerHapticsIfEnabled();
                   }}
-                  color="#FF6347"
+                  color={settings.bonusColor}
                   settings={settings}
                 />
                 <CheckboxItem
@@ -381,7 +381,7 @@ const PilotingSkillsCalculatorScreen: React.FC<PilotingSkillsCalculatorScreenPro
                     setPhase2SmallHoleOut(!phase2SmallHoleOut);
                     triggerHapticsIfEnabled();
                   }}
-                  color="#FF6347"
+                  color={settings.bonusColor}
                   settings={settings}
                 />
               </View>

@@ -53,6 +53,7 @@ interface TeamFilters {
 
 const TeamBrowserScreen: React.FC<Props> = ({ navigation }) => {
   const settings = useSettings();
+  const { filterResetTrigger } = settings;
   const { addTeam, removeTeam, isTeamFavorited } = useFavorites();
   const {
     getTeamsForProgramSeason,
@@ -119,6 +120,21 @@ const TeamBrowserScreen: React.FC<Props> = ({ navigation }) => {
   useEffect(() => {
     loadSeasons();
   }, [settings.selectedProgram]);
+
+  // Reset all filters when program changes
+  useEffect(() => {
+    if (filterResetTrigger > 0) {
+      logger.debug('Filter reset triggered - clearing all team filters');
+      setFilters({
+        season: '',
+        region: '',
+        country: '',
+        gradeLevel: '',
+        registeredOnly: true,
+      });
+      setSearchQuery('');
+    }
+  }, [filterResetTrigger]);
 
   // Set default season when seasons load
   useEffect(() => {

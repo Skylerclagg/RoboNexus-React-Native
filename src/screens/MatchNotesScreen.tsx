@@ -80,12 +80,13 @@ const TeamNotes: React.FC<TeamNotesProps> = ({
 }) => {
   const settings = useSettings();
   const styles = createStyles(settings);
-  const { getNote, createOrUpdateNote, deleteEmptyNotes, deleteNote } = useNotes();
+  const { getNote, createOrUpdateNote, deleteEmptyNotes, deleteNote, getNotesByTeam } = useNotes();
   const [noteText, setNoteText] = useState('');
   const [currentNote, setCurrentNote] = useState<TeamMatchNote | null>(null);
   const [imageUri, setImageUri] = useState<string | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [otherNotesCount, setOtherNotesCount] = useState(0);
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -120,6 +121,7 @@ const TeamNotes: React.FC<TeamNotesProps> = ({
       // Create new note structure
       const newNoteData = {
         eventId: event.id,
+        eventName: event.name,
         matchId: match.id,
         matchName: match.name,
         note: '',
@@ -136,6 +138,18 @@ const TeamNotes: React.FC<TeamNotesProps> = ({
       setNoteText('');
       setImageUri(undefined);
     }
+
+    // Check for other notes for this team
+    checkOtherNotes();
+  };
+
+  const checkOtherNotes = () => {
+    const allTeamNotes = getNotesByTeam(team.id);
+    // Count notes that are not the current match note
+    const otherNotes = allTeamNotes.filter(note =>
+      !(note.eventId === event.id && note.matchId === match.id)
+    );
+    setOtherNotesCount(otherNotes.length);
   };
 
   const getWinningAlliance = (): number => {
@@ -338,7 +352,7 @@ const TeamNotes: React.FC<TeamNotesProps> = ({
             {winningAlliance !== 0 && (
               <View style={[
                 styles.winIndicator,
-                { backgroundColor: didWin ? '#28A745' : '#DC3545' }
+                { backgroundColor: didWin ? settings.successColor : settings.errorColor }
               ]}>
                 <Ionicons
                   name={didWin ? 'trophy' : 'close-circle'}
@@ -381,13 +395,22 @@ const TeamNotes: React.FC<TeamNotesProps> = ({
             <Text style={styles.actionButtonText}>Stats</Text>
           </TouchableOpacity>
 
-          {/* Notes Button */}
+          {/* Notes Button with badge indicator */}
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: allianceColor + '4D' }]}
             onPress={onShowTeamNotes}
           >
-            <Ionicons name="document-text" size={16} color={settings.textColor} />
-            <Text style={styles.actionButtonText}>Notes</Text>
+            <View style={styles.actionButtonContent}>
+              <Ionicons name="document-text" size={16} color={settings.textColor} />
+              {otherNotesCount > 0 && (
+                <View style={styles.noteBadge}>
+                  <Text style={styles.noteBadgeText}>{otherNotesCount}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.actionButtonText}>
+              Notes{otherNotesCount > 0 ? ` (${otherNotesCount})` : ''}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -423,7 +446,7 @@ const TeamNotes: React.FC<TeamNotesProps> = ({
         />
         <View style={styles.noteFooter}>
           <Text style={[styles.charCounter, {
-            color: noteText.length > MAX_NOTE_LENGTH * 0.9 ? '#DC3545' : settings.secondaryTextColor
+            color: noteText.length > MAX_NOTE_LENGTH * 0.9 ? settings.errorColor : settings.secondaryTextColor
           }]}>
             {noteText.length}/{MAX_NOTE_LENGTH}
           </Text>
@@ -642,7 +665,7 @@ const MatchNotesScreen = ({ route, navigation }: Props) => {
               style={[
                 styles.filterButton,
                 { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor },
-                filterType === 'won' && { backgroundColor: '#28A745' }
+                filterType === 'won' && { backgroundColor: settings.successColor }
               ]}
               onPress={() => setFilterType('won')}
             >
@@ -657,7 +680,7 @@ const MatchNotesScreen = ({ route, navigation }: Props) => {
               style={[
                 styles.filterButton,
                 { backgroundColor: settings.cardBackgroundColor, borderColor: settings.borderColor },
-                filterType === 'lost' && { backgroundColor: '#DC3545' }
+                filterType === 'lost' && { backgroundColor: settings.errorColor }
               ]}
               onPress={() => setFilterType('lost')}
             >
@@ -688,8 +711,8 @@ const MatchNotesScreen = ({ route, navigation }: Props) => {
                           styles.noteMatchName,
                           {
                             color: note.winningAlliance === 0
-                              ? (note.played ? '#FFA500' : settings.textColor)
-                              : (note.winningAlliance === note.teamAlliance ? '#28A745' : '#DC3545')
+                              ? (note.played ? settings.warningColor : settings.textColor)
+                              : (note.winningAlliance === note.teamAlliance ? settings.successColor : settings.errorColor)
                           }
                         ]}
                       >
@@ -703,7 +726,7 @@ const MatchNotesScreen = ({ route, navigation }: Props) => {
                       onPress={() => handleDeleteNote(note.id)}
                       style={styles.deleteButton}
                     >
-                      <Ionicons name="trash-outline" size={20} color="#DC3545" />
+                      <Ionicons name="trash-outline" size={20} color={settings.errorColor} />
                     </TouchableOpacity>
                   </View>
 
@@ -838,6 +861,30 @@ const createStyles = (settings: any) => StyleSheet.create({
     height: 56,
     borderRadius: 13,
     gap: 4,
+  },
+  actionButtonContent: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noteBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -8,
+    backgroundColor: '#FF3B30',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: settings.cardBackgroundColor,
+  },
+  noteBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
   },
   actionButtonText: {
     fontSize: 9,

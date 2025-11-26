@@ -384,7 +384,7 @@ const AutonomousFlightSkillsCalculatorScreen: React.FC<AutonomousFlightSkillsCal
                   triggerHapticsIfEnabled();
                 }
               }}
-              accentColor="#FF6347"
+              accentColor={settings.bonusColor}
               settings={settings}
               scaleFactor={scaleFactor}
             />
@@ -480,11 +480,11 @@ const CounterSection: React.FC<CounterSectionProps> = ({
       <Text style={[dynamicStyles.counterTitle, { color: accentColor }]}>{title}</Text>
       <View style={dynamicStyles.counterControls}>
         <TouchableOpacity onPress={onDecrement} disabled={count <= 0}>
-          <Ionicons name="remove-circle" size={iconSize} color={count <= 0 ? settings.secondaryTextColor : '#FF4444'} />
+          <Ionicons name="remove-circle" size={iconSize} color={count <= 0 ? settings.secondaryTextColor : settings.errorColor} />
         </TouchableOpacity>
         <Text style={[dynamicStyles.counterValue, { color: settings.textColor }]}>{count}</Text>
         <TouchableOpacity onPress={onIncrement} disabled={count >= maxCount}>
-          <Ionicons name="add-circle" size={iconSize} color={count >= maxCount ? settings.secondaryTextColor : '#44BB44'} />
+          <Ionicons name="add-circle" size={iconSize} color={count >= maxCount ? settings.secondaryTextColor : settings.successColor} />
         </TouchableOpacity>
       </View>
       <Text style={[dynamicStyles.maxText, { color: settings.secondaryTextColor }]}>max {maxCount}</Text>

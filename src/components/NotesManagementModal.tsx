@@ -38,6 +38,8 @@ interface Note {
   teamName: string;
   teamNumber: string;
   eventId: number;
+  eventName?: string;
+  matchId: number;
   matchName: string;
   note: string;
   time: string;
@@ -269,9 +271,9 @@ const NotesManagementModal: React.FC<Props> = ({ visible, onClose }) => {
               </View>
             )}
           </View>
-          {selectedTab === 'teams' && item.eventId > 0 && (
+          {selectedTab === 'teams' && item.matchId > 0 && (
             <Text style={[styles.noteEvent, { color: settings.secondaryTextColor }]}>
-              Event: {item.matchName}
+              {item.eventName ? `${item.eventName} - ${item.matchName}` : item.matchName}
             </Text>
           )}
           {selectedTab === 'events' && (

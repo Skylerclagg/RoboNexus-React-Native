@@ -1,5 +1,12 @@
+/**
+ * TrueSkill Filters Modal Component
+ *
+ * Modal for filtering TrueSkill rankings by region and favorites.
+ * Unlike WorldSkillsFiltersModal, this doesn't include season filtering
+ * since TrueSkill data only returns the current season.
+ */
+
 import React, { useState, useEffect } from 'react';
-import { createLogger } from '../utils/logger';
 import {
   View,
   Text,
@@ -7,66 +14,86 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../contexts/SettingsContext';
 import DropdownPicker from './DropdownPicker';
 
-const logger = createLogger('WorldSkillsFiltersModal');
-
-interface WorldSkillsFilters {
-  season: string;
-  region: string;
-}
-
-interface WorldSkillsFiltersModalProps {
+interface TrueSkillFiltersModalProps {
   visible: boolean;
   onClose: () => void;
-  filters: WorldSkillsFilters;
-  onFiltersChange: (filters: WorldSkillsFilters) => void;
-  seasons: { label: string; value: string }[];
-  regions: { label: string; value: string }[];
-  selectedProgram: string;
+  filters: {
+    country: string;
+    region: string;
+    favoritesOnly: boolean;
+  };
+  onFiltersChange: (filters: { country: string; region: string; favoritesOnly: boolean }) => void;
+  countries: string[];
+  regionsByCountry: {[country: string]: string[]};
 }
 
-const WorldSkillsFiltersModal: React.FC<WorldSkillsFiltersModalProps> = ({
+const TrueSkillFiltersModal: React.FC<TrueSkillFiltersModalProps> = ({
   visible,
   onClose,
   filters,
   onFiltersChange,
-  seasons,
-  regions,
-  selectedProgram,
+  countries,
+  regionsByCountry,
 }) => {
   const settings = useSettings();
-  const { updateGlobalSeason } = settings;
-  const [localFilters, setLocalFilters] = useState<WorldSkillsFilters>(filters);
+  const [localFilters, setLocalFilters] = useState(filters);
 
   useEffect(() => {
     setLocalFilters(filters);
   }, [filters]);
 
-  const handleApplyFilters = () => {
-    logger.debug('Applying filters:', localFilters);
-
-    // Update global season when applying filters
-    if (localFilters.season) {
-      updateGlobalSeason(localFilters.season);
-    }
-
+  const handleApply = () => {
     onFiltersChange(localFilters);
     onClose();
   };
 
-  const handleClearFilters = () => {
-    const defaultSeason = seasons.length > 0 ? seasons[0].value : '';
-
-    const clearedFilters: WorldSkillsFilters = {
-      season: defaultSeason,
-      region: '', // All regions
+  const handleClear = () => {
+    const clearedFilters = {
+      country: '',
+      region: '',
+      favoritesOnly: false,
     };
     setLocalFilters(clearedFilters);
     onFiltersChange(clearedFilters);
+  };
+
+  // Prepare country options for dropdown
+  const countryOptions = [
+    { label: 'All Countries', value: '' },
+    ...countries.map(country => ({ label: country, value: country }))
+  ];
+
+  // Get filtered regions based on selected country
+  const getFilteredRegions = () => {
+    if (!localFilters.country) {
+      // Show all regions if no country selected
+      const allRegions = Object.values(regionsByCountry).flat();
+      const uniqueRegions = [...new Set(allRegions)].sort();
+      return [
+        { label: 'All Regions', value: '' },
+        ...uniqueRegions.map(region => ({ label: region, value: region }))
+      ];
+    }
+
+    // Get regions for the selected country
+    const regionsForCountry = regionsByCountry[localFilters.country] || [];
+    return [
+      { label: 'All Regions', value: '' },
+      ...regionsForCountry.map(region => ({ label: region, value: region }))
+    ];
+  };
+
+  const regionOptions = getFilteredRegions();
+
+  // Clear region when country changes
+  const handleCountryChange = (value: string) => {
+    setLocalFilters({ ...localFilters, country: value, region: '' });
   };
 
   return (
@@ -86,31 +113,28 @@ const WorldSkillsFiltersModal: React.FC<WorldSkillsFiltersModalProps> = ({
           <TouchableOpacity onPress={onClose} style={styles.headerButton}>
             <Ionicons name="close" size={24} color={settings.iconColor} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: settings.textColor }]}>World Skills Filters</Text>
-          <TouchableOpacity onPress={handleApplyFilters} style={[styles.applyHeaderButton, { backgroundColor: settings.buttonColor }]}>
+          <Text style={[styles.headerTitle, { color: settings.textColor }]}>TrueSkill Filters</Text>
+          <TouchableOpacity onPress={handleApply} style={[styles.applyHeaderButton, { backgroundColor: settings.buttonColor }]}>
             <Text style={styles.applyHeaderButtonText}>Apply</Text>
           </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Season Filter */}
+          {/* Country Filter */}
           <View style={[styles.modernFilterCard, {
             backgroundColor: settings.cardBackgroundColor,
             borderColor: settings.borderColor,
             shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000'
           }]}>
             <View style={styles.filterHeader}>
-              <Ionicons name="calendar-outline" size={20} color={settings.buttonColor} />
-              <Text style={[styles.modernFilterTitle, { color: settings.textColor }]}>Season</Text>
+              <Ionicons name="globe-outline" size={20} color={settings.buttonColor} />
+              <Text style={[styles.modernFilterTitle, { color: settings.textColor }]}>Country</Text>
             </View>
             <DropdownPicker
-              options={seasons}
-              selectedValue={localFilters.season}
-              onValueChange={(value) => {
-                // Only update local state, don't apply yet
-                setLocalFilters({ ...localFilters, season: value });
-              }}
-              placeholder={seasons.length === 0 ? "Loading seasons..." : "Select Season"}
+              options={countryOptions}
+              selectedValue={localFilters.country}
+              onValueChange={handleCountryChange}
+              placeholder="All Countries"
             />
           </View>
 
@@ -125,11 +149,34 @@ const WorldSkillsFiltersModal: React.FC<WorldSkillsFiltersModalProps> = ({
               <Text style={[styles.modernFilterTitle, { color: settings.textColor }]}>Region</Text>
             </View>
             <DropdownPicker
-              options={[{ label: 'All Regions', value: '' }, ...regions]}
+              options={regionOptions}
               selectedValue={localFilters.region}
               onValueChange={(value) => setLocalFilters({ ...localFilters, region: value })}
               placeholder="All Regions"
             />
+          </View>
+
+          {/* Favorites Only Toggle */}
+          <View style={[styles.modernFilterCard, {
+            backgroundColor: settings.cardBackgroundColor,
+            borderColor: settings.borderColor,
+            shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000'
+          }]}>
+            <View style={styles.filterRow}>
+              <Ionicons name="heart" size={20} color={settings.buttonColor} />
+              <View style={styles.filterTextContainer}>
+                <Text style={[styles.modernFilterTitle, { color: settings.textColor }]}>Favorite Teams Only</Text>
+                <Text style={[styles.filterSubtitle, { color: settings.secondaryTextColor }]}>
+                  Show only teams you've favorited
+                </Text>
+              </View>
+              <Switch
+                value={localFilters.favoritesOnly}
+                onValueChange={(value) => setLocalFilters({ ...localFilters, favoritesOnly: value })}
+                trackColor={{ false: settings.borderColor, true: settings.buttonColor }}
+                thumbColor={settings.switchThumbColorOn}
+              />
+            </View>
           </View>
 
           {/* Clear Filters */}
@@ -139,7 +186,7 @@ const WorldSkillsFiltersModal: React.FC<WorldSkillsFiltersModalProps> = ({
               borderColor: settings.errorColor,
               shadowColor: settings.colorScheme === 'dark' ? '#FFFFFF' : '#000000'
             }]}
-            onPress={handleClearFilters}
+            onPress={handleClear}
           >
             <Ionicons name="refresh" size={20} color={settings.errorColor} />
             <Text style={[styles.modernClearButtonText, { color: settings.errorColor }]}>Clear All Filters</Text>
@@ -179,7 +226,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   applyHeaderButtonText: {
-    color: '#FFFFFF', // Keep white for button text contrast
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -202,10 +249,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  filterTextContainer: {
+    marginLeft: 8,
+    flex: 1,
+  },
   modernFilterTitle: {
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: 8,
+  },
+  filterSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
   },
   modernClearButton: {
     flexDirection: 'row',
@@ -223,10 +282,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   modernClearButtonText: {
-    marginLeft: 8,
     fontSize: 16,
     fontWeight: '600',
+    marginLeft: 8,
   },
 });
 
-export default WorldSkillsFiltersModal;
+export default TrueSkillFiltersModal;

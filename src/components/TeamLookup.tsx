@@ -37,6 +37,7 @@ import { Team } from '../types';
 import TeamInfoCard from './TeamInfoCard';
 import DropdownPicker from './DropdownPicker';
 import { getProgramId, getProgramConfig } from '../utils/programMappings';
+import { vrcDataAnalysisAPI, VRCDataAnalysisTeam } from '../services/vrcDataAnalysisAPI';
 
 interface TeamInfo {
   property: string;
@@ -91,6 +92,8 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
   const [isWorldSkillsLoading, setIsWorldSkillsLoading] = useState<boolean>(false);
   const [matchRecord, setMatchRecord] = useState<MatchRecord | null>(null);
   const [matchRecordLoading, setMatchRecordLoading] = useState<boolean>(false);
+  const [trueSkillData, setTrueSkillData] = useState<VRCDataAnalysisTeam | null>(null);
+  const [trueSkillLoading, setTrueSkillLoading] = useState<boolean>(false);
 
   // Track registration status for teams (for past seasons, we check event registrations)
   const [teamRegistrationStatus, setTeamRegistrationStatus] = useState<{[teamId: string]: boolean}>({});
@@ -120,6 +123,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
         fetchWorldSkillsData(teamData),
         fetchTeamAwards(teamData),
         fetchMatchRecord(teamData),
+        fetchTrueSkillData(teamData),
       ]).catch(error => {
         logger.error('Failed to refetch team data for new season:', error);
       });
@@ -298,6 +302,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
         fetchWorldSkillsData(uiTeam);
         fetchTeamAwards(uiTeam);
         fetchMatchRecord(uiTeam);
+        fetchTrueSkillData(uiTeam);
       } else {
         const isNumericOnly = /^\d+$/.test(searchNumber);
 
@@ -521,6 +526,55 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
     }
   };
 
+  const fetchTrueSkillData = async (team: Team) => {
+    // Only fetch TrueSkill data if enabled in settings
+    if (!settings.trueSkillEnabled) {
+      logger.debug('TrueSkill disabled in settings, skipping fetch');
+      setTrueSkillData(null);
+      return;
+    }
+
+    // TrueSkill is only available for VEX V5 Robotics Competition
+    if (selectedProgram !== 'VEX V5 Robotics Competition') {
+      logger.debug('TrueSkill not available for', selectedProgram);
+      setTrueSkillData(null);
+      return;
+    }
+
+    // TrueSkill is only available for the current season
+    // Check if the selected season is the current/active season (first in the list)
+    const isCurrentSeason = seasons.length > 0 && selectedSeason === seasons[0].value;
+    if (!isCurrentSeason) {
+      logger.debug('TrueSkill only available for current season, selected season:', selectedSeason, 'current season:', seasons[0]?.value);
+      setTrueSkillData(null);
+      return;
+    }
+
+    try {
+      setTrueSkillLoading(true);
+      logger.debug('Fetching TrueSkill data for team:', team.number);
+
+      // Get all teams data from VRC Data Analysis API
+      const allTeams = await vrcDataAnalysisAPI.getAllTeams();
+
+      // Find this team by team number
+      const teamTrueSkill = vrcDataAnalysisAPI.getTeamByNumber(team.number, allTeams);
+
+      if (teamTrueSkill) {
+        logger.debug('Found TrueSkill data for team:', team.number);
+        setTrueSkillData(teamTrueSkill);
+      } else {
+        logger.debug('No TrueSkill data found for team:', team.number);
+        setTrueSkillData(null);
+      }
+    } catch (error) {
+      logger.error('Failed to fetch TrueSkill data:', error);
+      setTrueSkillData(null);
+    } finally {
+      setTrueSkillLoading(false);
+    }
+  };
+
 
   const openTeamPage = () => {
     if (!teamData) return;
@@ -546,6 +600,7 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
       fetchWorldSkillsData(team);
       fetchTeamAwards(team);
       fetchMatchRecord(team);
+      fetchTrueSkillData(team);
 
       setTeamLoading(false);
     } catch (error) {
@@ -814,6 +869,8 @@ const TeamLookup: React.FC<TeamLookupProps> = ({ navigation }) => {
           worldSkillsLoading={isWorldSkillsLoading}
           awardCounts={awardCounts}
           awardCountsLoading={false}
+          trueSkillData={trueSkillData}
+          trueSkillLoading={trueSkillLoading}
           showFavoriteButton={false}
           showHeader={false}
           selectedProgram={selectedProgram}

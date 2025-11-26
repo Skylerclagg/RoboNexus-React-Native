@@ -235,8 +235,8 @@ const DataExportModal: React.FC<DataExportModalProps> = ({
               <Switch
                 value={selectedFields[field.key]}
                 onValueChange={() => toggleField(field.key)}
-                trackColor={{ false: '#767577', true: settings.buttonColor }}
-                thumbColor={selectedFields[field.key] ? '#FFFFFF' : '#f4f3f4'}
+                trackColor={{ false: settings.switchTrackColorOff, true: settings.buttonColor }}
+                thumbColor={selectedFields[field.key] ? settings.switchThumbColorOn : settings.switchThumbColorOff}
               />
             </TouchableOpacity>
           ))}

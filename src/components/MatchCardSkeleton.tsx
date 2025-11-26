@@ -111,7 +111,7 @@ const MatchCardSkeleton: React.FC<MatchCardSkeletonProps> = ({ compact = false }
 
       {/* Alliance Section - Red */}
       <View style={styles.allianceSection}>
-        <View style={[styles.allianceIndicator, styles.redIndicator]} />
+        <View style={[styles.allianceIndicator, { backgroundColor: settings.redAllianceColor }]} />
         <View style={styles.teamsContainer}>
           <SkeletonBox width={65} height={28} style={{ borderRadius: 8 }} />
           <SkeletonBox width={65} height={28} style={{ borderRadius: 8 }} />
@@ -123,7 +123,7 @@ const MatchCardSkeleton: React.FC<MatchCardSkeletonProps> = ({ compact = false }
 
       {/* Alliance Section - Blue */}
       <View style={styles.allianceSection}>
-        <View style={[styles.allianceIndicator, styles.blueIndicator]} />
+        <View style={[styles.allianceIndicator, { backgroundColor: settings.blueAllianceColor }]} />
         <View style={styles.teamsContainer}>
           <SkeletonBox width={65} height={28} style={{ borderRadius: 8 }} />
           <SkeletonBox width={65} height={28} style={{ borderRadius: 8 }} />
@@ -168,10 +168,10 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   redIndicator: {
-    backgroundColor: '#FF3B30',
+    // Will be overridden by inline style
   },
   blueIndicator: {
-    backgroundColor: '#007AFF',
+    // Will be overridden by inline style
   },
   teamsContainer: {
     flex: 1,

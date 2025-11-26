@@ -222,6 +222,15 @@ class GameManualService {
   }
 
   /**
+   * Get Q&A URL from bundled manual data (synchronous)
+   * This is useful for showing the Q&A button immediately during loading
+   */
+  public getQnAUrl(program: string, season: string): string | undefined {
+    const bundledManual = this.loadLocalManual(program, season);
+    return bundledManual?.qnaUrl;
+  }
+
+  /**
    * Get current season's manual for a program
    */
   public async getCurrentSeasonManual(program: string): Promise<GameManual | null> {

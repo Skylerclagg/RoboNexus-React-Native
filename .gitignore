@@ -47,6 +47,7 @@ yarn-error.*
 /tmp/
 scraper-output.log
 /logs/
+/scripts/
 
 # IDE specific files
 .vscode/

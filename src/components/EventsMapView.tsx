@@ -288,7 +288,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
                 styles.eventCard,
                 {
                   backgroundColor: settings.colorScheme === 'dark' ? '#1C1C1E' : '#FFFFFF',
-                  borderColor: settings.colorScheme === 'dark' ? '#2C2C2E' : '#E5E5EA',
+                  borderColor: settings.borderColor,
                 }
               ]}
               onPress={() => onEventPress?.(event)}
@@ -310,7 +310,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
                   <Ionicons
                     name={isEventFavorited(event.sku) ? 'heart' : 'heart-outline'}
                     size={24}
-                    color={isEventFavorited(event.sku) ? '#FF6B6B' : settings.textColor}
+                    color={isEventFavorited(event.sku) ? settings.errorColor : settings.textColor}
                   />
                 </TouchableOpacity>
               </View>
@@ -415,17 +415,17 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
     // Color code markers based on event level
     switch (event.level) {
       case 'World':
-        return '#FFD700'; // Gold
+        return settings.worldEventColor;
       case 'National':
-        return '#FF6B6B'; // Red
+        return settings.nationalEventColor;
       case 'Regional':
-        return '#9B59B6'; // Purple
+        return settings.regionalEventColor;
       case 'State':
-        return '#4ECDC4'; // Teal
+        return settings.stateEventColor;
       case 'Signature':
-        return '#45B7D1'; // Blue
+        return settings.signatureEventColor;
       case 'Other':
-        return '#95A5A6'; // Gray
+        return settings.otherEventColor;
       default:
         return settings.buttonColor; // Use app theme color
     }
@@ -544,29 +544,29 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
         <View style={styles.legendItems}>
           <View style={styles.legendRow}>
             <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: '#FFD700' }]} />
+              <View style={[styles.legendDot, { backgroundColor: settings.worldEventColor }]} />
               <Text style={[styles.legendText, { color: settings.textColor }]}>World</Text>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: '#FF6B6B' }]} />
+              <View style={[styles.legendDot, { backgroundColor: settings.nationalEventColor }]} />
               <Text style={[styles.legendText, { color: settings.textColor }]}>National</Text>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: '#9B59B6' }]} />
+              <View style={[styles.legendDot, { backgroundColor: settings.regionalEventColor }]} />
               <Text style={[styles.legendText, { color: settings.textColor }]}>Regional</Text>
             </View>
           </View>
           <View style={styles.legendRow}>
             <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: '#4ECDC4' }]} />
+              <View style={[styles.legendDot, { backgroundColor: settings.stateEventColor }]} />
               <Text style={[styles.legendText, { color: settings.textColor }]}>State</Text>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: '#45B7D1' }]} />
+              <View style={[styles.legendDot, { backgroundColor: settings.signatureEventColor }]} />
               <Text style={[styles.legendText, { color: settings.textColor }]}>Signature</Text>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: '#95A5A6' }]} />
+              <View style={[styles.legendDot, { backgroundColor: settings.otherEventColor }]} />
               <Text style={[styles.legendText, { color: settings.textColor }]}>Other</Text>
             </View>
           </View>
@@ -579,7 +579,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
           {eventMarkers.length} events in {eventClusters.length} {eventClusters.length === 1 ? 'location' : 'locations'}
         </Text>
         {events.length > eventMarkers.length && (
-          <Text style={[styles.eventCountSubtext, { color: settings.colorScheme === 'dark' ? '#8E8E93' : '#666' }]}>
+          <Text style={[styles.eventCountSubtext, { color: settings.secondaryTextColor }]}>
             {events.length - eventMarkers.length} events without coordinates
           </Text>
         )}
@@ -621,7 +621,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
                   styles.eventCard,
                   {
                     backgroundColor: settings.colorScheme === 'dark' ? '#1C1C1E' : '#FFFFFF',
-                    borderColor: settings.colorScheme === 'dark' ? '#2C2C2E' : '#E5E5EA',
+                    borderColor: settings.borderColor,
                   }
                 ]}
               >
@@ -643,7 +643,7 @@ const EventsMapView: React.FC<EventsMapViewProps> = ({
                     <Ionicons
                       name={isEventFavorited(event.sku) ? 'heart' : 'heart-outline'}
                       size={24}
-                      color={isEventFavorited(event.sku) ? '#FF6B6B' : settings.textColor}
+                      color={isEventFavorited(event.sku) ? settings.errorColor : settings.textColor}
                     />
                   </TouchableOpacity>
                 </View>

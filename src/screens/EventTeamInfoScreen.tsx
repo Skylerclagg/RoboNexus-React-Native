@@ -41,6 +41,7 @@ import EventCard from '../components/EventCard';
 import TeamInfoCard from '../components/TeamInfoCard';
 import DropdownPicker from '../components/DropdownPicker';
 import { getProgramId, getProgramConfig } from '../utils/programMappings';
+import { vrcDataAnalysisAPI, VRCDataAnalysisTeam } from '../services/vrcDataAnalysisAPI';
 
 type EventTeamInfoScreenRouteProp = RouteProp<
   {
@@ -146,6 +147,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
   // State management
   const [selectedSeason, setSelectedSeason] = useState<string>('');
   const [seasons, setSeasons] = useState<{label: string, value: string}[]>([]);
+  const [apiActiveSeason, setApiActiveSeason] = useState<{id: number, name: string} | null>(null);
   const [team, setTeam] = useState<Team | null>(teamData || null);
   const [teamFetched, setTeamFetched] = useState(false);
   const [teamLoading, setTeamLoading] = useState(false);
@@ -164,6 +166,8 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
   const [eventMatchRecordLoading, setEventMatchRecordLoading] = useState(false);
   const [eventSkillsRanking, setEventSkillsRanking] = useState<any | null>(null);
   const [eventSkillsLoading, setEventSkillsLoading] = useState(false);
+  const [trueSkillData, setTrueSkillData] = useState<VRCDataAnalysisTeam | null>(null);
+  const [trueSkillLoading, setTrueSkillLoading] = useState(false);
 
   // Custom tab state management
   const [activeTab, setActiveTab] = useState('statistics');
@@ -172,12 +176,13 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
   // Pull-to-refresh state
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // TODO: Implement user settings for default page
-
   // Initialize data
   useEffect(() => {
-    loadSeasons();
-    fetchTeamInfo();
+    const initializeData = async () => {
+      await loadSeasons();
+      await fetchTeamInfo();
+    };
+    initializeData();
   }, [teamNumber]);
 
   useEffect(() => {
@@ -215,7 +220,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
     }
   }, [eventsState.events.length, seasons.length, hasAutoExpanded]);
 
-  // Refresh awards, world skills, and match record when selected season changes
+  // Refresh awards, world skills, match record, and TrueSkill when selected season changes
   useEffect(() => {
     const currentTeam = team || teamData;
     if (currentTeam?.id && selectedSeason && selectedSeason !== '') {
@@ -224,8 +229,29 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
       fetchAwardCounts(currentTeam.id, seasonId);
       fetchWorldSkillsData(currentTeam.id, seasonId);
       fetchMatchRecord(currentTeam.id);
+      // TrueSkill refresh is handled by checking apiActiveSeason inside fetchTrueSkillData
+      // When user changes season, we need to check if it's still the active season
+      if (apiActiveSeason) {
+        fetchTrueSkillData(currentTeam);
+      }
     }
   }, [selectedSeason, team?.id, teamData?.id]);
+
+  // Fetch TrueSkill when apiActiveSeason is set (for initial load)
+  useEffect(() => {
+    const currentTeam = team || teamData;
+    logger.debug('apiActiveSeason useEffect triggered', {
+      hasApiActiveSeason: !!apiActiveSeason,
+      apiActiveSeasonId: apiActiveSeason?.id,
+      hasTeam: !!currentTeam,
+      teamNumber: currentTeam?.number,
+      selectedSeason,
+    });
+    if (apiActiveSeason && currentTeam && selectedSeason) {
+      logger.debug('API active season loaded, fetching TrueSkill data');
+      fetchTrueSkillData(currentTeam);
+    }
+  }, [apiActiveSeason]);
 
   const loadSeasons = async () => {
     try {
@@ -243,8 +269,26 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
       if (formattedSeasons.length > 0) {
         setSelectedSeason(formattedSeasons[0].value);
       }
+
+      // Fetch the API's current active season
+      await fetchApiActiveSeason(formattedSeasons);
     } catch (error) {
       logger.error('Failed to load seasons:', error);
+    }
+  };
+
+  const fetchApiActiveSeason = async (seasonsList: {label: string, value: string}[]) => {
+    try {
+      const seasonId = await robotEventsAPI.getCurrentSeasonId(selectedProgram);
+      const seasonData = seasonsList.find(s => s.value === seasonId.toString());
+      setApiActiveSeason({
+        id: seasonId,
+        name: seasonData?.label || 'Unknown'
+      });
+      logger.debug('API active season set:', { id: seasonId, name: seasonData?.label });
+    } catch (error) {
+      logger.error('Failed to fetch API active season:', error);
+      setApiActiveSeason(null);
     }
   };
 
@@ -293,6 +337,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
         await fetchAwardCounts(currentTeam.id);
         await fetchMatchRecord(currentTeam.id);
         await fetchEventMatchRecord(currentTeam.id, event.id);
+        // TrueSkill data is fetched by the apiActiveSeason useEffect once season data is loaded
       }
     } catch (error) {
       logger.error('Failed to fetch team info:', error);
@@ -710,6 +755,67 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
     }
   };
 
+  const fetchTrueSkillData = async (currentTeam: Team) => {
+    logger.debug('fetchTrueSkillData called', {
+      teamNumber: currentTeam.number,
+      selectedSeason,
+      apiActiveSeasonId: apiActiveSeason?.id,
+      selectedProgram,
+    });
+
+    setTrueSkillLoading(true);
+    setTrueSkillData(null);
+
+    try {
+      logger.debug('Fetching TrueSkill data for team:', currentTeam.number);
+
+      // Only fetch TrueSkill data if enabled in settings
+      if (!settings.trueSkillEnabled) {
+        logger.debug('TrueSkill disabled in settings, skipping fetch');
+        setTrueSkillData(null);
+        setTrueSkillLoading(false);
+        return;
+      }
+
+      // Only fetch TrueSkill data if viewing the active season and program is V5
+      if (!apiActiveSeason || parseInt(selectedSeason) !== apiActiveSeason.id) {
+        logger.debug('Not active season, skipping TrueSkill data fetch. Selected:', selectedSeason, 'Active:', apiActiveSeason?.id);
+        setTrueSkillData(null);
+        setTrueSkillLoading(false);
+        return;
+      }
+
+      if (selectedProgram !== 'VEX V5 Robotics Competition') {
+        logger.debug('Not V5 program, skipping TrueSkill data fetch');
+        setTrueSkillData(null);
+        setTrueSkillLoading(false);
+        return;
+      }
+
+      logger.debug('Fetching from API...');
+      // Fetch all teams data (includes ranking_change field)
+      const allTeams = await vrcDataAnalysisAPI.getAllTeams();
+
+      // Find this team in the data
+      const teamTrueSkill = vrcDataAnalysisAPI.getTeamByNumber(currentTeam.number, allTeams);
+
+      if (!teamTrueSkill) {
+        logger.debug('TrueSkill data not available for team:', currentTeam.number);
+        setTrueSkillData(null);
+        setTrueSkillLoading(false);
+        return;
+      }
+
+      logger.debug('TrueSkill data fetched successfully for team:', currentTeam.number, 'Rating:', teamTrueSkill.trueskill);
+      setTrueSkillData(teamTrueSkill);
+    } catch (error) {
+      logger.error('Failed to fetch TrueSkill data:', error);
+      setTrueSkillData(null);
+    } finally {
+      setTrueSkillLoading(false);
+    }
+  };
+
   const handleRefresh = useCallback(async () => {
     if (isRefreshing) {
       logger.debug('Already refreshing, skipping duplicate call to prevent API exhaustion');
@@ -761,6 +867,9 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
       await fetchMatchRecord(currentTeam.id);
       await fetchEventMatchRecord(currentTeam.id, event.id);
 
+      // Refresh TrueSkill data
+      await fetchTrueSkillData(currentTeam);
+
       logger.debug('Pull-to-refresh completed successfully');
     } catch (error) {
       logger.error('Pull-to-refresh failed:', error);
@@ -782,7 +891,8 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
     fetchWorldSkillsData,
     fetchAwardCounts,
     fetchMatchRecord,
-    fetchEventMatchRecord
+    fetchEventMatchRecord,
+    fetchTrueSkillData
   ]);
 
   useFocusEffect(
@@ -813,7 +923,6 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
     }
     return defaultLabel;
   };
-
 
   const groupEventsBySeason = () => {
     const eventsBySeason: { [seasonName: string]: Event[] } = {};
@@ -1573,6 +1682,8 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
             awardCountsLoading={awardCountsLoading}
             eventSkillsRanking={eventSkillsRanking}
             eventSkillsLoading={eventSkillsLoading}
+            trueSkillData={trueSkillData}
+            trueSkillLoading={trueSkillLoading}
             showFavoriteButton={false}
             showHeader={false}
             selectedProgram={selectedProgram}
@@ -1772,6 +1883,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
 
     const renderNoteItem = ({ item }: { item: any }) => {
       const isMatchNote = item.matchId && item.matchId !== 0;
+      const isFromDifferentEvent = item.eventId !== event.id;
 
       return (
         <View style={dynamicStyles.noteItem}>
@@ -1784,7 +1896,7 @@ const EventTeamInfoScreen = ({ route, navigation }: Props) => {
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                   <Ionicons name="trophy" size={12} color={buttonColor} style={{ marginRight: 4 }} />
                   <Text style={[dynamicStyles.matchLabel, { color: buttonColor }]}>
-                    {item.matchName}
+                    {isFromDifferentEvent && item.eventName ? `${item.eventName} - ${item.matchName}` : item.matchName}
                   </Text>
                 </View>
               )}

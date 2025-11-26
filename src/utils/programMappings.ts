@@ -165,6 +165,7 @@ export interface ProgramConfig {
 
   // Rankings
   hasFinalistRankings: boolean;  // Has finalist rankings in addition to qualification rankings
+  hasTrueSkill: boolean;         // Has TrueSkill rankings from VRC Data Analysis (V5RC only)
 
   // Score calculator
   scoreCalculator: ScoreCalculatorType;
@@ -200,6 +201,7 @@ export const PROGRAM_CONFIGS: Record<ProgramType, ProgramConfig> = {
     hasDriverSkills: true,      // Driver Skills
     hasProgrammingSkills: true, // Programming Skills
     hasFinalistRankings: false,
+    hasTrueSkill: true,         // Enable TrueSkill rankings for V5RC
     scoreCalculator: 'v5rc',
     scoreCalculatorRequiresDev: true,
     devOnly: false,
@@ -224,6 +226,7 @@ export const PROGRAM_CONFIGS: Record<ProgramType, ProgramConfig> = {
     hasDriverSkills: true,      // Driver Skills
     hasProgrammingSkills: true, // Programming Skills
     hasFinalistRankings: true,  // VEX IQ has finalist rankings
+    hasTrueSkill: false,        // TrueSkill only available for V5RC
     scoreCalculator: 'viqrc',
     scoreCalculatorRequiresDev: true,
     devOnly: false,
@@ -248,6 +251,7 @@ export const PROGRAM_CONFIGS: Record<ProgramType, ProgramConfig> = {
     hasDriverSkills: true,      // Driver Skills
     hasProgrammingSkills: true, // Programming Skills
     hasFinalistRankings: false,
+    hasTrueSkill: false,        // TrueSkill only available for V5RC
     scoreCalculator: 'vurc',
     scoreCalculatorRequiresDev: true,
     devOnly: false,
@@ -272,6 +276,7 @@ export const PROGRAM_CONFIGS: Record<ProgramType, ProgramConfig> = {
     hasDriverSkills: false,
     hasProgrammingSkills: true,
     hasFinalistRankings: false,
+    hasTrueSkill: false,        // TrueSkill only available for V5RC
     scoreCalculator: 'vairc',
     scoreCalculatorRequiresDev: true,
     devOnly: false,
@@ -298,6 +303,7 @@ export const PROGRAM_CONFIGS: Record<ProgramType, ProgramConfig> = {
     hasDriverSkills: true,
     hasProgrammingSkills: true,
     hasFinalistRankings: false,
+    hasTrueSkill: false,        // TrueSkill only available for V5RC
     devOnly: false,
     limitedMode: true, // Show limited dashboard until API is ready
     limitedModeMessage: 'Due to the change in website for the Aerial Drone Competition, this app is currently unable to access data for this program. In the meantime, you can access the <alert>UNOFFICIAL</alert> score calculators and the game manual.',
@@ -321,6 +327,7 @@ export const PROGRAM_CONFIGS: Record<ProgramType, ProgramConfig> = {
     hasDriverSkills: true,      // Flight Skills (API stores as 'driver')
     hasProgrammingSkills: true, // Autonomous Flight (API stores as 'programming')
     hasFinalistRankings: false,
+    hasTrueSkill: false,        // TrueSkill only available for V5RC
     scoreCalculator: 'vadc',
     scoreCalculatorRequiresDev: true, // Available to all users
     devOnly: true,
@@ -641,19 +648,23 @@ export const useThemedScoreColors = (program: ProgramType | string): boolean => 
  * @param program Program name
  * @param alliance Alliance color ('red' or 'blue')
  * @param textColor Current theme text color
+ * @param redAllianceColor Red alliance color from settings
+ * @param blueAllianceColor Blue alliance color from settings
  * @returns Color to use for the score
  */
 export const getScoreColor = (
   program: ProgramType | string,
   alliance: 'red' | 'blue',
-  textColor: string
+  textColor: string,
+  redAllianceColor: string,
+  blueAllianceColor: string
 ): string => {
   const usedThemedColors = useThemedScoreColors(program);
-  
+
   if (usedThemedColors) {
     return textColor;
   }
-  
-  // Use alliance colors
-  return alliance === 'red' ? '#FF3B30' : '#007AFF';
+
+  // Use centralized alliance colors
+  return alliance === 'red' ? redAllianceColor : blueAllianceColor;
 };
